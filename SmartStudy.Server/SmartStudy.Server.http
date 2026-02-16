@@ -1,0 +1,6 @@
+@SmartStudy.Server_HostAddress = http://localhost:5037
+
+GET {{SmartStudy.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

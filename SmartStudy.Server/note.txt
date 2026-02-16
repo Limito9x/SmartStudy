@@ -1,0 +1,29 @@
+﻿Model: Tạo Category.cs (Entity lưu DB).
+DTO: Tạo CreateCategoryDto.cs (Input) và CategoryDto.cs (Output).
+Mapper: Tạo CategoryMappers.cs viết hàm ToDto và ToModel.
+Interface: Tạo ICategoryService.cs định nghĩa hàm (ví dụ: GetAll, Create).
+Service: Tạo CategoryService.cs, implement logic, gọi DB, dùng Mapper.
+Dependency Injection: Vào Program.cs thêm dòng AddScoped<ICategoryService, ...>.
+Controller: Tạo CategoryController.cs, gọi Service và trả về kết quả.
+
+Để xóa được các file trước khi xóa bảng asset (on cascade), ta cần cấu hình interceptor --> đăng ký interceptor trong DbContext để xử lý sự kiện xóa.
+Phải load các entity liên quan trước khi xóa bảng chính, nếu không load thì EF Core sẽ không biết các entity liên quan để xóa.
+
+Kỹ thuật upload lên cloudinary là stream, không dùng buffer.
+Tưởng tượng stream như một dòng chảy dữ liệu, ta có thể đọc hoặc ghi dữ liệu từng phần mà không cần tải toàn bộ vào bộ nhớ.
+
+Abstract Class (BaseEntity): Giúp không phải viết đi viết lại các thuộc tính Id, CreatedAt,... ở mỗi Model.
+Interface (IAuditable, ISoftDelete): Giúp DbContext nhận diện được những thực thể nào cần được tự động điền ngày giờ hoặc tự động lọc bỏ các bản ghi đã xóa (Global Query Filter).
+
+Cơ chế "Cập nhật Current" và "Tracking" (Dưới nắp máy)
+Để UI làm được việc này, em cần lưu ý các điểm kỹ thuật sau:
+A. Tracking (Truy vết)
+TaskLog chính là bằng chứng: Mọi thay đổi của current trong GoalConfig phải luôn đi kèm với 1 TaskLogId.
+Nếu User lỡ tay nhập nhầm (nhập 50km thay vì 5km) và muốn sửa:
+User vào phần Lịch sử (Tracking Logs).
+Sửa con số trong Log đó từ 50 thành 5.
+Backend sẽ tính toán lại hiệu số (-45) và cập nhật ngược lại current của Goal.
+B. Cập nhật Current (Đồng bộ)
+Để UI hiển thị số current mới nhất mà không cần tải lại toàn bộ trang:
+SignalR (Websocket): Nếu muốn làm xịn, Backend gửi một thông báo qua SignalR: "Goal_abc vừa tăng lên 5đ". Mọi Component đang hiển thị Goal đó sẽ tự cập nhật.
+Global State (Zustand/Redux): Khi API Complete/Check-in thành công, Frontend cập nhật lại cục State tổng của Plan/Phase.
