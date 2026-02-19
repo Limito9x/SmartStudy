@@ -8,7 +8,6 @@ export default function DashboardLayout() {
       <div className="dashboard-content">
         <Sidebar />
         <div className="main-content">
-          {/* Nội dung chính của dashboard sẽ được hiển thị ở đây */}
         </div>
       </div>
     </div>
