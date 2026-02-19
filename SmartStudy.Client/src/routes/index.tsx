@@ -1,6 +1,7 @@
 import { type RouteObject, useRoutes } from "react-router-dom";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import AuthLayout from "@/layouts/AuthLayout";
+import SchoolStudyPage from "@/pages/SchoolStudy/SchoolStudy";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -17,6 +18,10 @@ export default function AppRoutes() {
           path: "profile",
           element: <div>Profile Page</div>,
         },
+        {
+          path: "school",
+          element: <SchoolStudyPage />,
+        }
       ],
     },
     {
