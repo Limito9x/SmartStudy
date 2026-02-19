@@ -1,3 +1,4 @@
+import { Outlet } from "react-router-dom";
 import { Header } from "../components/layout/Header";
 import { Sidebar } from "../components/layout/Sidebar";
 
@@ -8,6 +9,7 @@ export default function DashboardLayout() {
       <div className="dashboard-content">
         <Sidebar />
         <div className="main-content">
+          <Outlet />
         </div>
       </div>
     </div>

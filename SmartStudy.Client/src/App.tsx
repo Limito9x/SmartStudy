@@ -1,10 +1,10 @@
 import "./App.css";
-import DashboardLayout from "./layouts/DashboardLayout";
+import AppRoutes from "./routes";
 
 function App() {
   return (
     <>
-      <DashboardLayout />
+      <AppRoutes />
     </>
   );
 }
