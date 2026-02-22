@@ -46,6 +46,10 @@ namespace SmartStudy.Server.Services.Semester
             var Semester = _mapper.Map<Entities.Semester>(SemesterDto);
             Semester.UserId = userId;
 
+            // Ensure term is represented as an integer in the name
+            var termNumber = (int)SemesterDto.Term;
+            Semester.Name = $"Học kỳ {termNumber}, năm học {SemesterDto.Year} - {SemesterDto.Year + 1}";
+
             // Gán UserId cho tất cả Course con nếu có
             if (Semester.Courses != null && Semester.Courses.Any())
             {
@@ -92,6 +96,11 @@ namespace SmartStudy.Server.Services.Semester
             if (Semester == null) return null;
             
             _mapper.Map(SemesterDto, Semester); // Map đè dữ liệu mới cho Semester
+
+            // Recompute display name to ensure Term is stored as integer in the name
+            var updatedTermNumber = (int)SemesterDto.Term;
+            Semester.Name = $"Học kỳ {updatedTermNumber}, năm học {SemesterDto.Year} - {SemesterDto.Year + 1}";
+
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseSemesterDto>(Semester);
         }

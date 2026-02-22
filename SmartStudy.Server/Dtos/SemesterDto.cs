@@ -4,7 +4,6 @@ namespace SmartStudy.Server.Dtos
 {
     public record RequestSemesterDto
     (
-        string Name,
         TermType Term,
         int Year,
         DateTime? StartDate,
@@ -15,7 +14,7 @@ namespace SmartStudy.Server.Dtos
     public record ResponseSemesterDto
     (
         int Id,
-        string Title,
+        string Name,
         string? Description,
         decimal? Progress,
         DateTime? StartDate,
@@ -28,7 +27,7 @@ namespace SmartStudy.Server.Dtos
     public record SimpleResponseSemesterDto
     (
         int Id,
-        string Title,
+        string Name,
         decimal? Progress,
         DateTime? StartDate,
         DateTime? EndDate

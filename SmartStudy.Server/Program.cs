@@ -40,7 +40,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000")
+            policy.WithOrigins("http://localhost:5173")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -176,7 +176,8 @@ app.UseCors("AllowReactApp");
 if (app.Environment.IsDevelopment())
 {
     // Map OpenAPI JSON endpoint - Tạo file JSON specification tại /openapi/v1.json
-    app.MapOpenApi();
+    var openApiEndpoint = app.MapOpenApi();
+    openApiEndpoint.AllowAnonymous(); // Cho phép truy cập mà không cần authentication
 
     // Map Scalar UI endpoint - Tài liệu API tại /scalar/v1
     app.MapScalarApiReference(options =>
