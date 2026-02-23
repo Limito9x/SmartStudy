@@ -1,13 +1,21 @@
 import { type RouteObject, useRoutes } from "react-router-dom";
+import LandingPage from "@/pages/landing/LandingPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import AuthLayout from "@/layouts/AuthLayout";
-import LoginPage from "@/pages/Auth/LoginPage";
-import SchoolStudyPage from "@/pages/SchoolStudy/SchoolStudy";
+import LoginPage from "@/pages/auth/LoginPage";
+import SchoolStudyPage from "@/pages/school-study/SchoolStudy";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
     {
       path: "/",
+      element: <LandingPage />,
+    },
+    {
+      path: "/login",
+      element: <LoginPage />,
+    },
+    {
+      path: "/app",
       element: <DashboardLayout />,
       children: [
         {
@@ -22,21 +30,6 @@ export default function AppRoutes() {
         {
           path: "school",
           element: <SchoolStudyPage />,
-        },
-      ],
-    },
-    {
-      path: "/auth",
-      element: <AuthLayout />,
-      children: [
-        {
-          path: "login",
-          element: <LoginPage />,
-          index: true,
-        },
-        {
-          path: "register",
-          element: <div>Register Page</div>,
         },
       ],
     },

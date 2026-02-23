@@ -14,8 +14,11 @@ import { useForm } from "react-hook-form";
 import { authService } from "@/services/apiClient";
 import { type UserLoginDto } from "@/services/api";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+
   const loginFormSchema = z.object({
     userName: z.string().min(1, "Vui lòng nhập tên đăng nhập"),
     password: z.string().min(1, "Vui lòng nhập mật khẩu"),
@@ -33,7 +36,7 @@ export default function LoginPage() {
     try {
       const response = await authService.apiAuthLoginPost(values);
       useAuthStore.getState().login(response.data);
-      console.log("Login successful:", response.data);
+      navigate("/app");
     } catch (error) {
       console.error("Login failed:", error);
     }

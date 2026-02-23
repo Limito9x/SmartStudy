@@ -7,14 +7,15 @@ const navigationItems = [
   { label: "Học tập chính khóa", path: "/school" },
 ];
 
-export function Navigation() {
+export default function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
 
   return (
     <nav className="flex flex-col gap-1 p-2">
       {navigationItems.map((item) => {
-        const isActive = location.pathname === item.path;
+        const navPath = item.path === "/" ? "/app" : `/app${item.path}`;
+        const isActive = location.pathname === navPath;
 
         return (
           <Button
@@ -22,9 +23,9 @@ export function Navigation() {
             variant="ghost"
             className={cn(
               "w-full justify-start gap-2",
-              isActive && "bg-accent text-accent-foreground font-medium",
+              isActive && "bg-primary text-primary-foreground",
             )}
-            onClick={() => navigate(item.path)}
+            onClick={() => navigate(navPath)}
           >
             {item.label}
           </Button>

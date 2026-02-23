@@ -2,8 +2,9 @@ import {
   Sidebar as ShadcnSidebar,
   SidebarHeader,
   SidebarContent,
-} from "../../ui/sidebar";
-import { Navigation } from "./Navigation";
+} from "../../../ui/sidebar";
+import Navigation  from "./navigation";
+import UserNav from "./user-nav";
 
 export function Sidebar() {
   return (
@@ -14,6 +15,7 @@ export function Sidebar() {
         </SidebarHeader>
         <SidebarContent>
           <Navigation />
+          <UserNav />
         </SidebarContent>
       </ShadcnSidebar>
     </div>
