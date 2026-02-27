@@ -20,56 +20,34 @@ namespace SmartStudy.Server.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<UserResponseDto>> Register([FromBody] UserRegisterDto model)
         {
-            try
-            {
-                var userResponse = await _authService.RegisterAsync(model);
-                return Created("User registered successfully", userResponse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var userResponse = await _authService.RegisterAsync(model);
+            return Created("User registered successfully", userResponse);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] UserLoginDto model)
         {
-            try
-            {
-                var result = await _authService.LoginAsync(model);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _authService.LoginAsync(model);
+            return Ok(result);
         }
 
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<UserResponseDto>> GetMe()
         {
-            try
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if(String.IsNullOrEmpty(userId))
             {
-               var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if(String.IsNullOrEmpty(userId))
-                {
-                    return Unauthorized("User Id should not be empty");
-                }
-                var result = await _authService.GetUserProfileAsync(userId);
-
-                if(result == null)
-                {
-                    return NotFound("User not found");
-                }
-
-                return Ok(result);
+                return Unauthorized("User Id should not be empty");
             }
-            catch (Exception ex)
+            var result = await _authService.GetUserProfileAsync(userId);
+
+            if(result == null)
             {
-                Console.WriteLine(ex);
-                return BadRequest(new { message = ex.Message });
+                return NotFound("User not found");
             }
+
+            return Ok(result);
         }
     }
 }

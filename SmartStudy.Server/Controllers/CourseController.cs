@@ -19,69 +19,32 @@ namespace SmartStudy.Server.Controllers
         [HttpGet("{CourseId}")]
         public async Task<ActionResult<ResponseCourseDto>> GetCourseById(int CourseId)
         {
-            try
-            {
-                var Course = await _CourseService.GetCourseByIdAsync(CourseId);
-                if (Course == null)
-                {
-                    return NotFound();
-                }
-                return Ok(Course);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var Course = await _CourseService.GetCourseByIdAsync(CourseId);
+            if (Course == null) return NotFound();
+            return Ok(Course);
         }
 
         [HttpPost]
         public async Task<ActionResult<ResponseCourseDto>> CreateCourse(RequestCourseDto CourseDto)
         {
-            try
-            {
-                var createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
-                return CreatedAtAction(nameof(GetCourseById), new { CourseId = createdCourse.Id }, createdCourse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
+            return CreatedAtAction(nameof(GetCourseById), new { CourseId = createdCourse.Id }, createdCourse);
         }
 
         [HttpPatch("{CourseId}")]
         public async Task<ActionResult<ResponseCourseDto>> UpdateCourse(int CourseId, RequestCourseDto CourseDto)
         {
-            try
-            {
-                var updatedCourse = await _CourseService.UpdateCourseAsync(CourseId, CourseDto);
-                if (updatedCourse == null)
-                {
-                    return NotFound();
-                }
-                return Ok(updatedCourse);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var updatedCourse = await _CourseService.UpdateCourseAsync(CourseId, CourseDto);
+            if (updatedCourse == null) return NotFound();
+            return Ok(updatedCourse);
         }
 
         [HttpDelete("{CourseId}")]
         public async Task<IActionResult> DeleteCourse(int CourseId)
         {
-            try
-            {
-                var deleted = await _CourseService.DeleteCourseAsync(CourseId);
-                if (!deleted)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-            catch(Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var deleted = await _CourseService.DeleteCourseAsync(CourseId);
+            if (!deleted) return NotFound();
+            return NoContent();
         }
     }
 }

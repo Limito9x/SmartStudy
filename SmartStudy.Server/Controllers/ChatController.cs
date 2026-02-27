@@ -21,29 +21,15 @@ namespace SmartStudy.Server.Controllers
         [HttpGet("sessions/{sessionId}")]
         public async Task<IActionResult> GetMessagesBySessionId(int sessionId)
         {
-            try 
-            {
-                var messages = await _chatService.GetMessagesBySessionId(sessionId);
-                return Ok(messages);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            var messages = await _chatService.GetMessagesBySessionId(sessionId);
+            return Ok(messages);
         }
 
         [HttpGet("sessions")]
         public async Task<IActionResult> GetAllSessions()
         {
-            try 
-            {
-                var sessions = await _chatService.GetSessions();
-                return Ok(sessions);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            var sessions = await _chatService.GetSessions();
+            return Ok(sessions);
         }
 
         /// <summary>
@@ -126,15 +112,8 @@ namespace SmartStudy.Server.Controllers
         [HttpPost("sessions")]
         public async Task<IActionResult> CreateSession([FromBody] SessionDto sessionDto)
         {
-            try 
-            {
-                await _chatService.CreateSession(sessionDto);
-                return Ok(new { message = "Chat session created successfully." });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            await _chatService.CreateSession(sessionDto);
+            return Ok(new { message = "Chat session created successfully." });
         }
     }
 }

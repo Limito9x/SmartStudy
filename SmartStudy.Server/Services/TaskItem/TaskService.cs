@@ -7,7 +7,7 @@ using SmartStudy.Server.Dtos;
 using MapsterMapper;
 using SmartStudy.Server.Services.TaskLog;
 
-namespace SmartStudy.Server.Services.Task
+namespace SmartStudy.Server.Services.TaskItem
 {
     public interface ITaskService
     {

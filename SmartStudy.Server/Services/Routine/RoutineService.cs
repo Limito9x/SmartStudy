@@ -13,7 +13,7 @@ namespace SmartStudy.Server.Services.Routine
         Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId);
         Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync();
         Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto);
-        System.Threading.Tasks.Task GenerateTasksAsync(int RoutineId, DateTime Until);
+        Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
         Task<bool> DeleteRoutineAsync(int RoutineId);
     }

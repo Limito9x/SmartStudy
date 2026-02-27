@@ -23,7 +23,7 @@ using SmartStudy.Server.Services.Goal;
 using SmartStudy.Server.Services.LearningPath;
 using SmartStudy.Server.Services.Routine;
 using SmartStudy.Server.Services.Semester;
-using SmartStudy.Server.Services.Task;
+using SmartStudy.Server.Services.TaskItem;
 using SmartStudy.Server.Services.TaskLog;
 using SmartStudy.Server.Services.UserService;
 using System.Reflection;
@@ -31,7 +31,8 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi;
+using SmartStudy.Server.Services.UserSerivice;
+using SmartStudy.Server.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -128,6 +129,7 @@ builder.Services.AddSingleton(config);
 
 // Đăng ký dịch vụ tùy chỉnh
 builder.Services.AddScoped<IAuthService, AuthService>()
+                .AddScoped<IUserService, UserService>()
                 .AddScoped<ICurrentUserService, CurrentUserService>()
                 .AddScoped<ISemesterService, SemesterService>()
                 .AddScoped<ITaskService, TaskService>()
@@ -165,6 +167,8 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
 
 // Sau khi cấu hình xong mới bắt đầu build ứng dụng
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseDefaultFiles();
 app.MapStaticAssets();

@@ -20,44 +20,23 @@ namespace SmartStudy.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<AssetResponseDto>>> GetAssets([FromQuery] RequestQueryAssetDto queryDto)
         {
-            try
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                var assets = await _assetService.GetAssetsAsync(queryDto);
-                return Ok(assets);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var assets = await _assetService.GetAssetsAsync(queryDto);
+            return Ok(assets);
         }
 
         [HttpPost]
         public async Task<ActionResult<List<AssetResponseDto>>> UploadAssets([FromForm] UploadAssetDto uploadAssetDto)
         {
-            try
-            {
-                var uploadedAssets = await _assetService.UploadAssetsAsync(uploadAssetDto);
-                return Ok(uploadedAssets);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var uploadedAssets = await _assetService.UploadAssetsAsync(uploadAssetDto);
+            return Ok(uploadedAssets);
         }
 
         [HttpDelete("{assetId}")]
         public async Task<ActionResult> DeleteAsset(string assetId)
         {
-            try
-            {
-                await _assetService.DeleteAssetAsync(assetId);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            await _assetService.DeleteAssetAsync(assetId);
+            return NoContent();
         }
     }
 }

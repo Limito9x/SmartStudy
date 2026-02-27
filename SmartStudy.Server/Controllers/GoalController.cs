@@ -20,51 +20,24 @@ namespace SmartStudy.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<ResponseGoalDto>> CreateGoal(RequestGoalDto GoalDto)
         {
-            try
-            {
-                var createdGoal = await _GoalService.CreateGoalAsync(GoalDto); 
-                return Ok(createdGoal);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var createdGoal = await _GoalService.CreateGoalAsync(GoalDto); 
+            return Ok(createdGoal);
         }
 
         [HttpPatch("{GoalId}")]
         public async Task<ActionResult<ResponseGoalDto>> UpdateGoal(int GoalId, RequestGoalDto GoalDto)
         {
-            try
-            {
-                var updatedGoal = await _GoalService.UpdateGoalAsync(GoalId, GoalDto);
-                if (updatedGoal == null)
-                {
-                    return NotFound();
-                }
-                return Ok(updatedGoal);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var updatedGoal = await _GoalService.UpdateGoalAsync(GoalId, GoalDto);
+            if (updatedGoal == null) return NotFound();
+            return Ok(updatedGoal);
         }
 
         [HttpDelete("{GoalId}")]
         public async Task<IActionResult> DeleteGoal(int GoalId)
         {
-            try
-            {
-                var success = await _GoalService.DeleteGoalAsync(GoalId);
-                if (success==null)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var success = await _GoalService.DeleteGoalAsync(GoalId);
+            if (success == null) return NotFound();
+            return NoContent();
         }
         }
 }

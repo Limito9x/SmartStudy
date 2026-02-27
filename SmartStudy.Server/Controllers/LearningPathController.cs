@@ -21,83 +21,39 @@ namespace SmartStudy.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<List<ResponseLearningPathDto>>> GetLearningPaths()
         {
-            try
-            {
-                var learningPaths = await _learningPathService.GetLearningPathsByUserIdAsync();
-                return Ok(learningPaths);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var learningPaths = await _learningPathService.GetLearningPathsByUserIdAsync();
+            return Ok(learningPaths);
         }
 
         [HttpGet("{LearningPathId}")]
         public async Task<ActionResult<ResponseLearningPathDto>> GetLearningPathById(int LearningPathId)
         {
-            try
-            {
-                var learningPath = await _learningPathService.GetLearningPathByIdAsync(LearningPathId);
-                if (learningPath == null)
-                {
-                    return NotFound();
-                }
-                return Ok(learningPath);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var learningPath = await _learningPathService.GetLearningPathByIdAsync(LearningPathId);
+            if (learningPath == null) return NotFound();
+            return Ok(learningPath);
         }
 
         [HttpPost]
         public async Task<ActionResult<ResponseLearningPathDto>> CreateLearningPath(RequestLearningPathDto learningPathDto)
         {
-            try
-            {
-                var createdLearningPath = await _learningPathService.CreateLearningPathAsync(learningPathDto);
-                return Ok(createdLearningPath);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var createdLearningPath = await _learningPathService.CreateLearningPathAsync(learningPathDto);
+            return Ok(createdLearningPath);
         }
 
         [HttpPatch("{LearningPathId}")]
         public async Task<ActionResult<ResponseLearningPathDto>> UpdateLearningPath(int LearningPathId, RequestLearningPathDto learningPathDto)
         {
-            try
-            {
-                var updatedLearningPath = await _learningPathService.UpdateLearningPathAsync(LearningPathId, learningPathDto);
-                if (updatedLearningPath == null)
-                {
-                    return NotFound();
-                }
-                return Ok(updatedLearningPath);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var updatedLearningPath = await _learningPathService.UpdateLearningPathAsync(LearningPathId, learningPathDto);
+            if (updatedLearningPath == null) return NotFound();
+            return Ok(updatedLearningPath);
         }
 
         [HttpDelete("{LearningPathId}")]
         public async Task<IActionResult> DeleteLearningPath(int LearningPathId)
         {
-            try
-            {
-                var success = await _learningPathService.DeleteLearningPathAsync(LearningPathId);
-                if (success == null)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var success = await _learningPathService.DeleteLearningPathAsync(LearningPathId);
+            if (success == null) return NotFound();
+            return NoContent();
         }
     }
 }

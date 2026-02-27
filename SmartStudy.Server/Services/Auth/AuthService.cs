@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using SmartStudy.Server.Exceptions;
 
 namespace SmartStudy.Server.Services.Auth
 {
@@ -40,7 +41,7 @@ namespace SmartStudy.Server.Services.Auth
             var existingUser = await _userManager.FindByEmailAsync(model.Email);
             if (existingUser != null)
             {
-                throw new Exception("User already exists");
+                throw new AppException("Email này đã được đăng ký!");
             }
 
             // 2. Tạo người dùng mới
@@ -65,6 +66,22 @@ namespace SmartStudy.Server.Services.Auth
             }
             else
             {
+                if(result.Errors.Any(e => e.Code == "PasswordTooShort"))
+                {
+                    throw new AppException("Mật khẩu phải có ít nhất 6 ký tự!");
+                }
+                if(result.Errors.Any(e => e.Code == "PasswordRequiresNonAlphanumeric"))
+                {
+                    throw new AppException("Mật khẩu phải chứa ít nhất một ký tự đặc biệt!");
+                }
+                if(result.Errors.Any(e => e.Code == "PasswordRequiresDigit"))
+                {
+                    throw new AppException("Mật khẩu phải chứa ít nhất một chữ số!");
+                }
+                if(result.Errors.Any(e => e.Code == "PasswordRequiresUpper"))
+                {
+                    throw new AppException("Mật khẩu phải chứa ít nhất một chữ cái viết hoa!");
+                }
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new ApplicationException($"An error occurred when registering: {errors}");
             }
@@ -75,14 +92,14 @@ namespace SmartStudy.Server.Services.Auth
             var user = await _userManager.FindByNameAsync(model.UserName);
             if (user == null)
             {
-                throw new Exception("Invalid username or password");
+                throw new AppException("Tên đăng nhập hoặc mật khẩu không chính xác");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (!result.Succeeded)
             {
-                throw new Exception("Invalid username or password");
+                throw new AppException("Mật khẩu không trùng khớp, vui lòng thử lại!");
             }
 
             // Tạo Access Token (JWT), vì Refresh Token tương đối phức tạp nên sẽ triển khai sau
