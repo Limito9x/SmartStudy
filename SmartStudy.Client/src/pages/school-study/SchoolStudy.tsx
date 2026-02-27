@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectTrigger,
@@ -8,24 +7,14 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Plus } from "lucide-react";
-import { useDialogStore } from "@/stores/useDialogStore";
 import { semesterService } from "@/services/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import type { ResponseSemesterDto } from "@/services/api";
-import { SemesterForm } from "@/components/forms/semester";
+import { SemesterStatus, type ResponseSemesterDto } from "@/services/api";
 
 export default function SchoolStudyPage() {
   const [selectedSemester, setSelectedSemester] =
     useState<ResponseSemesterDto | null>(null);
-
-  const { openDialog, closeDialog } = useDialogStore();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["semesters"],
@@ -37,16 +26,12 @@ export default function SchoolStudyPage() {
 
   console.log("Semesters:", data);
 
-  const handleOpenDialog = () => {
-    openDialog({
-      title: "Thêm học kỳ mới",
-      view: <SemesterForm onSuccess={() => closeDialog()} />,
-    });
-  };
-
   useEffect(() => {
     if (data && data.length > 0) {
-      setSelectedSemester(data[0]);
+      const activeSemester = data.find(
+        (semester) => semester.status === SemesterStatus.Active,
+      );
+      setSelectedSemester(activeSemester ?? null);
     }
   }, [data]);
 
@@ -81,14 +66,6 @@ export default function SchoolStudyPage() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={handleOpenDialog}>
-                <Plus />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Thêm học kỳ mới</TooltipContent>
-          </Tooltip>
         </div>
       )}
     </div>

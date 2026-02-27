@@ -1,6 +1,5 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 api.ts
 base.ts
 common.ts
@@ -43,14 +42,17 @@ docs/ResponseTaskDto.md
 docs/RoutineApi.md
 docs/ScheduleDto.md
 docs/SemesterApi.md
+docs/SemesterStatus.md
 docs/SessionDto.md
 docs/SimpleResponseCourseDto.md
 docs/SimpleResponseRoutineDto.md
 docs/SimpleResponseSemesterDto.md
 docs/SimpleResponseTaskDto.md
 docs/TaskApi.md
+docs/UserApi.md
 docs/UserLoginDto.md
 docs/UserRegisterDto.md
 docs/UserResponseDto.md
+docs/UserSettingDto.md
 git_push.sh
 index.ts

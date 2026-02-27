@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **endDate** | **string** |  | [default to undefined]
 **createdAt** | **string** |  | [default to undefined]
 **updatedAt** | **string** |  | [default to undefined]
+**status** | [**SemesterStatus**](SemesterStatus.md) |  | [default to undefined]
 **courses** | [**Array&lt;SimpleResponseCourseDto&gt;**](SimpleResponseCourseDto.md) |  | [default to undefined]
 
 ## Example
@@ -29,6 +30,7 @@ const instance: ResponseSemesterDto = {
     endDate,
     createdAt,
     updatedAt,
+    status,
     courses,
 };
 ```

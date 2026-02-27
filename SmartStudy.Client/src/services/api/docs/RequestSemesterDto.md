@@ -9,7 +9,6 @@ Name | Type | Description | Notes
 **year** | [**ApiAssetsGetLinkedIdParameter**](ApiAssetsGetLinkedIdParameter.md) |  | [default to undefined]
 **startDate** | **string** |  | [default to undefined]
 **endDate** | **string** |  | [default to undefined]
-**targetGPA** | [**RequestGoalDtoCurrentValue**](RequestGoalDtoCurrentValue.md) |  | [default to undefined]
 
 ## Example
 
@@ -21,7 +20,6 @@ const instance: RequestSemesterDto = {
     year,
     startDate,
     endDate,
-    targetGPA,
 };
 ```
 

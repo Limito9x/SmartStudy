@@ -8,7 +8,7 @@ Name | Type | Description | Notes
 **email** | **string** |  | [optional] [default to undefined]
 **userName** | **string** |  | [optional] [default to undefined]
 **fullName** | **string** |  | [optional] [default to undefined]
-**token** | **string** |  | [optional] [default to undefined]
+**token** | **string** |  | [default to undefined]
 
 ## Example
 

@@ -54,7 +54,7 @@ export interface LoginResponseDto {
     'email'?: string;
     'userName'?: string;
     'fullName'?: string;
-    'token'?: string;
+    'token': string;
 }
 export interface RequestCourseDto {
     'name': string;
@@ -103,9 +103,8 @@ export interface RequestRoutineDto {
 export interface RequestSemesterDto {
     'term': number;
     'year': ApiAssetsGetLinkedIdParameter;
-    'startDate': string | null;
-    'endDate': string | null;
-    'targetGPA': RequestGoalDtoCurrentValue | null;
+    'startDate': string;
+    'endDate': string;
 }
 export interface RequestTaskDto {
     'name': string;
@@ -184,12 +183,15 @@ export interface ResponseSemesterDto {
     'name': string;
     'description': string | null;
     'progress': ResponseSemesterDtoProgress | null;
-    'startDate': string | null;
-    'endDate': string | null;
+    'startDate': string;
+    'endDate': string;
     'createdAt': string;
-    'updatedAt': string | null;
+    'updatedAt': string;
+    'status': SemesterStatus;
     'courses': Array<SimpleResponseCourseDto> | null;
 }
+
+
 export interface ResponseSemesterDtoProgress {
 }
 export interface ResponseTaskDto {
@@ -218,6 +220,16 @@ export interface ScheduleDto {
     'durationUnit': number;
     'location': string | null;
 }
+
+export const SemesterStatus = {
+    Past: 'Past',
+    Active: 'Active',
+    Future: 'Future'
+} as const;
+
+export type SemesterStatus = typeof SemesterStatus[keyof typeof SemesterStatus];
+
+
 export interface SessionDto {
     'title': string;
     'semesterId': RequestLogDtoTimeSpent | null;
@@ -244,9 +256,12 @@ export interface SimpleResponseSemesterDto {
     'id': ApiAssetsGetLinkedIdParameter;
     'name': string;
     'progress': ResponseSemesterDtoProgress | null;
-    'startDate': string | null;
-    'endDate': string | null;
+    'startDate': string;
+    'endDate': string;
+    'status': SemesterStatus;
 }
+
+
 export interface SimpleResponseTaskDto {
     'id': ApiAssetsGetLinkedIdParameter;
     'name': string;
@@ -272,6 +287,14 @@ export interface UserResponseDto {
     'email'?: string;
     'userName'?: string;
     'fullName'?: string;
+}
+export interface UserSettingDto {
+    'admissionDate': string;
+    'semestersPerYear': ApiAssetsGetLinkedIdParameter;
+    'weeksPerSemester': ApiAssetsGetLinkedIdParameter;
+    'weeksOfSummerSemester': RequestLogDtoTimeSpent | null;
+    'programLength': RequestGoalDtoTargetValue;
+    'semesters': Array<RequestSemesterDto>;
 }
 
 /**
@@ -2743,7 +2766,7 @@ export const SemesterApiAxiosParamCreator = function (configuration?: Configurat
          * @throws {RequiredError}
          */
         apiSemestersGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/api/Semesters`;
+            const localVarPath = `/api/semesters`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2775,7 +2798,7 @@ export const SemesterApiAxiosParamCreator = function (configuration?: Configurat
         apiSemestersPost: async (requestSemesterDto: RequestSemesterDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'requestSemesterDto' is not null or undefined
             assertParamExists('apiSemestersPost', 'requestSemesterDto', requestSemesterDto)
-            const localVarPath = `/api/Semesters`;
+            const localVarPath = `/api/semesters`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -2809,7 +2832,7 @@ export const SemesterApiAxiosParamCreator = function (configuration?: Configurat
         apiSemestersSemesterIdDelete: async (semesterId: ApiAssetsGetLinkedIdParameter, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'semesterId' is not null or undefined
             assertParamExists('apiSemestersSemesterIdDelete', 'semesterId', semesterId)
-            const localVarPath = `/api/Semesters/{SemesterId}`
+            const localVarPath = `/api/semesters/{SemesterId}`
                 .replace(`{${"SemesterId"}}`, encodeURIComponent(String(semesterId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2841,7 +2864,7 @@ export const SemesterApiAxiosParamCreator = function (configuration?: Configurat
         apiSemestersSemesterIdGet: async (semesterId: ApiAssetsGetLinkedIdParameter, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'semesterId' is not null or undefined
             assertParamExists('apiSemestersSemesterIdGet', 'semesterId', semesterId)
-            const localVarPath = `/api/Semesters/{SemesterId}`
+            const localVarPath = `/api/semesters/{SemesterId}`
                 .replace(`{${"SemesterId"}}`, encodeURIComponent(String(semesterId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -2877,7 +2900,7 @@ export const SemesterApiAxiosParamCreator = function (configuration?: Configurat
             assertParamExists('apiSemestersSemesterIdPut', 'semesterId', semesterId)
             // verify required parameter 'requestSemesterDto' is not null or undefined
             assertParamExists('apiSemestersSemesterIdPut', 'requestSemesterDto', requestSemesterDto)
-            const localVarPath = `/api/Semesters/{SemesterId}`
+            const localVarPath = `/api/semesters/{SemesterId}`
                 .replace(`{${"SemesterId"}}`, encodeURIComponent(String(semesterId)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -3450,6 +3473,103 @@ export class TaskApi extends BaseAPI {
      */
     public apiTasksTaskIdPatch(taskId: ApiAssetsGetLinkedIdParameter, requestTaskDto: RequestTaskDto, options?: RawAxiosRequestConfig) {
         return TaskApiFp(this.configuration).apiTasksTaskIdPatch(taskId, requestTaskDto, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * UserApi - axios parameter creator
+ */
+export const UserApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {UserSettingDto} userSettingDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiUsersSettingPost: async (userSettingDto: UserSettingDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'userSettingDto' is not null or undefined
+            assertParamExists('apiUsersSettingPost', 'userSettingDto', userSettingDto)
+            const localVarPath = `/api/users/setting`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(userSettingDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * UserApi - functional programming interface
+ */
+export const UserApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = UserApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {UserSettingDto} userSettingDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async apiUsersSettingPost(userSettingDto: UserSettingDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.apiUsersSettingPost(userSettingDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['UserApi.apiUsersSettingPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * UserApi - factory interface
+ */
+export const UserApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = UserApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {UserSettingDto} userSettingDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        apiUsersSettingPost(userSettingDto: UserSettingDto, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.apiUsersSettingPost(userSettingDto, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * UserApi - object-oriented interface
+ */
+export class UserApi extends BaseAPI {
+    /**
+     * 
+     * @param {UserSettingDto} userSettingDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public apiUsersSettingPost(userSettingDto: UserSettingDto, options?: RawAxiosRequestConfig) {
+        return UserApiFp(this.configuration).apiUsersSettingPost(userSettingDto, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

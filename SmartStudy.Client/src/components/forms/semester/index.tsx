@@ -5,23 +5,15 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { semesterSchema, type SemesterFormValues } from "./schema";
 import { semesterService } from "@/services/apiClient";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FormInput, FormSelect } from "@/components/form-controls";
 import RangePicker from "@/components/ui/custom/range-picker";
 import { addMonths } from "date-fns";
+import { useBaseMutation } from "@/hooks/use-mutation";
 
 interface SemesterFormProps {
   defaultValues?: Partial<SemesterFormValues>;
@@ -36,37 +28,41 @@ export const SemesterForm = ({
     resolver: zodResolver(semesterSchema),
     defaultValues: defaultValues || {
       term: 1,
-      year: new Date().getFullYear(),
+      year: Number(new Date().getFullYear()),
       startDate: new Date(),
       endDate: addMonths(new Date(), 4),
-      targetGPA: null,
     },
   });
 
+  const control = form.control;
+
   const endDate = form.watch("endDate");
 
-  const queryClient = useQueryClient();
-
-  const addSemesterMutation = useMutation({
-    mutationFn: async (newSemester: SemesterFormValues) => {
+  const addSemester = useBaseMutation(
+    async (newSemester: SemesterFormValues) => {
       const payload = {
         ...newSemester,
         startDate: newSemester.startDate.toISOString(),
         endDate: newSemester.endDate.toISOString(),
       };
-
       const response = await semesterService.apiSemestersPost(payload);
       return response.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["semesters"] });
-      onSuccess();
+    {
+      queryKey: ["semesters"],
+      successMessage: "Thêm học kỳ thành công!",
+      errorMessage: "Có lỗi xảy ra khi thêm học kỳ!",
+      options: {
+        onSuccess: () => {
+          onSuccess();
+        },
+      },
     },
-  });
+  );
 
   const onSubmit = async (values: SemesterFormValues) => {
     try {
-      addSemesterMutation.mutate(values);
+      addSemester.mutate(values);
     } catch (error) {
       console.error(error);
     }
@@ -75,43 +71,23 @@ export const SemesterForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
+        <FormSelect
+          control={control}
           name="term"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Học kỳ</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value?.toString()}
-                  onValueChange={(val) => field.onChange(Number(val))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn học kỳ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">Học kỳ 1</SelectItem>
-                    <SelectItem value="2">Học kỳ 2</SelectItem>
-                    <SelectItem value="3">Học kỳ hè</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Học kỳ"
+          placeholder="Chọn học kỳ"
+          options={[
+            { value: "1", label: "Học kỳ 1" },
+            { value: "2", label: "Học kỳ 2" },
+            { value: "3", label: "Học kỳ hè" },
+          ]}
         />
-        <FormField
-          control={form.control}
+        <FormInput
+          control={control}
           name="year"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Năm học</FormLabel>
-              <FormControl>
-                <Input type="number" placeholder="Năm học" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          label="Năm học"
+          placeholder="Nhập năm học"
+          type="number"
         />
         <FormField
           control={form.control}
@@ -155,34 +131,6 @@ export const SemesterForm = ({
           name="endDate"
           render={() => (
             <FormItem>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="targetGPA"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>GPA mục tiêu</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="GPA mục tiêu (0.00 - 4.00)"
-                  value={field.value ?? ""}
-                  onChange={(event) =>
-                    field.onChange(
-                      event.target.value === ""
-                        ? null
-                        : Number(event.target.value),
-                    )
-                  }
-                  onBlur={field.onBlur}
-                  name={field.name}
-                  ref={field.ref}
-                />
-              </FormControl>
               <FormMessage />
             </FormItem>
           )}

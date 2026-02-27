@@ -10,6 +10,7 @@ Name | Type | Description | Notes
 **progress** | [**ResponseSemesterDtoProgress**](ResponseSemesterDtoProgress.md) |  | [default to undefined]
 **startDate** | **string** |  | [default to undefined]
 **endDate** | **string** |  | [default to undefined]
+**status** | [**SemesterStatus**](SemesterStatus.md) |  | [default to undefined]
 
 ## Example
 
@@ -22,6 +23,7 @@ const instance: SimpleResponseSemesterDto = {
     progress,
     startDate,
     endDate,
+    status,
 };
 ```
 

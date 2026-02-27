@@ -4,11 +4,11 @@ All URIs are relative to *http://localhost:5037*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**apiSemestersGet**](#apisemestersget) | **GET** /api/Semesters | |
-|[**apiSemestersPost**](#apisemesterspost) | **POST** /api/Semesters | |
-|[**apiSemestersSemesterIdDelete**](#apisemesterssemesteriddelete) | **DELETE** /api/Semesters/{SemesterId} | |
-|[**apiSemestersSemesterIdGet**](#apisemesterssemesteridget) | **GET** /api/Semesters/{SemesterId} | |
-|[**apiSemestersSemesterIdPut**](#apisemesterssemesteridput) | **PUT** /api/Semesters/{SemesterId} | |
+|[**apiSemestersGet**](#apisemestersget) | **GET** /api/semesters | |
+|[**apiSemestersPost**](#apisemesterspost) | **POST** /api/semesters | |
+|[**apiSemestersSemesterIdDelete**](#apisemesterssemesteriddelete) | **DELETE** /api/semesters/{SemesterId} | |
+|[**apiSemestersSemesterIdGet**](#apisemesterssemesteridget) | **GET** /api/semesters/{SemesterId} | |
+|[**apiSemestersSemesterIdPut**](#apisemesterssemesteridput) | **PUT** /api/semesters/{SemesterId} | |
 
 # **apiSemestersGet**
 > Array<ResponseSemesterDto> apiSemestersGet()
