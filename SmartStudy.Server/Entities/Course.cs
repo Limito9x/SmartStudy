@@ -1,10 +1,9 @@
 ﻿using SmartStudy.Server.Entities.Enums;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
 
 namespace SmartStudy.Server.Entities
 {
-    public class Course: TimeLineEntity
+    public class Course: BaseEntity
     {
         public string Name { get; set; }
         public int Credits { get; set; }

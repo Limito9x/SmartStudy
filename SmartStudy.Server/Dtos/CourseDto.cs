@@ -6,29 +6,28 @@ namespace SmartStudy.Server.Dtos
     (
         string Name,
         int Credits,
-        DateTime StartDate,
-        DateTime EndDate,
         int SemesterId
     );
 
     public record ResponseCourseDto
     (
         int Id,
-        string Title,
+        string Name,
         string? Description,
-        DateTime? StartDate,
-        DateTime? EndDate,
         int SemesterId,
+        int Credits,
+        float TargetGrade,
+        double CurrentGPA,
         List<ResponseGradeDto> Grades
     );
 
     public record SimpleResponseCourseDto
     (
         int Id,
-        string Title,
+        string Name,
+        int Credits,
         string? Description,
-        DateTime? StartDate,
-        DateTime? EndDate,
-        SimpleResponseSemesterDto? Semester
+        float TargetGrade,
+        double CurrentGPA
     );
 }
