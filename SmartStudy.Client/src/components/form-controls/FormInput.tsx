@@ -23,7 +23,16 @@ export function FormInput<T extends FieldValues>({
       name={name}
       label={label}
       render={(field) => (
-        <Input placeholder={placeholder} type={type} {...field} />
+        <Input
+          placeholder={placeholder}
+          type={type}
+          {...field}
+          onChange={(e) => {
+            const value =
+              type === "number" ? e.target.valueAsNumber : e.target.value;
+            field.onChange(value);
+          }}
+        />
       )}
     />
   );

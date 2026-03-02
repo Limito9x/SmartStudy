@@ -11,6 +11,10 @@ import { semesterService } from "@/services/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { SemesterStatus, type ResponseSemesterDto } from "@/services/api";
+import CourseList from "@/components/features/school-study/course/CourseList";
+import { CourseForm } from "@/components/forms/course";
+import { useDialogStore } from "@/stores/useDialogStore";
+import { Button } from "@/components/ui/button";
 
 export default function SchoolStudyPage() {
   const [selectedSemester, setSelectedSemester] =
@@ -24,7 +28,15 @@ export default function SchoolStudyPage() {
     },
   });
 
-  console.log("Semesters:", data);
+  const { openDialog, closeDialog } = useDialogStore();
+
+  const handleAddCourse = () => {
+    if (!selectedSemester) return;
+    openDialog({
+      title: `Thêm lớp học phần cho ${selectedSemester.name}`,
+      view: <CourseForm semesterId={Number(selectedSemester.id)} onSuccess={closeDialog} />,
+    });
+  };
 
   useEffect(() => {
     if (data && data.length > 0) {
@@ -67,6 +79,14 @@ export default function SchoolStudyPage() {
             </SelectContent>
           </Select>
         </div>
+      )}
+
+      {selectedSemester && (
+        <Button onClick={handleAddCourse}>Thêm lớp học phần</Button>
+      )}
+
+      {selectedSemester && selectedSemester.courses && (
+        <CourseList courses={selectedSemester.courses} />
       )}
     </div>
   );
