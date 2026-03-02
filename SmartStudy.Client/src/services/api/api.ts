@@ -59,8 +59,6 @@ export interface LoginResponseDto {
 export interface RequestCourseDto {
     'name': string;
     'credits': ApiAssetsGetLinkedIdParameter;
-    'startDate': string;
-    'endDate': string;
     'semesterId': ApiAssetsGetLinkedIdParameter;
 }
 export interface RequestGoalDto {
@@ -118,12 +116,15 @@ export interface RequestTaskDto {
 }
 export interface ResponseCourseDto {
     'id': ApiAssetsGetLinkedIdParameter;
-    'title': string;
+    'name': string;
     'description': string | null;
-    'startDate': string | null;
-    'endDate': string | null;
     'semesterId': ApiAssetsGetLinkedIdParameter;
+    'credits': ApiAssetsGetLinkedIdParameter;
+    'targetGrade': RequestGoalDtoTargetValue;
+    'currentGPA': ResponseCourseDtoCurrentGPA;
     'grades': Array<ResponseGradeDto>;
+}
+export interface ResponseCourseDtoCurrentGPA {
 }
 export interface ResponseGoalDto {
     'id': ApiAssetsGetLinkedIdParameter;
@@ -140,15 +141,13 @@ export interface ResponseGradeDto {
     'id': ApiAssetsGetLinkedIdParameter;
     'name': string;
     'actualScore': ResponseGradeDtoActualScore | null;
-    'weight': ResponseGradeDtoWeight;
-    'maxScale': ResponseGradeDtoWeight;
+    'weight': ResponseCourseDtoCurrentGPA;
+    'maxScale': ResponseCourseDtoCurrentGPA;
     'courseId': ApiAssetsGetLinkedIdParameter;
     'tasks': Array<SimpleResponseTaskDto> | null;
     'routines': Array<SimpleResponseRoutineDto> | null;
 }
 export interface ResponseGradeDtoActualScore {
-}
-export interface ResponseGradeDtoWeight {
 }
 export interface ResponseLearningPathDto {
     'id': ApiAssetsGetLinkedIdParameter;
@@ -236,11 +235,11 @@ export interface SessionDto {
 }
 export interface SimpleResponseCourseDto {
     'id': ApiAssetsGetLinkedIdParameter;
-    'title': string;
+    'name': string;
+    'credits': ApiAssetsGetLinkedIdParameter;
     'description': string | null;
-    'startDate': string | null;
-    'endDate': string | null;
-    'semester': SimpleResponseSemesterDto | null;
+    'targetGrade': RequestGoalDtoTargetValue;
+    'currentGPA': ResponseCourseDtoCurrentGPA;
 }
 export interface SimpleResponseRoutineDto {
     'id': ApiAssetsGetLinkedIdParameter;
@@ -252,16 +251,6 @@ export interface SimpleResponseRoutineDto {
     'goalId': RequestLogDtoTimeSpent | null;
     'gradeId': RequestLogDtoTimeSpent | null;
 }
-export interface SimpleResponseSemesterDto {
-    'id': ApiAssetsGetLinkedIdParameter;
-    'name': string;
-    'progress': ResponseSemesterDtoProgress | null;
-    'startDate': string;
-    'endDate': string;
-    'status': SemesterStatus;
-}
-
-
 export interface SimpleResponseTaskDto {
     'id': ApiAssetsGetLinkedIdParameter;
     'name': string;

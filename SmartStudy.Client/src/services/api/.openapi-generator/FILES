@@ -29,10 +29,10 @@ docs/RequestRoutineDto.md
 docs/RequestSemesterDto.md
 docs/RequestTaskDto.md
 docs/ResponseCourseDto.md
+docs/ResponseCourseDtoCurrentGPA.md
 docs/ResponseGoalDto.md
 docs/ResponseGradeDto.md
 docs/ResponseGradeDtoActualScore.md
-docs/ResponseGradeDtoWeight.md
 docs/ResponseLearningPathDto.md
 docs/ResponseLogDto.md
 docs/ResponseRoutineDto.md
@@ -46,7 +46,6 @@ docs/SemesterStatus.md
 docs/SessionDto.md
 docs/SimpleResponseCourseDto.md
 docs/SimpleResponseRoutineDto.md
-docs/SimpleResponseSemesterDto.md
 docs/SimpleResponseTaskDto.md
 docs/TaskApi.md
 docs/UserApi.md

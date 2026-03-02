@@ -6,11 +6,12 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | [**ApiAssetsGetLinkedIdParameter**](ApiAssetsGetLinkedIdParameter.md) |  | [default to undefined]
-**title** | **string** |  | [default to undefined]
+**name** | **string** |  | [default to undefined]
 **description** | **string** |  | [default to undefined]
-**startDate** | **string** |  | [default to undefined]
-**endDate** | **string** |  | [default to undefined]
 **semesterId** | [**ApiAssetsGetLinkedIdParameter**](ApiAssetsGetLinkedIdParameter.md) |  | [default to undefined]
+**credits** | [**ApiAssetsGetLinkedIdParameter**](ApiAssetsGetLinkedIdParameter.md) |  | [default to undefined]
+**targetGrade** | [**RequestGoalDtoTargetValue**](RequestGoalDtoTargetValue.md) |  | [default to undefined]
+**currentGPA** | [**ResponseCourseDtoCurrentGPA**](ResponseCourseDtoCurrentGPA.md) |  | [default to undefined]
 **grades** | [**Array&lt;ResponseGradeDto&gt;**](ResponseGradeDto.md) |  | [default to undefined]
 
 ## Example
@@ -20,11 +21,12 @@ import { ResponseCourseDto } from './api';
 
 const instance: ResponseCourseDto = {
     id,
-    title,
+    name,
     description,
-    startDate,
-    endDate,
     semesterId,
+    credits,
+    targetGrade,
+    currentGPA,
     grades,
 };
 ```

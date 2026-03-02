@@ -7,8 +7,6 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **string** |  | [default to undefined]
 **credits** | [**ApiAssetsGetLinkedIdParameter**](ApiAssetsGetLinkedIdParameter.md) |  | [default to undefined]
-**startDate** | **string** |  | [default to undefined]
-**endDate** | **string** |  | [default to undefined]
 **semesterId** | [**ApiAssetsGetLinkedIdParameter**](ApiAssetsGetLinkedIdParameter.md) |  | [default to undefined]
 
 ## Example
@@ -19,8 +17,6 @@ import { RequestCourseDto } from './api';
 const instance: RequestCourseDto = {
     name,
     credits,
-    startDate,
-    endDate,
     semesterId,
 };
 ```
