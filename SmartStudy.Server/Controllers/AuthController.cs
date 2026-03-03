@@ -17,21 +17,21 @@ namespace SmartStudy.Server.Controllers
             _authService = authService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("register",Name ="Register")]
         public async Task<ActionResult<UserResponseDto>> Register([FromBody] UserRegisterDto model)
         {
             var userResponse = await _authService.RegisterAsync(model);
             return Created("User registered successfully", userResponse);
         }
 
-        [HttpPost("login")]
+        [HttpPost("login",Name="Login")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] UserLoginDto model)
         {
             var result = await _authService.LoginAsync(model);
             return Ok(result);
         }
 
-        [HttpGet("me")]
+        [HttpGet("me",Name ="GetProfile")]
         [Authorize]
         public async Task<ActionResult<UserResponseDto>> GetMe()
         {

@@ -4,8 +4,8 @@
     {
         Semester,
         Course,
-        SINGLE_TASK,
-        TASK_LOG
+        Task,
+        Log
     }
 
     public enum AssetLinkCategory

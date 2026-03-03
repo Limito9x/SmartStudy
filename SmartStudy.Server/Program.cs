@@ -51,7 +51,9 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 
 builder.Services.AddControllers()
-    .AddJsonOptions(opts => opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+    .AddJsonOptions(opts => {
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 // Cấu hình OpenAPI với .NET 10
 builder.Services.AddOpenApi("v1", options =>
@@ -65,6 +67,24 @@ builder.Services.AddOpenApi("v1", options =>
             Version = "v1",
             Description = "API for Smart Study Planner application"
         };
+        return Task.CompletedTask;
+    });
+
+    // Use schema transformers to handle enum serialization
+    options.AddSchemaTransformer((schema, context, cancellationToken) =>
+    {
+        // Null-safe enum handling
+        if (context?.JsonTypeInfo?.Type != null && 
+            context.JsonTypeInfo.Type.IsEnum && 
+            schema?.Enum != null)
+        {
+            schema.Enum.Clear();
+            var enumNames = Enum.GetNames(context.JsonTypeInfo.Type);
+            foreach (var name in enumNames)
+            {
+                schema.Enum.Add(name);
+            }
+        }
         return Task.CompletedTask;
     });
 });

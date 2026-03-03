@@ -22,7 +22,7 @@ namespace SmartStudy.Server.Dtos
         ComrehensiveLevel? ComrehensiveLevel,
         DifficultyLevel? DifficultyLevel,
         float? GoalContributionValue,
-        string[]? Artifats, // Để tạm lưu các file liên quan đến log này
+        string[]? Artifacts, // Để tạm lưu các file liên quan đến log này
         DateTime CompletedAt
     );
 }

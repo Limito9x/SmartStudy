@@ -100,7 +100,7 @@ namespace SmartStudy.Server.Services.TaskItem
             {
                 return false;
             }
-            await _assetLinkService.RemoveAssetLinkByAsync(taskId, AssetLinkType.SINGLE_TASK);
+            await _assetLinkService.RemoveAssetLinkByAsync(taskId, AssetLinkType.Task);
             _context.Tasks.Remove(existingTaskItem);
             await _context.SaveChangesAsync();
             return true;

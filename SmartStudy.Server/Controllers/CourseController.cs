@@ -16,7 +16,7 @@ namespace SmartStudy.Server.Controllers
             _CourseService = CourseService;
         }
 
-        [HttpGet("{CourseId}")]
+        [HttpGet("{CourseId}",Name ="GetCourseById")]
         public async Task<ActionResult<ResponseCourseDto>> GetCourseById(int CourseId)
         {
             var Course = await _CourseService.GetCourseByIdAsync(CourseId);
@@ -24,14 +24,14 @@ namespace SmartStudy.Server.Controllers
             return Ok(Course);
         }
 
-        [HttpPost]
+        [HttpPost(Name ="CreateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> CreateCourse(RequestCourseDto CourseDto)
         {
             var createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
             return CreatedAtAction(nameof(GetCourseById), new { CourseId = createdCourse.Id }, createdCourse);
         }
 
-        [HttpPatch("{CourseId}")]
+        [HttpPatch("{CourseId}",Name ="UpdateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> UpdateCourse(int CourseId, RequestCourseDto CourseDto)
         {
             var updatedCourse = await _CourseService.UpdateCourseAsync(CourseId, CourseDto);
@@ -39,7 +39,7 @@ namespace SmartStudy.Server.Controllers
             return Ok(updatedCourse);
         }
 
-        [HttpDelete("{CourseId}")]
+        [HttpDelete("{CourseId}",Name ="DeleteCourse")]
         public async Task<IActionResult> DeleteCourse(int CourseId)
         {
             var deleted = await _CourseService.DeleteCourseAsync(CourseId);
