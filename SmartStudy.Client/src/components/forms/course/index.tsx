@@ -5,7 +5,7 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/form-controls";
 import { useBaseMutation } from "@/hooks/use-mutation";
-import { courseService } from "@/services/apiClient";
+import { createCourse } from "@/services/api";
 
 interface CourseFormProps {
   semesterId: number;
@@ -29,7 +29,7 @@ export const CourseForm = ({ semesterId, onSuccess }: CourseFormProps) => {
         credits: data.credits,
         semesterId: semesterId,
       };
-      return courseService.apiCoursesPost(payload);
+      return createCourse({ body: payload });
     },
     {
       queryKey: ["semesters"],

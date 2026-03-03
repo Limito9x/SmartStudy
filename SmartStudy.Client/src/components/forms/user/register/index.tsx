@@ -4,7 +4,7 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { FormInput } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
-import { authService } from "@/services/apiClient";
+import { register } from "@/services/api";
 
 export const RegisterForm = () => {
   const form = useForm<RegisterFormValues>({
@@ -20,18 +20,20 @@ export const RegisterForm = () => {
 
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await authService.apiAuthRegisterPost({
-        email: data.email,
-        userName: data.userName,
-        fullName: data.fullName,
-        password: data.password,
+      await register({
+        body: {
+          email: data.email,
+          userName: data.userName,
+          fullName: data.fullName,
+          password: data.password,
+        },
       });
       alert("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.");
       form.reset();
     } catch (error) {
       console.error("Đăng ký thất bại:", error);
     }
-    };
+  };
 
   return (
     <Form {...form}>
@@ -58,9 +60,9 @@ export const RegisterForm = () => {
         <FormInput
           control={form.control}
           name="password"
-            label="Mật khẩu"
-            placeholder="Nhập mật khẩu của bạn"
-            type="password"
+          label="Mật khẩu"
+          placeholder="Nhập mật khẩu của bạn"
+          type="password"
         />
         <FormInput
           control={form.control}

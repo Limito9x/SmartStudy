@@ -4,7 +4,7 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { FormInput } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
-import { authService } from "@/services/apiClient";
+import { login as loginApi } from "@/services/api";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 
@@ -20,8 +20,8 @@ export const LoginForm = () => {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const response = await authService.apiAuthLoginPost(data);
-      useAuthStore.getState().login(response.data);
+      const response = await loginApi({ body: data });
+      if (response.data) useAuthStore.getState().login(response.data);
       navigate("/app");
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);

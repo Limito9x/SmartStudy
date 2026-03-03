@@ -1,4 +1,4 @@
-import type { RequestSemesterDto } from "@/services/api/api";
+import type { RequestSemesterDto } from "@/services/api";
 import z from "zod";
 
 export const baseSemesterSchema = z.object({
@@ -8,9 +8,12 @@ export const baseSemesterSchema = z.object({
   endDate: z.date(),
 });
 
-export const semesterSchema = baseSemesterSchema.refine((data) => data.startDate < data.endDate, {
-  message: "Ngày kết thúc phải sau ngày bắt đầu",
-  path: ["endDate"],
-}) satisfies z.ZodType<Partial<Record<keyof RequestSemesterDto, any>>>;
+export const semesterSchema = baseSemesterSchema.refine(
+  (data) => data.startDate < data.endDate,
+  {
+    message: "Ngày kết thúc phải sau ngày bắt đầu",
+    path: ["endDate"],
+  },
+) satisfies z.ZodType<Partial<Record<keyof RequestSemesterDto, any>>>;
 
 export type SemesterFormValues = z.infer<typeof semesterSchema>;

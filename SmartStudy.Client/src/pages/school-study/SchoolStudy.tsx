@@ -7,10 +7,10 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { semesterService } from "@/services/apiClient";
+import { getApiSemesters } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { SemesterStatus, type ResponseSemesterDto } from "@/services/api";
+import { type ResponseSemesterDto } from "@/services/api";
 import CourseList from "@/components/features/school-study/course/CourseList";
 import { CourseForm } from "@/components/forms/course";
 import { useDialogStore } from "@/stores/useDialogStore";
@@ -23,7 +23,7 @@ export default function SchoolStudyPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["semesters"],
     queryFn: async () => {
-      const response = await semesterService.apiSemestersGet();
+      const response = await getApiSemesters();
       return response.data;
     },
   });
@@ -34,14 +34,19 @@ export default function SchoolStudyPage() {
     if (!selectedSemester) return;
     openDialog({
       title: `Thêm lớp học phần cho ${selectedSemester.name}`,
-      view: <CourseForm semesterId={Number(selectedSemester.id)} onSuccess={closeDialog} />,
+      view: (
+        <CourseForm
+          semesterId={Number(selectedSemester.id)}
+          onSuccess={closeDialog}
+        />
+      ),
     });
   };
 
   useEffect(() => {
     if (data && data.length > 0) {
       const activeSemester = data.find(
-        (semester) => semester.status === SemesterStatus.Active,
+        (semester) => semester.status === "Active",
       );
       setSelectedSemester(activeSemester ?? null);
     }

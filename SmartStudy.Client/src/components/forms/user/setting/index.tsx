@@ -2,7 +2,7 @@ import { type SettingFormValues, settingSchema } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { userService } from "@/services/apiClient";
+import { postApiUsersSetting } from "@/services/api";
 import { generateSemesters } from "@/utils/semesterGenerator";
 import type { UserSettingDto } from "@/services/api";
 import {
@@ -59,7 +59,7 @@ export const SettingForm = () => {
         })),
       };
 
-      await userService.apiUsersSettingPost(payload);
+      await postApiUsersSetting({ body: payload });
 
       alert("Cài đặt đã được lưu thành công!");
     } catch (error) {

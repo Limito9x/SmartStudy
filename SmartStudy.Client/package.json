@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "gen-api": "openapi-generator-cli generate -i http://localhost:5037/openapi/v1.json -g typescript-axios -o ./src/services/api --additional-properties=supportsES6=true,modelPropertyNaming=original"
+    "gen-api": "openapi-ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -32,6 +32,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@hey-api/client-axios": "^0.9.1",
+    "@hey-api/openapi-ts": "^0.93.1",
     "@types/node": "^24.10.13",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",

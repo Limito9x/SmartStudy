@@ -23,6 +23,7 @@ export function useBaseMutation<TData, TVariables>(
   const queryClient = useQueryClient();
 
   return useMutation({
+    ...options,
     mutationFn: apiFn,
     onSuccess: (data, variables) => {
       // 1. Tự động làm tươi dữ liệu nếu có truyền queryKey
@@ -39,6 +40,5 @@ export function useBaseMutation<TData, TVariables>(
       // 4. Hiện thông báo lỗi mặc định hoặc từ backend
       console.error(errorMessage || err.message || "Có lỗi xảy ra!");
     },
-    ...options,
   });
 }

@@ -13,12 +13,11 @@ export const registerSchema = z
         /^(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/'`~;])/,
         "Mật khẩu phải chứa ít nhất một chữ in hoa và một ký tự đặc biệt",
       ),
-    confirmPassword: z
-      .string()
+    confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",
     path: ["confirmPassword"],
   }) satisfies z.ZodType<Record<keyof UserRegisterDto, any>>;
 
-  export type RegisterFormValues = z.infer<typeof registerSchema>;
+export type RegisterFormValues = z.infer<typeof registerSchema>;
