@@ -3,14 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services.AssetLink;
-using SmartStudy.Server.Services.Semester;
 using SmartStudy.Server.Services.UserService;
 
 namespace SmartStudy.Server.Services.Course
 {
     public interface ICourseService
     {
-
+        Task<List<SimpleResponseCourseDto>> GetCoursesBySemesterIdAsync(int SemesterId);
         Task<ResponseCourseDto?> GetCourseByIdAsync(int CourseId);
         Task<ResponseCourseDto> CreateCourseAsync(RequestCourseDto CourseDto);
         Task<ResponseCourseDto?> UpdateCourseAsync(int CourseId, RequestCourseDto CourseDto);
@@ -23,21 +22,28 @@ namespace SmartStudy.Server.Services.Course
         private readonly ICurrentUserService _currentUserService;
         private readonly IAssetLinkService _assetLinkService;
         private readonly IMapper _mapper;
-        private readonly ISemesterService _SemesterService;
 
         public CourseService(
             ApplicationDbContext context,
             ICurrentUserService currentUserService,
             IAssetLinkService assetLinkService,
-            IMapper mapper,
-            ISemesterService SemesterService
+            IMapper mapper
             )
         {
             _context = context;
             _currentUserService = currentUserService;
             _assetLinkService = assetLinkService;
             _mapper = mapper;
-            _SemesterService = SemesterService;
+        }
+
+        public async Task<List<SimpleResponseCourseDto>> GetCoursesBySemesterIdAsync(int SemesterId)
+        {
+            var userId = _currentUserService.UserId;
+            var Courses = await _context.Courses
+                .Where(ph => ph.SemesterId == SemesterId && ph.UserId == userId)
+                .AsNoTracking()
+                .ToListAsync();
+            return _mapper.Map<List<SimpleResponseCourseDto>>(Courses);
         }
 
         public async Task<ResponseCourseDto?> GetCourseByIdAsync(int CourseId)

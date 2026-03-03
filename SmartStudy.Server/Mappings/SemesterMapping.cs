@@ -21,7 +21,8 @@ namespace SmartStudy.Server.Mappings
                 .Map(dest => dest.Status, src =>
                     DateTime.UtcNow >= src.StartDate && DateTime.UtcNow <= src.EndDate ? SemesterStatus.Active :
                     DateTime.UtcNow < src.StartDate ? SemesterStatus.Future : SemesterStatus.Past
-                );
+                )
+                .Map(dest => (int)dest.Term, src => src.Term);
         }
     }
 }

@@ -16,25 +16,32 @@ namespace SmartStudy.Server.Controllers
             _CourseService = CourseService;
         }
 
+        [HttpGet("Semester/{SemesterId}",Name ="GetCoursesBySemester")]
+        public async Task<ActionResult<List<SimpleResponseCourseDto>>> GetCoursesBySemester(int SemesterId)
+        {
+            List<SimpleResponseCourseDto> courses = await _CourseService.GetCoursesBySemesterIdAsync(SemesterId);
+            return Ok(courses);
+        }
+
         [HttpGet("{CourseId}",Name ="GetCourseById")]
         public async Task<ActionResult<ResponseCourseDto>> GetCourseById(int CourseId)
         {
-            var Course = await _CourseService.GetCourseByIdAsync(CourseId);
-            if (Course == null) return NotFound();
-            return Ok(Course);
+            ResponseCourseDto? course = await _CourseService.GetCourseByIdAsync(CourseId);
+            if (course == null) return NotFound();
+            return Ok(course);
         }
 
         [HttpPost(Name ="CreateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> CreateCourse(RequestCourseDto CourseDto)
         {
-            var createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
+            ResponseCourseDto createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
             return CreatedAtAction(nameof(GetCourseById), new { CourseId = createdCourse.Id }, createdCourse);
         }
 
         [HttpPatch("{CourseId}",Name ="UpdateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> UpdateCourse(int CourseId, RequestCourseDto CourseDto)
         {
-            var updatedCourse = await _CourseService.UpdateCourseAsync(CourseId, CourseDto);
+            ResponseCourseDto? updatedCourse = await _CourseService.UpdateCourseAsync(CourseId, CourseDto);
             if (updatedCourse == null) return NotFound();
             return Ok(updatedCourse);
         }

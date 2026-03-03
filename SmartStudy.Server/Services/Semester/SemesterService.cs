@@ -83,7 +83,7 @@ namespace SmartStudy.Server.Services.Semester
             var Semesters = await _context.Semesters
                 .Include(p => p.Courses)
                 .Where(p => p.UserId == userId)
-                .OrderByDescending(p => p.StartDate)
+                .OrderBy(p => p.StartDate)
                 .ToListAsync();
 
             return _mapper.Map<List<ResponseSemesterDto>>(Semesters);

@@ -1,5 +1,9 @@
-﻿namespace SmartStudy.Server.Entities.Enums
+﻿using SmartStudy.Server.Helpers;
+using System.Text.Json.Serialization;
+
+namespace SmartStudy.Server.Entities.Enums
 {
+    [JsonConverter(typeof(TermTypeNumberConverter))]
     public enum TermType
     {
         First = 1,

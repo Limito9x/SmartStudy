@@ -13,7 +13,7 @@ namespace SmartStudy.Server.Dtos
     // Semester dto trở thành thứ đc tạo ra tự động, không còn do người dùng nhập thủ công
     public record RequestSemesterDto
     (
-        TermType Term,
+        int Term,
         int Year,
         DateTime StartDate,
         DateTime EndDate
@@ -23,14 +23,15 @@ namespace SmartStudy.Server.Dtos
     (
         int Id,
         string Name,
+        int Term,
+        int Year,
         string? Description,
         decimal? Progress,
         DateTime StartDate,
         DateTime EndDate,
         DateTime CreatedAt,
         DateTime UpdatedAt,
-        SemesterStatus Status,
-        List <SimpleResponseCourseDto>? Courses
+        SemesterStatus Status
     );
 
     public record SimpleResponseSemesterDto
