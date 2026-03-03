@@ -2,7 +2,10 @@ import { type RouteObject, useRoutes } from "react-router-dom";
 import LandingPage from "@/pages/landing/LandingPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/auth/LoginPage";
-import SchoolStudyPage from "@/pages/school-study/SchoolStudy";
+import SchoolStudyLayout from "@/layouts/SchoolStudyLayout";
+import SemesterPage from "@/pages/school-study/Semester/SemesterPage";
+import RedirectSemesterPage from "@/pages/school-study/Semester/RedirectSemesterPage";
+import CoursePage from "@/pages/school-study/Course/CoursePage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -28,8 +31,23 @@ export default function AppRoutes() {
           element: <div>Profile Page</div>,
         },
         {
-          path: "school",
-          element: <SchoolStudyPage />,
+          path: "semesters",
+          element: <SchoolStudyLayout />,
+          children: [
+            {
+              path: ":semesterId",
+              element: <SemesterPage />,
+            },
+            {
+              path: ":semesterId/courses/:courseId",
+              element: <CoursePage />,
+            },
+            {
+              path: "",
+              element: <RedirectSemesterPage />,
+              index: true,
+            },
+          ],
         },
       ],
     },

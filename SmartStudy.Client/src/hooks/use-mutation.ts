@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-query";
 
 interface UseBaseMutationProps<TData, TVariables> {
-  queryKey?: string[]; // Key để invalidate
+  queryKey?: Array<string|number>; // Key để invalidate
   successMessage?: string;
   errorMessage?: string;
   options?: UseMutationOptions<TData, Error, TVariables>;

@@ -180,6 +180,8 @@ export type ResponseRoutineDto = {
 export type ResponseSemesterDto = {
     id: number | string;
     name: string;
+    term: TermType;
+    year: number | string;
     description: null | string;
     progress: null | number | string;
     startDate: string;
@@ -187,7 +189,6 @@ export type ResponseSemesterDto = {
     createdAt: string;
     updatedAt: string;
     status: SemesterStatus;
-    courses: null | Array<SimpleResponseCourseDto>;
 };
 
 export type ResponseTaskDto = {
@@ -260,7 +261,7 @@ export type TaskStatus = number;
 
 export type TaskType = number;
 
-export type TermType = number;
+export type TermType = unknown;
 
 export type TimeUnit = number;
 
@@ -458,6 +459,24 @@ export type PostApiChatSessionsBySessionIdStreamResponses = {
      */
     200: unknown;
 };
+
+export type GetCoursesBySemesterData = {
+    body?: never;
+    path: {
+        SemesterId: number | string;
+    };
+    query?: never;
+    url: '/api/courses/Semester/{SemesterId}';
+};
+
+export type GetCoursesBySemesterResponses = {
+    /**
+     * OK
+     */
+    200: Array<SimpleResponseCourseDto>;
+};
+
+export type GetCoursesBySemesterResponse = GetCoursesBySemesterResponses[keyof GetCoursesBySemesterResponses];
 
 export type DeleteCourseData = {
     body?: never;

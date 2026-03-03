@@ -35,7 +35,7 @@ export function FormSelect<T extends FieldValues>({
       render={(field) => (
         <Select
           value={field.value?.toString()}
-          onValueChange={(val) => field.onChange(Number(val))}
+          onValueChange={(val) => field.onChange(val)}
         >
           <SelectTrigger>
             <SelectValue placeholder={placeholder} />

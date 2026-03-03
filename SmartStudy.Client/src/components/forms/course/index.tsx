@@ -32,7 +32,7 @@ export const CourseForm = ({ semesterId, onSuccess }: CourseFormProps) => {
       return createCourse({ body: payload });
     },
     {
-      queryKey: ["semesters"],
+      queryKey: ["courses", semesterId],
       successMessage: "Thêm lớp học phần thành công!",
       errorMessage: "Thêm lớp học phần thất bại!",
     },

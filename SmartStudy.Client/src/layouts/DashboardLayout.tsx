@@ -14,11 +14,11 @@ export default function DashboardLayout() {
   const { isOpen, title, description, view, closeDialog } = useDialogStore();
 
   return (
-    <div className="dashboard-layout">
-      <AppHeader />
-      <div className="dashboard-content">
+    <div className="dashboard-layout w-screen h-screen overflow-hidden">
+      <div className="dashboard-content flex h-full">
         <Sidebar />
-        <div className="main-content">
+        <div className="main-content flex-1 min-w-0 overflow-y-auto flex flex-col">
+          <AppHeader />
           {/*Global dialog*/}
           <Dialog
             open={isOpen}
@@ -31,7 +31,9 @@ export default function DashboardLayout() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{title}</DialogTitle>
-                {description && <DialogDescription>{description}</DialogDescription>}
+                {description && (
+                  <DialogDescription>{description}</DialogDescription>
+                )}
               </DialogHeader>
               {view}
             </DialogContent>
