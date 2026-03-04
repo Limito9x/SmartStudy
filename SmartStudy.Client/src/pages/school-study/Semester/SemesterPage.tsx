@@ -4,13 +4,14 @@ import CourseList from "@/components/features/school-study/course/CourseList";
 import { CourseForm } from "@/components/forms/course";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Button } from "@/components/ui/button";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
 import type { SemesterOutletContext } from "@/layouts/SchoolStudyLayout";
 
 export default function SemesterPage() {
   const { semesterId } = useParams<{ semesterId: string }>();
   const { currentSemester } = useOutletContext<SemesterOutletContext>();
+  const navigate = useNavigate();
 
   const {
     data: courses,
@@ -53,9 +54,23 @@ export default function SemesterPage() {
             <h2 className="text-lg font-semibold mb-2">
               Danh sách lớp học phần:
             </h2>
-            <Button onClick={handleAddCourse}>Thêm lớp học phần</Button>
+            <div className="flex gap-2">
+              <Button onClick={handleAddCourse}>Thêm lớp học phần</Button>
+              <Button
+                onClick={() =>
+                  navigate(`/app/semesters/${semesterId}/schedule`)
+                }
+              >
+                Sắp xếp TKB
+              </Button>
+            </div>
           </div>
-          <CourseList courses={courses} semesterId={semesterId} />
+          <CourseList
+            courses={courses}
+            onCourseClick={(courseId) =>
+              navigate(`/app/semesters/${semesterId}/courses/${courseId}`)
+            }
+          />
         </div>
       )}
     </div>

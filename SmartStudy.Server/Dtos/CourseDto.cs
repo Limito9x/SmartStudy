@@ -6,7 +6,8 @@ namespace SmartStudy.Server.Dtos
     (
         string Name,
         int Credits,
-        int SemesterId
+        int SemesterId,
+        List<ScheduleDto> ClassTimes
     );
 
     public record ResponseCourseDto

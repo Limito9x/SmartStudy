@@ -117,28 +117,40 @@ namespace SmartStudy.Server.Services.Routine
             _mapper.Map(RoutineDto, existingRoutine);
 
             // Cập nhật Schedules
-            foreach (var scheduleDto in RoutineDto.Schedules ?? [])
-            {
-                var existingSchedule = existingRoutine.Schedules
-                    .FirstOrDefault(s => s.Id == scheduleDto.Id);
-                if (existingSchedule != null)
-                {
-                    // Cập nhật Schedule hiện có
-                    _mapper.Map(scheduleDto, existingSchedule);
-                }
-                else
-                {
-                    // Thêm Schedule mới
-                    var newSchedule = _mapper.Map<Entities.Schedule>(scheduleDto);
-                    newSchedule.RoutineId = existingRoutine.Id;
-                    _context.Schedules.Add(newSchedule);
-                }
-            }
+            //foreach (var scheduleDto in RoutineDto.Schedules ?? [])
+            //{
+            //    var existingSchedule = existingRoutine.Schedules
+            //        .FirstOrDefault(s => s.Id == scheduleDto.Id);
+            //    if (existingSchedule != null)
+            //    {
+            //        // Cập nhật Schedule hiện có
+            //        _mapper.Map(scheduleDto, existingSchedule);
+            //    }
+            //    else
+            //    {
+            //        // Thêm Schedule mới
+            //        var newSchedule = _mapper.Map<Entities.Schedule>(scheduleDto);
+            //        newSchedule.RoutineId = existingRoutine.Id;
+            //        _context.Schedules.Add(newSchedule);
+            //    }
+            //}
 
-            var deletedSchedules = existingRoutine.Schedules
-                .Where(s => RoutineDto.Schedules == null || !RoutineDto.Schedules.Any(dto => dto.Id == s.Id))
-                .ToList();
-            _context.Schedules.RemoveRange(deletedSchedules);
+            //var deletedSchedules = existingRoutine.Schedules
+            //    .Where(s => RoutineDto.Schedules == null || !RoutineDto.Schedules.Any(dto => dto.Id == s.Id))
+            //    .ToList();
+            //_context.Schedules.RemoveRange(deletedSchedules);
+            CollectionHelper.SyncCollection<Entities.Schedule, ScheduleDto, int>(
+                existingRoutine.Schedules,
+                RoutineDto.Schedules ?? [],
+                s => s.Id,
+                dto => dto.Id,
+                (entity, dto) => _mapper.Map(dto, entity),
+                dto =>
+                {
+                    var newEntity = _mapper.Map<Entities.Schedule>(dto);
+                    newEntity.RoutineId = existingRoutine.Id;
+                    return newEntity;
+                });
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseRoutineDto>(existingRoutine);

@@ -3,9 +3,11 @@ import LandingPage from "@/pages/landing/LandingPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/auth/LoginPage";
 import SchoolStudyLayout from "@/layouts/SchoolStudyLayout";
-import SemesterPage from "@/pages/school-study/Semester/SemesterPage";
-import RedirectSemesterPage from "@/pages/school-study/Semester/RedirectSemesterPage";
-import CoursePage from "@/pages/school-study/Course/CoursePage";
+import SemesterPage from "@/pages/school-study/semester/SemesterPage";
+import SemesterSchedulePage from "@/pages/school-study/schedule/SemesterSchedulePage";
+import RedirectSemesterPage from "@/pages/school-study/semester/RedirectSemesterPage";
+import CoursePage from "@/pages/school-study/course/CoursePage";
+import CalendarPage from "@/pages/calendar/CalendarPage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -47,8 +49,16 @@ export default function AppRoutes() {
               element: <RedirectSemesterPage />,
               index: true,
             },
+            {
+              path: ":semesterId/schedule",
+              element: <SemesterSchedulePage />,
+            }
           ],
         },
+        {
+          path: "calendar",
+          element: <CalendarPage />,
+        }
       ],
     },
   ];

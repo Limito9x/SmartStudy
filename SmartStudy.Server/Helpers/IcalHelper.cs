@@ -28,12 +28,15 @@ namespace SmartStudy.Server.Helpers
                 Interval = myRule.Interval > 0 ? myRule.Interval : 1
             };
 
-            // Weekly: Map DaysOfWeek
-            if (myRule.DaysOfWeek != null && myRule.DaysOfWeek.Any())
+            // Weekly: Map single DayOfWeek (Schedule.DayOfWeek was changed to a single value)
+            if (myRule.Frequency == Frequency.Weekly)
             {
-                pattern.ByDay = myRule.DaysOfWeek
-                    .Select(d => new Ical.Net.DataTypes.WeekDay((DayOfWeek)d))
-                    .ToList();
+                var icalDays = new List<Ical.Net.DataTypes.WeekDay>();
+
+                var sysDay = myRule.DayOfWeek;
+
+                icalDays.Add(new Ical.Net.DataTypes.WeekDay(sysDay));
+                pattern.ByDay = icalDays;
             }
 
             // Monthly: Map DaysOfMonth

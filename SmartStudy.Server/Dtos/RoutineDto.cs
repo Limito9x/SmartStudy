@@ -6,7 +6,7 @@ public record ScheduleDto
     int Id,
     Frequency Frequency,
     int Interval,
-    HashSet<WeekDay>? DaysOfWeek,
+    DayOfWeek DayOfWeek,
     HashSet<int>? DaysOfMonth,
     TimeOnly StartTime,
     int Duration,

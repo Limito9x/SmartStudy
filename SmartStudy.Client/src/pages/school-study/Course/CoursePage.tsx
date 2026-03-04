@@ -2,35 +2,13 @@ import { useParams } from "react-router-dom";
 import { getCourseById } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CourseOverview from "./tabs/CourseOverview";
 
-interface TabItemProps{
+interface TabItem{
   label: string;
   value: string;
   content: React.ReactNode;
 }
-
-const TabItems: TabItemProps[] = [
-  {
-    label: "Điểm số",
-    value: "grades",
-    content: <div>Điểm số của môn học</div>,
-  },
-  {
-    label: "Tài liệu",
-    value: "assets",
-    content: <div>Tài liệu của môn học</div>,
-  },
-  {
-    label: "Công việc",
-    value: "tasks",
-    content: <div>Công việc của môn học</div>,
-  },
-  {
-    label: "Lịch trình",
-    value: "routine",
-    content: <div>Lịch trình của môn học - tự động tạo công việc</div>,
-  }
-]
 
 export default function CoursePage() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -48,6 +26,29 @@ export default function CoursePage() {
     enabled: !!courseId,
   });
 
+  const TabItems: TabItem[] = [
+    {
+      label: "Tổng quan",
+      value: "overview",
+      content: <CourseOverview course={course} />,
+    },
+    {
+      label: "Tài liệu",
+      value: "assets",
+      content: <div>Tài liệu của môn học</div>,
+    },
+    {
+      label: "Công việc",
+      value: "tasks",
+      content: <div>Công việc của môn học</div>,
+    },
+    {
+      label: "Lịch trình",
+      value: "routine",
+      content: <div>Lịch trình của môn học - tự động tạo công việc</div>,
+    },
+  ];
+
   return (
     <div className="p-4">
       {isLoading && <p>Loading course...</p>}
@@ -55,7 +56,7 @@ export default function CoursePage() {
       {course && (
         <div>
           <h1 className="text-2xl font-bold mb-4">{course.name}</h1>
-          <Tabs defaultValue="grades" className="w-full">
+          <Tabs defaultValue="overview" className="w-full">
             <TabsList className="bg-transparent border-b-2 mb-4">
               {TabItems.map((tab) => (
                 <TabsTrigger key={tab.value} value={tab.value}>

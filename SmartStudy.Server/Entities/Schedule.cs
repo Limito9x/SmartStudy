@@ -17,22 +17,11 @@ namespace SmartStudy.Server.Entities
         Periods
     }
 
-    public enum WeekDay
-    {
-        Monday = 1,
-        Tuesday = 2,
-        Wednesday = 3,
-        Thursday = 4,
-        Friday = 5,
-        Saturday = 6,
-        Sunday = 7
-    }
-
     public class Schedule: BaseEntity
     {
         public Frequency Frequency { get; set; }
         public int Interval { get; set; } = 1;
-        public WeekDay[]? DaysOfWeek { get; set; }
+        public DayOfWeek DayOfWeek { get; set; } // Sửa lại thành một ngày trong tuần duy nhất để dễ tính và đồng nhất
         public int[]? DaysOfMonth { get; set; }
         public TimeOnly StartTime { get; set; }
         public int Duration { get; set; }

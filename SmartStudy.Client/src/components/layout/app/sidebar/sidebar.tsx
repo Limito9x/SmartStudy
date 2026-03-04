@@ -8,7 +8,7 @@ import UserNav from "./user-nav";
 
 export function Sidebar() {
   return (
-    <div className="sidebar block">
+    <div className="sidebar">
       <ShadcnSidebar>
         <SidebarHeader>
           <h3 className="text-lg font-semibold">Smart Study</h3>

@@ -143,3 +143,15 @@ body {
 @utility card-interactive {
   @apply cursor-pointer transition-all hover:bg-accent hover:shadow-sm;
 }
+
+@utility list-grid{
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+@utility list-vertical {
+  @apply flex flex-col gap-4;
+}
+
+@utility selected {
+  @apply bg-primary text-primary-foreground;
+}

@@ -1,31 +1,38 @@
 import { type SimpleResponseCourseDto } from "@/services/api";
 
 import CourseCard from "./CourseCard";
-import { useNavigate } from "react-router-dom";
+
+interface CourseListProps {
+  courses: SimpleResponseCourseDto[];
+  listStyle?: "grid" | "vertical";
+  selectedCourseId?: string | number;
+  onCourseClick?: (courseId: string | number) => void;
+}
 
 export default function CourseList({
   courses,
-  semesterId,
-}: {
-  courses: SimpleResponseCourseDto[];
-  semesterId?: string;
-}) {
-  const navigate = useNavigate();
+  selectedCourseId,
+  onCourseClick,
+  listStyle = "grid",
+}: CourseListProps) {
   const handleCourseClick = (courseId: string | number) => {
-    navigate(`/app/semesters/${semesterId}/courses/${courseId}`);
+    if (onCourseClick) {
+      onCourseClick(courseId);
+    }
   };
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {courses.map((course) => (
-          <CourseCard
-            key={Number(course.id)}
-            course={course}
-            onClick={handleCourseClick}
-          />
-        ))}
-      </div>
+    <div
+      className={`${listStyle === "vertical" ? "list-vertical" : "list-grid"}`}
+    >
+      {courses.map((course) => (
+        <CourseCard
+          key={Number(course.id)}
+          course={course}
+          onClick={handleCourseClick}
+          isSelected={selectedCourseId === course.id}
+        />
+      ))}
     </div>
   );
 }

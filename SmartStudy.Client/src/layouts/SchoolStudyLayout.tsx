@@ -31,7 +31,7 @@ const semesterStatusMap: SemesterStatusMap = {
 
 export default function SchoolStudyLayout() {
   const navigate = useNavigate();
-  const {semesterId} = useParams<{semesterId: string}>();
+  const { semesterId } = useParams<{ semesterId: string }>();
 
   const { data: semesters, isLoading } = useQuery({
     queryKey: ["semesters"],
@@ -41,19 +41,20 @@ export default function SchoolStudyLayout() {
     },
   });
 
-  const currentSemester = semesters?.find((s) => s.id.toString() === semesterId) ?? null;
+  const currentSemester =
+    semesters?.find((s) => s.id.toString() === semesterId) ?? null;
 
   const handleRedirectToSemester = (semester: ResponseSemesterDto) => {
     navigate(`/app/semesters/${semester.id}`);
   };
 
   return (
-    <div className="w-full">
+    <div className="h-full flex flex-col overflow-hidden">
       {isLoading ? (
         <div>Loading...</div>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between px-4 pt-4 shrink-0">
             <Select
               value={
                 currentSemester ? currentSemester.id.toString() : undefined
@@ -91,7 +92,9 @@ export default function SchoolStudyLayout() {
               </SelectContent>
             </Select>
           </div>
-          <Outlet context={{ semesters, currentSemester }} />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <Outlet context={{ semesters, currentSemester }} />
+          </div>
         </>
       )}
     </div>

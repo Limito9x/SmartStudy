@@ -28,6 +28,8 @@ export type ChatDto = {
 
 export type ComrehensiveLevel = number;
 
+export type DayOfWeek = number;
+
 export type DifficultyLevel = number;
 
 export type ExecuteTaskDto = {
@@ -57,6 +59,7 @@ export type RequestCourseDto = {
     name: string;
     credits: number | string;
     semesterId: number | string;
+    classTimes: Array<ScheduleDto>;
 };
 
 export type RequestGoalDto = {
@@ -95,7 +98,7 @@ export type RequestRoutineDto = {
 };
 
 export type RequestSemesterDto = {
-    term: TermType;
+    term: number | string;
     year: number | string;
     startDate: string;
     endDate: string;
@@ -180,7 +183,7 @@ export type ResponseRoutineDto = {
 export type ResponseSemesterDto = {
     id: number | string;
     name: string;
-    term: TermType;
+    term: number | string;
     year: number | string;
     description: null | string;
     progress: null | number | string;
@@ -211,7 +214,7 @@ export type ScheduleDto = {
     id: number | string;
     frequency: Frequency;
     interval: number | string;
-    daysOfWeek: null | Array<WeekDay>;
+    dayOfWeek: DayOfWeek;
     daysOfMonth: null | Array<number | string>;
     startTime: string;
     duration: number | string;
@@ -261,8 +264,6 @@ export type TaskStatus = number;
 
 export type TaskType = number;
 
-export type TermType = unknown;
-
 export type TimeUnit = number;
 
 export type UserLoginDto = {
@@ -292,8 +293,6 @@ export type UserSettingDto = {
     programLength: number | string;
     semesters: Array<RequestSemesterDto>;
 };
-
-export type WeekDay = number;
 
 export type GetAssetsData = {
     body?: never;
