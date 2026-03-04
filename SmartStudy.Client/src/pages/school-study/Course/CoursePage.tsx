@@ -20,7 +20,7 @@ export default function CoursePage() {
     queryKey: ["course", courseId],
     queryFn: async () => {
       if (!courseId) return null;
-      const response = await getCourseById({ path: { CourseId: courseId } });
+      const response = await getCourseById({ path: { courseId: courseId } });
       return response.data;
     },
     enabled: !!courseId,

@@ -153,5 +153,5 @@ body {
 }
 
 @utility selected {
-  @apply bg-primary text-primary-foreground;
+  @apply bg-blue-400 text-primary-foreground ring-2 ring-primary shadow-md;
 }

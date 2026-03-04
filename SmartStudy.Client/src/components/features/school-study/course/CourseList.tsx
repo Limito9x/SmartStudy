@@ -6,24 +6,24 @@ interface CourseListProps {
   courses: SimpleResponseCourseDto[];
   listStyle?: "grid" | "vertical";
   selectedCourseId?: string | number;
-  onCourseClick?: (courseId: string | number) => void;
+  onSelectCourse?: (courseId: string | number) => void;
 }
 
 export default function CourseList({
   courses,
   selectedCourseId,
-  onCourseClick,
+  onSelectCourse,
   listStyle = "grid",
 }: CourseListProps) {
   const handleCourseClick = (courseId: string | number) => {
-    if (onCourseClick) {
-      onCourseClick(courseId);
+    if (onSelectCourse) {
+      onSelectCourse(courseId);
     }
   };
 
   return (
     <div
-      className={`${listStyle === "vertical" ? "list-vertical" : "list-grid"}`}
+      className={`${listStyle === "vertical" ? "list-vertical" : "list-grid"} p-2`}
     >
       {courses.map((course) => (
         <CourseCard

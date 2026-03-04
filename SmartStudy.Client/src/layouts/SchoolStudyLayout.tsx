@@ -1,4 +1,4 @@
-import { getApiSemesters, type SemesterStatus } from "@/services/api";
+import { getSemesters, type SemesterStatus } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { type ResponseSemesterDto } from "@/services/api";
 import {
@@ -36,7 +36,7 @@ export default function SchoolStudyLayout() {
   const { data: semesters, isLoading } = useQuery({
     queryKey: ["semesters"],
     queryFn: async () => {
-      const response = await getApiSemesters();
+      const response = await getSemesters();
       return response.data;
     },
   });

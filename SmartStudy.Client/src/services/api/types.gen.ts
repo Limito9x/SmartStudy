@@ -40,7 +40,7 @@ export type ExecuteTaskDto = {
 
 export type FileType = number;
 
-export type Frequency = number;
+export type Frequency = 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
 
 export type GoalType = number;
 
@@ -59,7 +59,6 @@ export type RequestCourseDto = {
     name: string;
     credits: number | string;
     semesterId: number | string;
-    classTimes: Array<ScheduleDto>;
 };
 
 export type RequestGoalDto = {
@@ -92,7 +91,6 @@ export type RequestRoutineDto = {
     description: null | string;
     startDate: null | string;
     endDate: null | string;
-    schedules: null | Array<ScheduleDto>;
     goalId: null | number | string;
     gradeId: null | number | string;
 };
@@ -174,7 +172,7 @@ export type ResponseRoutineDto = {
     description: null | string;
     startDate: null | string;
     endDate: null | string;
-    schedules: null | Array<ScheduleDto>;
+    schedules: null | Array<ScheduleResponseDto>;
     goalId: null | number | string;
     gradeId: null | number | string;
     tasks: null | Array<ResponseTaskDto>;
@@ -210,8 +208,9 @@ export type ResponseTaskDto = {
     gradeId: null | number | string;
 };
 
-export type ScheduleDto = {
-    id: number | string;
+export type ScheduleOwnerType = 'Course' | 'Routine';
+
+export type ScheduleRequestDto = {
     frequency: Frequency;
     interval: number | string;
     dayOfWeek: DayOfWeek;
@@ -220,6 +219,23 @@ export type ScheduleDto = {
     duration: number | string;
     durationUnit: TimeUnit;
     location: null | string;
+    ownerType: ScheduleOwnerType;
+    ownerId: number | string;
+};
+
+export type ScheduleResponseDto = {
+    id: number | string;
+    frequency: Frequency;
+    interval: number | string;
+    dayOfWeek: DayOfWeek;
+    daysOfMonth: null | Array<number | string>;
+    startHour: number | string;
+    startMinute: number | string;
+    duration: number | string;
+    durationUnit: TimeUnit;
+    location: null | string;
+    course: null | SimpleResponseCourseDto;
+    routine: null | SimpleResponseRoutineDto;
 };
 
 export type SemesterStatus = 'Past' | 'Active' | 'Future';
@@ -244,7 +260,7 @@ export type SimpleResponseRoutineDto = {
     description: null | string;
     startDate: null | string;
     endDate: null | string;
-    schedules: null | Array<ScheduleDto>;
+    schedules: null | Array<ScheduleResponseDto>;
     goalId: null | number | string;
     gradeId: null | number | string;
 };
@@ -264,7 +280,7 @@ export type TaskStatus = number;
 
 export type TaskType = number;
 
-export type TimeUnit = number;
+export type TimeUnit = 'Minutes' | 'Hours' | 'Periods';
 
 export type UserLoginDto = {
     userName: string;
@@ -355,7 +371,7 @@ export type RegisterData = {
     body: UserRegisterDto;
     path?: never;
     query?: never;
-    url: '/api/Auth/register';
+    url: '/api/auth/register';
 };
 
 export type RegisterResponses = {
@@ -371,7 +387,7 @@ export type LoginData = {
     body: UserLoginDto;
     path?: never;
     query?: never;
-    url: '/api/Auth/login';
+    url: '/api/auth/login';
 };
 
 export type LoginResponses = {
@@ -387,7 +403,7 @@ export type GetProfileData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/Auth/me';
+    url: '/api/auth/me';
 };
 
 export type GetProfileResponses = {
@@ -462,10 +478,10 @@ export type PostApiChatSessionsBySessionIdStreamResponses = {
 export type GetCoursesBySemesterData = {
     body?: never;
     path: {
-        SemesterId: number | string;
+        semesterId: number | string;
     };
     query?: never;
-    url: '/api/courses/Semester/{SemesterId}';
+    url: '/api/courses/semester/{semesterId}';
 };
 
 export type GetCoursesBySemesterResponses = {
@@ -480,10 +496,10 @@ export type GetCoursesBySemesterResponse = GetCoursesBySemesterResponses[keyof G
 export type DeleteCourseData = {
     body?: never;
     path: {
-        CourseId: number | string;
+        courseId: number | string;
     };
     query?: never;
-    url: '/api/courses/{CourseId}';
+    url: '/api/courses/{courseId}';
 };
 
 export type DeleteCourseResponses = {
@@ -496,10 +512,10 @@ export type DeleteCourseResponses = {
 export type GetCourseByIdData = {
     body?: never;
     path: {
-        CourseId: number | string;
+        courseId: number | string;
     };
     query?: never;
-    url: '/api/courses/{CourseId}';
+    url: '/api/courses/{courseId}';
 };
 
 export type GetCourseByIdResponses = {
@@ -514,10 +530,10 @@ export type GetCourseByIdResponse = GetCourseByIdResponses[keyof GetCourseByIdRe
 export type UpdateCourseData = {
     body: RequestCourseDto;
     path: {
-        CourseId: number | string;
+        courseId: number | string;
     };
     query?: never;
-    url: '/api/courses/{CourseId}';
+    url: '/api/courses/{courseId}';
 };
 
 export type UpdateCourseResponses = {
@@ -545,55 +561,55 @@ export type CreateCourseResponses = {
 
 export type CreateCourseResponse = CreateCourseResponses[keyof CreateCourseResponses];
 
-export type PostApiGoalsData = {
+export type CreateGoalData = {
     body: RequestGoalDto;
     path?: never;
     query?: never;
     url: '/api/goals';
 };
 
-export type PostApiGoalsResponses = {
+export type CreateGoalResponses = {
     /**
      * OK
      */
     200: ResponseGoalDto;
 };
 
-export type PostApiGoalsResponse = PostApiGoalsResponses[keyof PostApiGoalsResponses];
+export type CreateGoalResponse = CreateGoalResponses[keyof CreateGoalResponses];
 
-export type DeleteApiGoalsByGoalIdData = {
+export type DeleteGoalData = {
     body?: never;
     path: {
-        GoalId: number | string;
+        goalId: number | string;
     };
     query?: never;
-    url: '/api/goals/{GoalId}';
+    url: '/api/goals/{goalId}';
 };
 
-export type DeleteApiGoalsByGoalIdResponses = {
+export type DeleteGoalResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type PatchApiGoalsByGoalIdData = {
+export type UpdateGoalData = {
     body: RequestGoalDto;
     path: {
-        GoalId: number | string;
+        goalId: number | string;
     };
     query?: never;
-    url: '/api/goals/{GoalId}';
+    url: '/api/goals/{goalId}';
 };
 
-export type PatchApiGoalsByGoalIdResponses = {
+export type UpdateGoalResponses = {
     /**
      * OK
      */
     200: ResponseGoalDto;
 };
 
-export type PatchApiGoalsByGoalIdResponse = PatchApiGoalsByGoalIdResponses[keyof PatchApiGoalsByGoalIdResponses];
+export type UpdateGoalResponse = UpdateGoalResponses[keyof UpdateGoalResponses];
 
 export type GetApiLearningPathsData = {
     body?: never;
@@ -869,55 +885,90 @@ export type GetApiRoutinesByIdUpcomingTasksResponses = {
 
 export type GetApiRoutinesByIdUpcomingTasksResponse = GetApiRoutinesByIdUpcomingTasksResponses[keyof GetApiRoutinesByIdUpcomingTasksResponses];
 
-export type GetApiSemestersData = {
+export type GetSchedulesData = {
     body?: never;
     path?: never;
-    query?: never;
-    url: '/api/semesters';
-};
-
-export type GetApiSemestersResponses = {
-    /**
-     * OK
-     */
-    200: Array<ResponseSemesterDto>;
-};
-
-export type GetApiSemestersResponse = GetApiSemestersResponses[keyof GetApiSemestersResponses];
-
-export type PostApiSemestersData = {
-    body: RequestSemesterDto;
-    path?: never;
-    query?: never;
-    url: '/api/semesters';
-};
-
-export type PostApiSemestersResponses = {
-    /**
-     * OK
-     */
-    200: ResponseSemesterDto;
-};
-
-export type PostApiSemestersResponse = PostApiSemestersResponses[keyof PostApiSemestersResponses];
-
-export type DeleteApiSemestersBySemesterIdData = {
-    body?: never;
-    path: {
-        SemesterId: number | string;
+    query?: {
+        OwnerType?: ScheduleOwnerType;
+        OwnerId?: number | string;
     };
-    query?: never;
-    url: '/api/semesters/{SemesterId}';
+    url: '/api/schedules';
 };
 
-export type DeleteApiSemestersBySemesterIdResponses = {
+export type GetSchedulesResponses = {
+    /**
+     * OK
+     */
+    200: Array<ScheduleResponseDto>;
+};
+
+export type GetSchedulesResponse = GetSchedulesResponses[keyof GetSchedulesResponses];
+
+export type RegisterScheduleData = {
+    body: ScheduleRequestDto;
+    path?: never;
+    query?: never;
+    url: '/api/schedules';
+};
+
+export type RegisterScheduleResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type GetApiSemestersBySemesterIdData = {
+export type GetSchedulesBySemesterData = {
+    body?: never;
+    path: {
+        semesterId: number | string;
+    };
+    query?: never;
+    url: '/api/schedules/semester/{semesterId}';
+};
+
+export type GetSchedulesBySemesterResponses = {
+    /**
+     * OK
+     */
+    200: Array<ScheduleResponseDto>;
+};
+
+export type GetSchedulesBySemesterResponse = GetSchedulesBySemesterResponses[keyof GetSchedulesBySemesterResponses];
+
+export type GetSemestersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/semesters';
+};
+
+export type GetSemestersResponses = {
+    /**
+     * OK
+     */
+    200: Array<ResponseSemesterDto>;
+};
+
+export type GetSemestersResponse = GetSemestersResponses[keyof GetSemestersResponses];
+
+export type CreateSemesterData = {
+    body: RequestSemesterDto;
+    path?: never;
+    query?: never;
+    url: '/api/semesters';
+};
+
+export type CreateSemesterResponses = {
+    /**
+     * OK
+     */
+    200: ResponseSemesterDto;
+};
+
+export type CreateSemesterResponse = CreateSemesterResponses[keyof CreateSemesterResponses];
+
+export type DeleteSemesterData = {
     body?: never;
     path: {
         SemesterId: number | string;
@@ -926,16 +977,32 @@ export type GetApiSemestersBySemesterIdData = {
     url: '/api/semesters/{SemesterId}';
 };
 
-export type GetApiSemestersBySemesterIdResponses = {
+export type DeleteSemesterResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetSemesterByIdData = {
+    body?: never;
+    path: {
+        SemesterId: number | string;
+    };
+    query?: never;
+    url: '/api/semesters/{SemesterId}';
+};
+
+export type GetSemesterByIdResponses = {
     /**
      * OK
      */
     200: ResponseSemesterDto;
 };
 
-export type GetApiSemestersBySemesterIdResponse = GetApiSemestersBySemesterIdResponses[keyof GetApiSemestersBySemesterIdResponses];
+export type GetSemesterByIdResponse = GetSemesterByIdResponses[keyof GetSemesterByIdResponses];
 
-export type PutApiSemestersBySemesterIdData = {
+export type UpdateSemesterData = {
     body: RequestSemesterDto;
     path: {
         SemesterId: number | string;
@@ -944,14 +1011,14 @@ export type PutApiSemestersBySemesterIdData = {
     url: '/api/semesters/{SemesterId}';
 };
 
-export type PutApiSemestersBySemesterIdResponses = {
+export type UpdateSemesterResponses = {
     /**
      * OK
      */
     200: ResponseSemesterDto;
 };
 
-export type PutApiSemestersBySemesterIdResponse = PutApiSemestersBySemesterIdResponses[keyof PutApiSemestersBySemesterIdResponses];
+export type UpdateSemesterResponse = UpdateSemesterResponses[keyof UpdateSemesterResponses];
 
 export type PostApiTasksData = {
     body: RequestTaskDto;

@@ -22,7 +22,7 @@ export default function SemesterPage() {
     queryFn: async () => {
       if (!semesterId) return [];
       const response = await getCoursesBySemester({
-        path: { SemesterId: semesterId },
+        path: { semesterId: semesterId },
       });
       return response.data;
     },
@@ -67,7 +67,7 @@ export default function SemesterPage() {
           </div>
           <CourseList
             courses={courses}
-            onCourseClick={(courseId) =>
+            onSelectCourse={(courseId) =>
               navigate(`/app/semesters/${semesterId}/courses/${courseId}`)
             }
           />

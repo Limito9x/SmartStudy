@@ -10,16 +10,16 @@ const hours = Array.from(
 );
 
 // ── Types ───────────────────────────────────────────────────
-interface WeekDayDef {
+export interface WeekDayDef {
   name: string;
   short: string;
-  value: string; // "1" = Mon … "7" = Sun
+  value: number; // 0 = Mon … 6 = Sun
 }
 
 export interface CalendarEvent {
   id: string | number;
   title: string;
-  dayOfWeek: string; // "1".."7"
+  dayOfWeek: number; // 0..6
   startHour: number;
   startMinute: number;
   durationMinutes: number;
@@ -29,18 +29,18 @@ export interface CalendarEvent {
 
 interface WeekCalendarProps {
   events?: CalendarEvent[];
-  onCellClick?: (dayOfWeek: string, hour: number) => void;
+  onCellClick?: (dayOfWeek: WeekDayDef, hour: number) => void;
 }
 
 // ── Static data ─────────────────────────────────────────────
 const weekDays: WeekDayDef[] = [
-  { name: "Thứ 2", short: "T2", value: "1" },
-  { name: "Thứ 3", short: "T3", value: "2" },
-  { name: "Thứ 4", short: "T4", value: "3" },
-  { name: "Thứ 5", short: "T5", value: "4" },
-  { name: "Thứ 6", short: "T6", value: "5" },
-  { name: "Thứ 7", short: "T7", value: "6" },
-  { name: "CN", short: "CN", value: "7" },
+  { name: "Thứ 2", short: "T2", value: 0 },
+  { name: "Thứ 3", short: "T3", value: 1 },
+  { name: "Thứ 4", short: "T4", value: 2 },
+  { name: "Thứ 5", short: "T5", value: 3 },
+  { name: "Thứ 6", short: "T6", value: 4 },
+  { name: "Thứ 7", short: "T7", value: 5 },
+  { name: "CN", short: "CN", value: 6 },
 ];
 
 // ── Component ────────────────────────────────────────────────
@@ -108,7 +108,7 @@ export default function WeekCalendar({
                     height: ROW_HEIGHT,
                   }}
                   className="absolute w-full border-b border-border hover:bg-accent/20 active:bg-accent/40 cursor-pointer transition-colors"
-                  onClick={() => onCellClick?.(day.value, hour)}
+                  onClick={() => onCellClick?.(day, hour)}
                 />
               ))}
 

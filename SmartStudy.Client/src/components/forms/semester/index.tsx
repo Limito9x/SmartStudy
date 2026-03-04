@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { semesterSchema, type SemesterFormValues } from "./schema";
-import { postApiSemesters } from "@/services/api";
+import { createSemester } from "@/services/api";
 import { FormInput, FormSelect } from "@/components/form-controls";
 import RangePicker from "@/components/ui/custom/range-picker";
 import { addMonths } from "date-fns";
@@ -45,7 +45,7 @@ export const SemesterForm = ({
         startDate: newSemester.startDate.toISOString(),
         endDate: newSemester.endDate.toISOString(),
       };
-      const response = await postApiSemesters({ body: payload });
+      const response = await createSemester({ body: payload });
       return response.data;
     },
     {

@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { CreateCourseData, CreateCourseResponses, DeleteApiGoalsByGoalIdData, DeleteApiGoalsByGoalIdResponses, DeleteApiLearningPathsByLearningPathIdData, DeleteApiLearningPathsByLearningPathIdResponses, DeleteApiLogsByTaskLogIdData, DeleteApiLogsByTaskLogIdResponses, DeleteApiRoutinesByIdData, DeleteApiRoutinesByIdResponses, DeleteApiSemestersBySemesterIdData, DeleteApiSemestersBySemesterIdResponses, DeleteApiTasksByTaskIdData, DeleteApiTasksByTaskIdResponses, DeleteAssetData, DeleteAssetResponses, DeleteCourseData, DeleteCourseResponses, GetApiChatSessionsBySessionIdData, GetApiChatSessionsBySessionIdResponses, GetApiChatSessionsData, GetApiChatSessionsResponses, GetApiLearningPathsByLearningPathIdData, GetApiLearningPathsByLearningPathIdResponses, GetApiLearningPathsData, GetApiLearningPathsResponses, GetApiLogsByTaskLogIdData, GetApiLogsByTaskLogIdResponses, GetApiRoutinesByIdData, GetApiRoutinesByIdResponses, GetApiRoutinesByIdUpcomingTasksData, GetApiRoutinesByIdUpcomingTasksResponses, GetApiRoutinesData, GetApiRoutinesResponses, GetApiSemestersBySemesterIdData, GetApiSemestersBySemesterIdResponses, GetApiSemestersData, GetApiSemestersResponses, GetApiTasksByTaskIdData, GetApiTasksByTaskIdResponses, GetAssetsData, GetAssetsResponses, GetCourseByIdData, GetCourseByIdResponses, GetCoursesBySemesterData, GetCoursesBySemesterResponses, GetProfileData, GetProfileResponses, LoginData, LoginResponses, PatchApiGoalsByGoalIdData, PatchApiGoalsByGoalIdResponses, PatchApiLearningPathsByLearningPathIdData, PatchApiLearningPathsByLearningPathIdResponses, PatchApiRoutinesByIdData, PatchApiRoutinesByIdResponses, PatchApiTasksByTaskIdData, PatchApiTasksByTaskIdResponses, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsBySessionIdStreamResponses, PostApiChatSessionsData, PostApiChatSessionsResponses, PostApiGoalsData, PostApiGoalsResponses, PostApiLearningPathsData, PostApiLearningPathsResponses, PostApiLogsData, PostApiLogsResponses, PostApiRoutinesByIdGenerateTasksData, PostApiRoutinesByIdGenerateTasksResponses, PostApiRoutinesData, PostApiRoutinesResponses, PostApiSemestersData, PostApiSemestersResponses, PostApiTasksByTaskIdExecuteData, PostApiTasksByTaskIdExecuteResponses, PostApiTasksData, PostApiTasksResponses, PostApiUsersSettingData, PostApiUsersSettingResponses, PutApiLogsByTaskLogIdData, PutApiLogsByTaskLogIdResponses, PutApiSemestersBySemesterIdData, PutApiSemestersBySemesterIdResponses, RegisterData, RegisterResponses, UpdateCourseData, UpdateCourseResponses, UploadAssetsData, UploadAssetsResponses } from './types.gen';
+import type { CreateCourseData, CreateCourseResponses, CreateGoalData, CreateGoalResponses, CreateSemesterData, CreateSemesterResponses, DeleteApiLearningPathsByLearningPathIdData, DeleteApiLearningPathsByLearningPathIdResponses, DeleteApiLogsByTaskLogIdData, DeleteApiLogsByTaskLogIdResponses, DeleteApiRoutinesByIdData, DeleteApiRoutinesByIdResponses, DeleteApiTasksByTaskIdData, DeleteApiTasksByTaskIdResponses, DeleteAssetData, DeleteAssetResponses, DeleteCourseData, DeleteCourseResponses, DeleteGoalData, DeleteGoalResponses, DeleteSemesterData, DeleteSemesterResponses, GetApiChatSessionsBySessionIdData, GetApiChatSessionsBySessionIdResponses, GetApiChatSessionsData, GetApiChatSessionsResponses, GetApiLearningPathsByLearningPathIdData, GetApiLearningPathsByLearningPathIdResponses, GetApiLearningPathsData, GetApiLearningPathsResponses, GetApiLogsByTaskLogIdData, GetApiLogsByTaskLogIdResponses, GetApiRoutinesByIdData, GetApiRoutinesByIdResponses, GetApiRoutinesByIdUpcomingTasksData, GetApiRoutinesByIdUpcomingTasksResponses, GetApiRoutinesData, GetApiRoutinesResponses, GetApiTasksByTaskIdData, GetApiTasksByTaskIdResponses, GetAssetsData, GetAssetsResponses, GetCourseByIdData, GetCourseByIdResponses, GetCoursesBySemesterData, GetCoursesBySemesterResponses, GetProfileData, GetProfileResponses, GetSchedulesBySemesterData, GetSchedulesBySemesterResponses, GetSchedulesData, GetSchedulesResponses, GetSemesterByIdData, GetSemesterByIdResponses, GetSemestersData, GetSemestersResponses, LoginData, LoginResponses, PatchApiLearningPathsByLearningPathIdData, PatchApiLearningPathsByLearningPathIdResponses, PatchApiRoutinesByIdData, PatchApiRoutinesByIdResponses, PatchApiTasksByTaskIdData, PatchApiTasksByTaskIdResponses, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsBySessionIdStreamResponses, PostApiChatSessionsData, PostApiChatSessionsResponses, PostApiLearningPathsData, PostApiLearningPathsResponses, PostApiLogsData, PostApiLogsResponses, PostApiRoutinesByIdGenerateTasksData, PostApiRoutinesByIdGenerateTasksResponses, PostApiRoutinesData, PostApiRoutinesResponses, PostApiTasksByTaskIdExecuteData, PostApiTasksByTaskIdExecuteResponses, PostApiTasksData, PostApiTasksResponses, PostApiUsersSettingData, PostApiUsersSettingResponses, PutApiLogsByTaskLogIdData, PutApiLogsByTaskLogIdResponses, RegisterData, RegisterResponses, RegisterScheduleData, RegisterScheduleResponses, UpdateCourseData, UpdateCourseResponses, UpdateGoalData, UpdateGoalResponses, UpdateSemesterData, UpdateSemesterResponses, UploadAssetsData, UploadAssetsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -39,7 +39,7 @@ export const deleteAsset = <ThrowOnError extends boolean = false>(options: Optio
 
 export const register = <ThrowOnError extends boolean = false>(options: Options<RegisterData, ThrowOnError>) => (options.client ?? client).post<RegisterResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/Auth/register',
+    url: '/api/auth/register',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ export const register = <ThrowOnError extends boolean = false>(options: Options<
 
 export const login = <ThrowOnError extends boolean = false>(options: Options<LoginData, ThrowOnError>) => (options.client ?? client).post<LoginResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/Auth/login',
+    url: '/api/auth/login',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export const login = <ThrowOnError extends boolean = false>(options: Options<Log
 
 export const getProfile = <ThrowOnError extends boolean = false>(options?: Options<GetProfileData, ThrowOnError>) => (options?.client ?? client).get<GetProfileResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/Auth/me',
+    url: '/api/auth/me',
     ...options
 });
 
@@ -87,21 +87,21 @@ export const postApiChatSessionsBySessionIdStream = <ThrowOnError extends boolea
 
 export const getCoursesBySemester = <ThrowOnError extends boolean = false>(options: Options<GetCoursesBySemesterData, ThrowOnError>) => (options.client ?? client).get<GetCoursesBySemesterResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/courses/Semester/{SemesterId}',
+    url: '/api/courses/semester/{semesterId}',
     ...options
 });
 
-export const deleteCourse = <ThrowOnError extends boolean = false>(options: Options<DeleteCourseData, ThrowOnError>) => (options.client ?? client).delete<DeleteCourseResponses, unknown, ThrowOnError>({ url: '/api/courses/{CourseId}', ...options });
+export const deleteCourse = <ThrowOnError extends boolean = false>(options: Options<DeleteCourseData, ThrowOnError>) => (options.client ?? client).delete<DeleteCourseResponses, unknown, ThrowOnError>({ url: '/api/courses/{courseId}', ...options });
 
 export const getCourseById = <ThrowOnError extends boolean = false>(options: Options<GetCourseByIdData, ThrowOnError>) => (options.client ?? client).get<GetCourseByIdResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/courses/{CourseId}',
+    url: '/api/courses/{courseId}',
     ...options
 });
 
 export const updateCourse = <ThrowOnError extends boolean = false>(options: Options<UpdateCourseData, ThrowOnError>) => (options.client ?? client).patch<UpdateCourseResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/courses/{CourseId}',
+    url: '/api/courses/{courseId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export const createCourse = <ThrowOnError extends boolean = false>(options: Opti
     }
 });
 
-export const postApiGoals = <ThrowOnError extends boolean = false>(options: Options<PostApiGoalsData, ThrowOnError>) => (options.client ?? client).post<PostApiGoalsResponses, unknown, ThrowOnError>({
+export const createGoal = <ThrowOnError extends boolean = false>(options: Options<CreateGoalData, ThrowOnError>) => (options.client ?? client).post<CreateGoalResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/goals',
     ...options,
@@ -129,11 +129,11 @@ export const postApiGoals = <ThrowOnError extends boolean = false>(options: Opti
     }
 });
 
-export const deleteApiGoalsByGoalId = <ThrowOnError extends boolean = false>(options: Options<DeleteApiGoalsByGoalIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiGoalsByGoalIdResponses, unknown, ThrowOnError>({ url: '/api/goals/{GoalId}', ...options });
+export const deleteGoal = <ThrowOnError extends boolean = false>(options: Options<DeleteGoalData, ThrowOnError>) => (options.client ?? client).delete<DeleteGoalResponses, unknown, ThrowOnError>({ url: '/api/goals/{goalId}', ...options });
 
-export const patchApiGoalsByGoalId = <ThrowOnError extends boolean = false>(options: Options<PatchApiGoalsByGoalIdData, ThrowOnError>) => (options.client ?? client).patch<PatchApiGoalsByGoalIdResponses, unknown, ThrowOnError>({
+export const updateGoal = <ThrowOnError extends boolean = false>(options: Options<UpdateGoalData, ThrowOnError>) => (options.client ?? client).patch<UpdateGoalResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/goals/{GoalId}',
+    url: '/api/goals/{goalId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -245,13 +245,34 @@ export const getApiRoutinesByIdUpcomingTasks = <ThrowOnError extends boolean = f
     ...options
 });
 
-export const getApiSemesters = <ThrowOnError extends boolean = false>(options?: Options<GetApiSemestersData, ThrowOnError>) => (options?.client ?? client).get<GetApiSemestersResponses, unknown, ThrowOnError>({
+export const getSchedules = <ThrowOnError extends boolean = false>(options?: Options<GetSchedulesData, ThrowOnError>) => (options?.client ?? client).get<GetSchedulesResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/schedules',
+    ...options
+});
+
+export const registerSchedule = <ThrowOnError extends boolean = false>(options: Options<RegisterScheduleData, ThrowOnError>) => (options.client ?? client).post<RegisterScheduleResponses, unknown, ThrowOnError>({
+    url: '/api/schedules',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getSchedulesBySemester = <ThrowOnError extends boolean = false>(options: Options<GetSchedulesBySemesterData, ThrowOnError>) => (options.client ?? client).get<GetSchedulesBySemesterResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/schedules/semester/{semesterId}',
+    ...options
+});
+
+export const getSemesters = <ThrowOnError extends boolean = false>(options?: Options<GetSemestersData, ThrowOnError>) => (options?.client ?? client).get<GetSemestersResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/semesters',
     ...options
 });
 
-export const postApiSemesters = <ThrowOnError extends boolean = false>(options: Options<PostApiSemestersData, ThrowOnError>) => (options.client ?? client).post<PostApiSemestersResponses, unknown, ThrowOnError>({
+export const createSemester = <ThrowOnError extends boolean = false>(options: Options<CreateSemesterData, ThrowOnError>) => (options.client ?? client).post<CreateSemesterResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/semesters',
     ...options,
@@ -261,15 +282,15 @@ export const postApiSemesters = <ThrowOnError extends boolean = false>(options: 
     }
 });
 
-export const deleteApiSemestersBySemesterId = <ThrowOnError extends boolean = false>(options: Options<DeleteApiSemestersBySemesterIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiSemestersBySemesterIdResponses, unknown, ThrowOnError>({ url: '/api/semesters/{SemesterId}', ...options });
+export const deleteSemester = <ThrowOnError extends boolean = false>(options: Options<DeleteSemesterData, ThrowOnError>) => (options.client ?? client).delete<DeleteSemesterResponses, unknown, ThrowOnError>({ url: '/api/semesters/{SemesterId}', ...options });
 
-export const getApiSemestersBySemesterId = <ThrowOnError extends boolean = false>(options: Options<GetApiSemestersBySemesterIdData, ThrowOnError>) => (options.client ?? client).get<GetApiSemestersBySemesterIdResponses, unknown, ThrowOnError>({
+export const getSemesterById = <ThrowOnError extends boolean = false>(options: Options<GetSemesterByIdData, ThrowOnError>) => (options.client ?? client).get<GetSemesterByIdResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/semesters/{SemesterId}',
     ...options
 });
 
-export const putApiSemestersBySemesterId = <ThrowOnError extends boolean = false>(options: Options<PutApiSemestersBySemesterIdData, ThrowOnError>) => (options.client ?? client).put<PutApiSemestersBySemesterIdResponses, unknown, ThrowOnError>({
+export const updateSemester = <ThrowOnError extends boolean = false>(options: Options<UpdateSemesterData, ThrowOnError>) => (options.client ?? client).put<UpdateSemesterResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/semesters/{SemesterId}',
     ...options,
