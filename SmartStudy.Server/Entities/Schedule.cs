@@ -1,7 +1,9 @@
 ﻿using Ical.Net.DataTypes;
+using System.Text.Json.Serialization;
 
 namespace SmartStudy.Server.Entities
 {
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum Frequency
     {
         Daily,
@@ -9,7 +11,7 @@ namespace SmartStudy.Server.Entities
         Monthly,
         Yearly
     }
-
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TimeUnit
     {
         Minutes,

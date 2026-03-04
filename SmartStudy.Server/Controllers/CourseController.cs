@@ -16,40 +16,40 @@ namespace SmartStudy.Server.Controllers
             _CourseService = CourseService;
         }
 
-        [HttpGet("Semester/{SemesterId}",Name ="GetCoursesBySemester")]
-        public async Task<ActionResult<List<SimpleResponseCourseDto>>> GetCoursesBySemester(int SemesterId)
+        [HttpGet("semester/{semesterId}", Name = "GetCoursesBySemester")]
+        public async Task<ActionResult<List<SimpleResponseCourseDto>>> GetCoursesBySemester(int semesterId)
         {
-            List<SimpleResponseCourseDto> courses = await _CourseService.GetCoursesBySemesterIdAsync(SemesterId);
+            List<SimpleResponseCourseDto> courses = await _CourseService.GetCoursesBySemesterIdAsync(semesterId);
             return Ok(courses);
         }
 
-        [HttpGet("{CourseId}",Name ="GetCourseById")]
-        public async Task<ActionResult<ResponseCourseDto>> GetCourseById(int CourseId)
+        [HttpGet("{courseId}", Name = "GetCourseById")]
+        public async Task<ActionResult<ResponseCourseDto>> GetCourseById(int courseId)
         {
-            ResponseCourseDto? course = await _CourseService.GetCourseByIdAsync(CourseId);
+            ResponseCourseDto? course = await _CourseService.GetCourseByIdAsync(courseId);
             if (course == null) return NotFound();
             return Ok(course);
         }
 
-        [HttpPost(Name ="CreateCourse")]
+        [HttpPost(Name = "CreateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> CreateCourse(RequestCourseDto CourseDto)
         {
             ResponseCourseDto createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
-            return CreatedAtAction(nameof(GetCourseById), new { CourseId = createdCourse.Id }, createdCourse);
+            return CreatedAtAction(nameof(GetCourseById), new { courseId = createdCourse.Id }, createdCourse);
         }
 
-        [HttpPatch("{CourseId}",Name ="UpdateCourse")]
-        public async Task<ActionResult<ResponseCourseDto>> UpdateCourse(int CourseId, RequestCourseDto CourseDto)
+        [HttpPatch("{courseId}", Name = "UpdateCourse")]
+        public async Task<ActionResult<ResponseCourseDto>> UpdateCourse(int courseId, RequestCourseDto CourseDto)
         {
-            ResponseCourseDto? updatedCourse = await _CourseService.UpdateCourseAsync(CourseId, CourseDto);
+            ResponseCourseDto? updatedCourse = await _CourseService.UpdateCourseAsync(courseId, CourseDto);
             if (updatedCourse == null) return NotFound();
             return Ok(updatedCourse);
         }
 
-        [HttpDelete("{CourseId}",Name ="DeleteCourse")]
-        public async Task<IActionResult> DeleteCourse(int CourseId)
+        [HttpDelete("{courseId}", Name = "DeleteCourse")]
+        public async Task<IActionResult> DeleteCourse(int courseId)
         {
-            var deleted = await _CourseService.DeleteCourseAsync(CourseId);
+            var deleted = await _CourseService.DeleteCourseAsync(courseId);
             if (!deleted) return NotFound();
             return NoContent();
         }

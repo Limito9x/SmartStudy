@@ -1,27 +1,14 @@
 ﻿using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
 
-public record ScheduleDto
-(
-    int Id,
-    Frequency Frequency,
-    int Interval,
-    DayOfWeek DayOfWeek,
-    HashSet<int>? DaysOfMonth,
-    TimeOnly StartTime,
-    int Duration,
-    TimeUnit DurationUnit,
-    string? Location
-);
-
 public record RequestRoutineDto(
     string Name,
     string? Description,
     DateTime? StartDate,
     DateTime? EndDate,
-    List<ScheduleDto>? Schedules,
     int? GoalId,
     int? GradeId
+    //List<ScheduleDto>? Schedules
 );
 
 public record ResponseRoutineDto(
@@ -30,7 +17,7 @@ public record ResponseRoutineDto(
     string? Description,
     DateTime? StartDate,
     DateTime? EndDate,
-    List<ScheduleDto>? Schedules,
+    List<ScheduleResponseDto>? Schedules,
     int? GoalId,
     int? GradeId,
     List<ResponseTaskDto>? Tasks
@@ -42,7 +29,7 @@ public record SimpleResponseRoutineDto(
     string? Description,
     DateTime? StartDate,
     DateTime? EndDate,
-    List<ScheduleDto>? Schedules,
+    List<ScheduleResponseDto>? Schedules,
     int? GoalId,
     int? GradeId
 );

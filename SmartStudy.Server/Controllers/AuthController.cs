@@ -7,7 +7,7 @@ using System.Security.Claims;
 namespace SmartStudy.Server.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     public class AuthController: ControllerBase
     {
         private readonly IAuthService _authService;

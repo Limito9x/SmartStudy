@@ -2,9 +2,8 @@
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services.Semester;
-using SmartStudy.Server.Services.UserService;
 
-namespace SmartStudy.Server.Services.UserSerivice
+namespace SmartStudy.Server.Services.UserService
 {
     public interface IUserService
     {

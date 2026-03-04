@@ -17,21 +17,21 @@ namespace SmartStudy.Server.Controllers
             _SemesterService = SemesterService;
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateSemester")]
         public async Task<ActionResult<ResponseSemesterDto>> CreateSemester([FromBody] RequestSemesterDto SemesterDto)
         {
             var createdSemester = await _SemesterService.CreateSemesterAsync(SemesterDto);
             return Ok(createdSemester);
         }
 
-        [HttpGet]
+        [HttpGet(Name = "GetSemesters")]
         public async Task<ActionResult<List<ResponseSemesterDto>>> GetSemesters()
         {
             var Semesters = await _SemesterService.GetSemestersByUserIdAsync();
             return Ok(Semesters);
         }
 
-        [HttpGet("{SemesterId}")]
+        [HttpGet("{SemesterId}", Name = "GetSemesterById")]
         public async Task<ActionResult<ResponseSemesterDto>> GetSemesterById(int SemesterId)
         {
             var Semester = await _SemesterService.GetSemesterByIdAsync(SemesterId);
@@ -39,7 +39,7 @@ namespace SmartStudy.Server.Controllers
             return Ok(Semester);
         }
 
-        [HttpPut("{SemesterId}")]
+        [HttpPut("{SemesterId}", Name = "UpdateSemester")]
         public async Task<ActionResult<ResponseSemesterDto>> UpdateSemester(int SemesterId, [FromBody] RequestSemesterDto SemesterDto)
         {
             var updatedSemester = await _SemesterService.UpdateSemesterAsync(SemesterId, SemesterDto);
@@ -47,7 +47,7 @@ namespace SmartStudy.Server.Controllers
             return Ok(updatedSemester);
         }
 
-        [HttpDelete("{SemesterId}")]
+        [HttpDelete("{SemesterId}", Name = "DeleteSemester")]
         public async Task<ActionResult> DeleteSemester(int SemesterId)
         {
             var result = await _SemesterService.DeleteSemesterAsync(SemesterId);

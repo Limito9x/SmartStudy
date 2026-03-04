@@ -74,31 +74,6 @@ namespace SmartStudy.Server.Services.Course
         {
             var existingCourse = await _context.Courses.Include(c=>c.ClassTimes).FirstOrDefaultAsync(c=>c.Id==CourseId);
             if(existingCourse == null) return null;
-            
-            var updateConfig = new TypeAdapterConfig();
-            // Tránh ghi đè toàn bộ ClassTimes, chỉ cập nhật những trường đã thay đổi
-            updateConfig.ForType<RequestCourseDto, Entities.Course>()
-                .Map(dest => dest.ClassTimes, src => src.ClassTimes);
-            CourseDto.Adapt(existingCourse, updateConfig);
-
-            // Xử lý riêng classtime bằng sync collection
-            CollectionHelper.SyncCollection<Entities.Schedule, ScheduleDto, int>
-                (
-                    existingCourse.ClassTimes,
-                    CourseDto.ClassTimes,
-                    ct => ct.Id,
-                    ctDto => ctDto.Id,
-                    (ct, ctDto) =>
-                    {
-                        _mapper.Map(ctDto, ct);
-                    },
-                    ctDto =>
-                    {
-                        var newClassTime = _mapper.Map<Entities.Schedule>(ctDto);
-                        newClassTime.CourseId = CourseId;
-                        return newClassTime;
-                    }
-                );
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseCourseDto>(existingCourse);

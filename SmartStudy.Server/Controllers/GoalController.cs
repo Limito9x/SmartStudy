@@ -17,25 +17,25 @@ namespace SmartStudy.Server.Controllers
             _GoalService = GoalService;
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateGoal")]
         public async Task<ActionResult<ResponseGoalDto>> CreateGoal(RequestGoalDto GoalDto)
         {
             var createdGoal = await _GoalService.CreateGoalAsync(GoalDto); 
             return Ok(createdGoal);
         }
 
-        [HttpPatch("{GoalId}")]
-        public async Task<ActionResult<ResponseGoalDto>> UpdateGoal(int GoalId, RequestGoalDto GoalDto)
+        [HttpPatch("{goalId}", Name = "UpdateGoal")]
+        public async Task<ActionResult<ResponseGoalDto>> UpdateGoal(int goalId, RequestGoalDto GoalDto)
         {
-            var updatedGoal = await _GoalService.UpdateGoalAsync(GoalId, GoalDto);
+            var updatedGoal = await _GoalService.UpdateGoalAsync(goalId, GoalDto);
             if (updatedGoal == null) return NotFound();
             return Ok(updatedGoal);
         }
 
-        [HttpDelete("{GoalId}")]
-        public async Task<IActionResult> DeleteGoal(int GoalId)
+        [HttpDelete("{goalId}", Name = "DeleteGoal")]
+        public async Task<IActionResult> DeleteGoal(int goalId)
         {
-            var success = await _GoalService.DeleteGoalAsync(GoalId);
+            var success = await _GoalService.DeleteGoalAsync(goalId);
             if (success == null) return NotFound();
             return NoContent();
         }

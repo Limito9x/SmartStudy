@@ -26,13 +26,12 @@ using SmartStudy.Server.Services.Semester;
 using SmartStudy.Server.Services.TaskItem;
 using SmartStudy.Server.Services.TaskLog;
 using SmartStudy.Server.Services.UserService;
+using SmartStudy.Server.Services.Schedule;
 using System.Reflection;
 using System.Text;
-using System.Text.Json.Serialization;
 using SmartStudy.Server.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
-using SmartStudy.Server.Services.UserSerivice;
 using SmartStudy.Server.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -148,6 +147,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<ICourseService, CourseService>()
                 .AddScoped<IRoutineService, RoutineService>()
                 .AddScoped<IChatService, ChatService>()
+                .AddScoped<IScheduleService, ScheduleService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<IMapper, ServiceMapper>();
