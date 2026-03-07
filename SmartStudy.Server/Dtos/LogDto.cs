@@ -1,28 +1,33 @@
-﻿using SmartStudy.Server.Entities;
-using SmartStudy.Server.Entities.Enums;
+﻿using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
 {
     public record RequestLogDto
     (
         string? Note,
-        int? TimeSpent, // Số phút dành ra
+        int? ActualDurationMinutes, // Số phút dành ra
+        int? ProductivityScore,
         ComrehensiveLevel? ComrehensiveLevel,
         DifficultyLevel? DifficultyLevel,
-        float? GoalContributionValue,
-        string[]? Artifats, // Để tạm lưu các file liên quan đến log này
-        int? TaskId
+        DateTime? TimerStartAt,
+        DateTime? TimerEndAt,
+        string[]? Artifacts, // Để tạm lưu các file liên quan đến log này
+        int? EventRequirementId,
+        float? EarnedValue,
+        int TaskId
     );
 
     public record ResponseLogDto
     (
         int Id,
         string? Note,
-        int? TimeSpent, // Số phút dành ra
+        int? ActualDurationMinutes,
+        int? ProductivityScore,
         ComrehensiveLevel? ComrehensiveLevel,
         DifficultyLevel? DifficultyLevel,
-        float? GoalContributionValue,
-        string[]? Artifacts, // Để tạm lưu các file liên quan đến log này
-        DateTime CompletedAt
+        DateTime? TimerStartAt,
+        DateTime? TimerEndAt,
+        string[]? Artifacts,
+        float? EarnedValue
     );
 }

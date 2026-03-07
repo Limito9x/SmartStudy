@@ -7,9 +7,6 @@ namespace SmartStudy.Server.Helpers
 {
     public static class IcalHelper
     {
-        /// <summary>
-        /// Chuyển RecurrenceRule sang RecurrencePattern của iCal
-        /// </summary>
         public static RecurrencePattern ToRecurrencePattern(Schedule myRule, DateTime endDate)
         {
             if (myRule == null)
@@ -51,10 +48,6 @@ namespace SmartStudy.Server.Helpers
             return pattern;
         }
 
-        /// <summary>
-        /// Lấy tất cả occurrences trong khoảng thời gian
-        /// SAFE: Luôn có giới hạn để tránh unbounded enumeration
-        /// </summary>
         public static List<DateTime> GetOccurrences(
             DateTime startAnchor, 
             DateTime endAnchor, 
@@ -109,9 +102,6 @@ namespace SmartStudy.Server.Helpers
             }
         }
 
-        /// <summary>
-        /// Lấy occurrence tiếp theo SAU một thời điểm cụ thể
-        /// </summary>
         public static DateTime? GetNextOccurrence(
             DateTime afterDate,
             DateTime startDate,
@@ -137,9 +127,6 @@ namespace SmartStudy.Server.Helpers
             }
         }
 
-        /// <summary>
-        /// Đếm số occurrences trong khoảng thời gian
-        /// </summary>
         public static int CountOccurrences(
             DateTime startAnchor,
             DateTime endDate,

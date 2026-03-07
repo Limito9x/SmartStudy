@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using SmartStudy.Server.Entities;
-using SmartStudy.Server.Services.Cloud;
+using SmartStudy.Server.Services;
 
 namespace SmartStudy.Server.Data.Interceptors
 {

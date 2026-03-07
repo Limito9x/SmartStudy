@@ -1,9 +1,8 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
-using SmartStudy.Server.Services.Semester;
 
-namespace SmartStudy.Server.Services.UserService
+namespace SmartStudy.Server.Services
 {
     public interface IUserService
     {
@@ -14,19 +13,19 @@ namespace SmartStudy.Server.Services.UserService
         private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapster;
         private readonly ICurrentUserService _currentUserService;
-        private readonly ISemesterService _semesterService;
+        private readonly IStudyPlanService _studyPlanService;
 
         public UserService(
             ApplicationDbContext dbContext,
             IMapper mapster,
             ICurrentUserService currentUserService,
-            ISemesterService semesterService
+            IStudyPlanService studyPlanService
             )
         {
             _dbContext = dbContext;
             _mapster = mapster;
             _currentUserService = currentUserService;
-            _semesterService = semesterService;
+            _studyPlanService = studyPlanService;
         }
 
         public async Task SettingUserContext(UserSettingDto settingDto)
@@ -40,9 +39,9 @@ namespace SmartStudy.Server.Services.UserService
             }
             _mapster.Map(settingDto, user);
 
-            if(settingDto.Semesters != null && settingDto.Semesters.Count > 0)
+            if (settingDto.StudyPlans != null && settingDto.StudyPlans.Count > 0)
             {
-                await _semesterService.BulkSetupSemestersAsync(userId, settingDto.Semesters);
+                await _studyPlanService.BulkSetupStudyPlansAsync(userId, settingDto.StudyPlans);
             }
 
             await _dbContext.SaveChangesAsync();

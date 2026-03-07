@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -329,7 +329,7 @@ namespace SmartStudy.Server.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Credits = table.Column<int>(type: "integer", nullable: false),
-                    Grades = table.Column<ICollection<Grade>>(type: "jsonb", nullable: false),
+                    Grades = table.Column<ICollection<object>>(type: "jsonb", nullable: false),
                     TargetGrade = table.Column<float>(type: "real", nullable: false),
                     ForecastGrade = table.Column<float>(type: "real", nullable: false),
                     SemesterId = table.Column<int>(type: "integer", nullable: false),

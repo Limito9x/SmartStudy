@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace SmartStudy.Server.Entities
 {
@@ -11,9 +11,7 @@ namespace SmartStudy.Server.Entities
         public int? WeeksOfSummerSemester { get; set; }
         public float ProgramLength { get; set; }
         public ICollection<RefreshToken>? RefreshTokens { get; set; }
-        public ICollection<Semester>? Semesters { get; set; }
-        public ICollection<LearningPath>? LearningPaths { get; set; }
-        public ICollection<Goal>? Goals { get; set; }
+        public ICollection<StudyPlan>? StudyPlans { get; set; }
         public ICollection<TaskItem>? Tasks { get; set; }
         public ICollection<Routine>? Routines { get; set; }
     }

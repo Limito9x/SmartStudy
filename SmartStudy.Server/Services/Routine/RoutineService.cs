@@ -1,12 +1,17 @@
-﻿using MapsterMapper;
+﻿using Mapster;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Helpers;
-using SmartStudy.Server.Services.UserService;
 
-namespace SmartStudy.Server.Services.Routine
+namespace SmartStudy.Server.Services
 {
+    public record Occurence(DateTime Date, Schedule Schedule);
+    // Toàn bộ CRUD về routine thường xoay quanh thông tin công việc
+    // Không có tác động gì đến lịch (schedule)
+    // Chỉ khi gán lịch -> sinh ra Task
     public interface IRoutineService
     {
         Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto);
@@ -15,9 +20,10 @@ namespace SmartStudy.Server.Services.Routine
         Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto);
         Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
+        Task BulkSaveRoutineAsync(List<RequestRoutineDto> RoutineDtos);
         Task<bool> DeleteRoutineAsync(int RoutineId);
     }
-    public class RoutineService: IRoutineService
+    public class RoutineService : IRoutineService
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
@@ -29,37 +35,10 @@ namespace SmartStudy.Server.Services.Routine
             _currentUserService = currentUserService;
             _mapper = mapper;
         }
-        //private async Task<int> CalculateNewExpectedTotalCount(int RoutineId, Timeslot newRule)
-        //{
-        //    var today = DateTime.UtcNow.Date;
 
-        //    // Bước 1: Lấy số lượng TaskLog ĐÃ PHÁT SINH trong quá khứ (trước hôm nay)
-        //    // Bao gồm cả Success, Failed, Skipped vì chúng đại diện cho "phiên đã qua"
-        //    var pastLogsCount = await _context.TaskLogs
-        //        .CountAsync(l => l.RoutineId == RoutineId && l.CreatedAt < today);
-
-        //    // Bước 2: Tìm đối tượng Routine để lấy thông tin EndDate
-        //    var Routine = await _context.Routines
-        //        .Include(r => r.Course)
-        //        .FirstOrDefaultAsync(r => r.Id == RoutineId);
-
-        //    if (Routine == null) return 0;
-
-        //    // Bước 3: Tính toán mẫu số cho tương lai (từ hôm nay đến khi kết thúc)
-        //    // Chúng ta dùng Rule mới cho giai đoạn này
-        //    var searchEnd = Routine.EndDate ?? Routine.Course.EndDate;
-
-        //    // Gọi hàm IcalHelper đã viết ở câu trước
-        //    // Mốc bắt đầu tìm kiếm là 'today' (để áp dụng rule mới ngay từ hôm nay)
-        //    var futureOccurrences = IcalHelper.GetOccurrences(today, searchEnd, newRule);
-
-        //    // Bước 4: Tổng mẫu số mới = Thực tế quá khứ + Ước lượng tương lai
-        //    return pastLogsCount + futureOccurrences.Count;
-        //}
+        // Routine thường tạo ra trước nhưng chưa gán lịch
         public async Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto)
         {
-            try
-            {
                 var userId = _currentUserService.UserId;
                 var Routine = _mapper.Map<Entities.Routine>(RoutineDto);
                 Routine.UserId = userId;
@@ -68,17 +47,7 @@ namespace SmartStudy.Server.Services.Routine
 
                 await _context.SaveChangesAsync();
 
-                // Tạo trước các Task cho Routine trong 14 ngày tới
-                await GenerateTasksAsync(Routine.Id, Routine.EndDate ?? DateTime.UtcNow.AddDays(14));
-
-                return _mapper.Map<ResponseRoutineDto>(Routine);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"[RoutineService] Error creating Routine: {ex.Message}");
-                Console.WriteLine($"[RoutineService] Stack trace: {ex.StackTrace}");
-                throw;
-            }
+                return _mapper.Map<ResponseRoutineDto>(Routine);       
         }
 
         public async Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId)
@@ -89,7 +58,7 @@ namespace SmartStudy.Server.Services.Routine
             if (Routine == null) return null;
             return _mapper.Map<ResponseRoutineDto>(Routine);
         }
-        
+
         public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync()
         {
             var userId = _currentUserService.UserId;
@@ -121,63 +90,185 @@ namespace SmartStudy.Server.Services.Routine
             return true;
         }
 
-        public async System.Threading.Tasks.Task GenerateTasksAsync(int RoutineId, DateTime Until)
+        public async Task BulkSaveRoutineAsync(List<RequestRoutineDto> RoutineDtos)
+        {
+            int userId = _currentUserService.UserId;
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            
+            var config = new TypeAdapterConfig();
+            config.NewConfig<RequestRoutineDto, Routine>()
+                .Ignore(r=>r.Schedules);
+
+            try
+            {
+                var existingRoutines = await _context.Routines
+                    .Include(r => r.Schedules)
+                    .Where(r => r.UserId == userId)
+                    .ToListAsync();
+
+                // Đồng bộ tầng 1: Routine
+                CollectionHelper.SyncCollection<Routine, RequestRoutineDto, int>
+                    (
+                        existingEntities: existingRoutines,
+                        incomingDtos: RoutineDtos,
+                        entityKeySelector: r => r.Id,
+                        dtoKeySelector: r => r.Id,
+                        updateAction: (existingRoutine, dtoRoutine) =>
+                        {
+                            dtoRoutine.Adapt(existingRoutine, config);
+
+                            // Đồng bộ tầng 2: Schedule
+                            CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>
+                            (
+                                existingEntities: existingRoutine.Schedules,
+                                incomingDtos: dtoRoutine.Schedules ?? new List<ScheduleDto>(),
+                                entityKeySelector: s => s.Id,
+                                dtoKeySelector: s => s.Id,
+                                updateAction: (existingSchedule, dtoSchedule) =>
+                                {
+                                    _mapper.Map(dtoSchedule, existingSchedule);
+                                },
+                                createFunc: dtoSchedule =>
+                                {
+                                    var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
+                                    return newSchedule;
+                                }
+                            );
+                        },
+                        createFunc: dtoRoutine =>
+                        {
+                            var newRoutine = _mapper.Map<Routine>(dtoRoutine);
+                            return newRoutine;
+                        }
+                    );
+
+                var activeRoutineIds = RoutineDtos.Select(r => r.Id).ToList();
+
+                // Dọn rác, xóa cứng các task
+                if(activeRoutineIds.Any() )
+                {
+                    await _context.Tasks
+                        .Where(t => t.UserId == userId && t.RoutineId.HasValue && !activeRoutineIds.Contains((int)t.RoutineId)
+                        && t.Status == Entities.Enums.TaskStatus.Pending
+                        && t.Log == null
+                        )
+                        .ExecuteDeleteAsync();
+                }
+
+                await _context.SaveChangesAsync();
+
+                var taskList = new List<Task>();
+                foreach (var routine in existingRoutines)
+                {
+                    var pendingTask = GenerateTasksAsync(routine.Id, DateTime.UtcNow.AddDays(30));
+                    taskList.Add(pendingTask);
+                }
+
+                await Task.WhenAll(taskList);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task GenerateTasksAsync(int RoutineId, DateTime Until)
         {
             var userId = _currentUserService.UserId;
             var Routine = await _context.Routines
                 .Include(r => r.Schedules)
                 .FirstOrDefaultAsync(r => r.Id == RoutineId);
             if (Routine == null) return;
-            var datesToGenerate = new List<DateTime>();
-            foreach (var schedule in Routine.Schedules)
-            {
-                var occurrences = IcalHelper.GetOccurrences(DateTime.UtcNow.Date, Until, schedule);
-                datesToGenerate.AddRange(occurrences);
-            }
 
-            // Lọc các ngày trùng lặp và sắp xếp tăng dần
-            datesToGenerate = datesToGenerate
-                .Distinct()
-                .OrderBy(d => d)
-                .ToList();
+            var existingTasks = await _context.Tasks
+                .Where(t => t.RoutineId == RoutineId && t.UserId == userId && t.TaskDate <= DateOnly.FromDateTime(Until))
+                .ToListAsync();
 
-            foreach (var date in datesToGenerate)
+            var startDate = DateTime.UtcNow.Date;
+            var endDate = Until.Date.AddDays(1).AddSeconds(-1);
+            var tasksToInsert = new List<TaskItem>();
+
+            foreach (var occurence in GetOccurences(startDate, endDate, Routine))
             {
-                var newTask = new Entities.TaskItem
+                if(existingTasks.Any(t => t.ScheduleId == occurence.Schedule.Id && t.TaskDate == DateOnly.FromDateTime(occurence.Date)))
                 {
-                    Name = Routine.Name,
-                    Description = Routine.Description,
-                    UserId = userId,
-                    RoutineId = Routine.Id,
-                };
-                _context.Tasks.Add(newTask);
-            }
+                    continue; // Bỏ qua nếu đã tồn tại Task cho lịch trình này vào ngày này
+                }
+                var durationScale = 1;
+                if (occurence.Schedule.DurationUnit == TimeUnit.Hours)
+                {
+                    durationScale = 60;
+                }
+                else if (occurence.Schedule.DurationUnit == TimeUnit.Periods)
+                {
+                    durationScale = 45;
+                }
+                var durationMinutes = occurence.Schedule.Duration * durationScale;
+                {
+                    var task = new TaskItem
+                    {
+                        Name = Routine.Name,
+                        Description = Routine.Description,
+                        TaskDate = DateOnly.FromDateTime(occurence.Date),
+                        StartTime = occurence.Schedule.StartTime,
+                        DurationMinutes = durationMinutes,
+                        Location = occurence.Schedule.Location,
+                        UserId = userId,
+                        RoutineId = RoutineId,
+                        ScheduleId = occurence.Schedule.Id,
+                        Status = Entities.Enums.TaskStatus.Pending,
+                        Type = Routine.Type,
+                        EventRequirementId = Routine.EventRequirementId
+                    };
+                    tasksToInsert.Add(task);
+                }
 
-            await _context.SaveChangesAsync();
+                _context.Tasks.AddRange(tasksToInsert);
+
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead)
         {
             var userId = _currentUserService.UserId;
-            var today = DateTime.UtcNow.Date;
+            var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
             // Lấy hết các Task sắp tới cho Routine
             var query = _context.Tasks
                 .AsNoTracking()
                 .Where(t => t.RoutineId == RoutineId &&
-                            t.UserId == userId &&
-                            t.DueDate >= today);
+                            t.UserId == userId && t.TaskDate>today);
 
             // Nếu có giới hạn ngày, áp dụng bộ lọc
             if (daysAhead.HasValue)
             {
                 var endDate = today.AddDays(daysAhead.Value);
-                query = query.Where(t => t.DueDate <= endDate);
+                query = query.Where(t => t.TaskDate <= endDate);
             }
-            
+
             var tasks = await query.ToListAsync();
             return _mapper.Map<List<ResponseTaskDto>>(tasks);
         }
 
+        // Hàm tiện ích
+        private IEnumerable<Occurence> GetOccurences(DateTime startAnchor, DateTime endAnchor, Routine routine, int? maxCount = 1000)
+        {
+            var count = 0;
+            var schedules = routine.Schedules;
+            for (var date = startAnchor; date <= endAnchor; date = date.AddDays(1))
+            {
+                foreach (var schedule in schedules)
+                {
+                    if (count >= maxCount) yield break;
+                    if (date.DayOfWeek==schedule.DayOfWeek)
+                    {
+                        yield return new Occurence(date, schedule);
+                        count++;
+                    }
+                }
+            }
+        }
     }
 }

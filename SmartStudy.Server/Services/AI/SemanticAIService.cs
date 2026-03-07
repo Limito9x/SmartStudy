@@ -1,7 +1,6 @@
 ﻿using Microsoft.SemanticKernel; // Quan trọng
-using SmartStudy.Server.Services;
 
-namespace SmartStudy.Server.Services.AI
+namespace SmartStudy.Server.Services
 {
     public class SemanticAIService : IAIService
     {

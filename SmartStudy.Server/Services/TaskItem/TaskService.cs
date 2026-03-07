@@ -1,13 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
-using SmartStudy.Server.Services.AssetLink;
 using SmartStudy.Server.Entities.Enums;
-using SmartStudy.Server.Services.UserService;
 using SmartStudy.Server.Dtos;
 using MapsterMapper;
-using SmartStudy.Server.Services.TaskLog;
 
-namespace SmartStudy.Server.Services.TaskItem
+namespace SmartStudy.Server.Services
 {
     public interface ITaskService
     {

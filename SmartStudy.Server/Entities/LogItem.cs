@@ -2,18 +2,24 @@
 
 namespace SmartStudy.Server.Entities
 {
+    // Log là người cuối cùng trong workflow
+    // Ghi nhận toàn bộ sự thật về quá trình thực hiện Task
     public class LogItem: BaseEntity
     {
         //public TaskLogStatus Status { get; set; }
         public string? Note { get; set; }
         public DateTime? CompletedAt { get; set; }
-        public int? TimeSpent { get; set; } // Số phút dành ra 
-        public ComrehensiveLevel? ComrehensiveLevel { get; set; }
-        public DifficultyLevel? DifficultyLevel { get; set; }
-        // Do task chỉ liên kết 1 goal, nên log chỉ 1 trường giá trị đóng góp là biết được log này thuộc về goal nào
-        public float? GoalContributionValue { get; set; }
-        public string[]? Artifats { get; set; } // Để tạm lưu các file liên quan đến log này
+        public int ActualDurationMinutes { get; set; } // Thời lượng thực tế, để hỗ trợ đánh giá sau này
+        public int? ProductivityScore { get; set; } // Tập trung
+        public ComrehensiveLevel? ComrehensiveLevel { get; set; } // Hiểu bài
+        public DifficultyLevel? DifficultyLevel { get; set; } // Độ khó
+        // Pomodora - Hardcore mode: log thời gian bắt đầu và kết thúc thực tế, để hỗ trợ đánh giá sau này
+        public DateTime? TimerStartAt { get; set; }
+        public DateTime? TimerEndAt { get; set; }
+        public string[]? Artifacts { get; set; } // Để tạm lưu các file liên quan đến log này
         public int TaskId { get; set; }
         public required TaskItem Task { get; set; }
+        public int? EventRequirementId { get; set; }
+        public float? EarnedValue { get; set; }// Bổ sung giá trị cho event requirement, để hỗ trợ đánh giá sau này
     }
 }

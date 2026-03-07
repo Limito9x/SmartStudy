@@ -1,33 +1,33 @@
-﻿using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities;
 
 namespace SmartStudy.Server.Dtos
 {
     public record RequestCourseDto
     (
-        string Name,
-        int Credits,
-        int SemesterId
+        int StudyPlanId,
+        int SubjectId,
+        double? TargetScore,
+        double? FinalScore
     );
 
     public record ResponseCourseDto
     (
         int Id,
-        string Name,
-        string? Description,
-        int SemesterId,
+        int StudyPlanId,
+        int SubjectId,
+        string SubjectName,
         int Credits,
-        float TargetGrade,
-        double CurrentGPA,
-        List<ResponseGradeDto> Grades
+        double? TargetScore,
+        double? FinalScore
     );
 
     public record SimpleResponseCourseDto
     (
         int Id,
-        string Name,
+        int SubjectId,
+        string SubjectName,
         int Credits,
-        string? Description,
-        float TargetGrade,
-        double CurrentGPA
+        double? TargetScore,
+        double? FinalScore
     );
 }

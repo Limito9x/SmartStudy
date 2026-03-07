@@ -37,8 +37,8 @@ namespace SmartStudy.Server.Dtos
         Entities.Enums.TaskStatus Status,
         ResponseLogDto? Log,
         int? RoutineId,
-        int? GoalId,
-        int? GradeId
+        int? ScheduleId,
+        int CourseId
     );
 
     public record SimpleResponseTaskDto
@@ -49,7 +49,8 @@ namespace SmartStudy.Server.Dtos
         DateTime? DueDate,
         DateTime? CompletedAt,
         Entities.Enums.TaskStatus Status,
-        int? GoalId,
-        int? GradeId
+        int? RoutineId,
+        int? ScheduleId,
+        int CourseId
     );
 }

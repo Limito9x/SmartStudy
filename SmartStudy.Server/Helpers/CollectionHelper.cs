@@ -36,17 +36,17 @@
                     // Thêm entity mới vào collection
                     existingEntities.Add(newEntity);
                 }
+            }
 
-                // Sau khi xử lý tất cả DTO, loại bỏ những entity không còn tương ứng với bất kỳ DTO nào
-                var toRemove = existingEntities.Where
-                    (e=>!dtoList.Any(dto=>EqualityComparer<TKey>.Default.Equals(
-                        entityKeySelector(e),dtoKeySelector(dto))))
-                    .ToList();
-                foreach (var entity in toRemove)
-                {
-                    existingEntities.Remove(entity);
-                }
-                }
+            // Sau khi xử lý tất cả DTO, loại bỏ những entity không còn tương ứng với bất kỳ DTO nào
+            var toRemove = existingEntities.Where
+                (e => !dtoList.Any(dto => EqualityComparer<TKey>.Default.Equals(
+                    entityKeySelector(e), dtoKeySelector(dto))))
+                .ToList();
+            foreach (var entity in toRemove)
+            {
+                existingEntities.Remove(entity);
+            }
         }
     }
 }

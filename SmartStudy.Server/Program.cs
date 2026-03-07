@@ -1,4 +1,4 @@
-﻿using Mapster;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -12,24 +12,9 @@ using SmartStudy.Server.Data;
 using SmartStudy.Server.Data.Interceptors;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Plugins;
-using SmartStudy.Server.Services.AI;
-using SmartStudy.Server.Services.AssetLink;
-using SmartStudy.Server.Services.AssetService;
-using SmartStudy.Server.Services.Auth;
-using SmartStudy.Server.Services.Chat;
-using SmartStudy.Server.Services.Cloud;
-using SmartStudy.Server.Services.Course;
-using SmartStudy.Server.Services.Goal;
-using SmartStudy.Server.Services.LearningPath;
-using SmartStudy.Server.Services.Routine;
-using SmartStudy.Server.Services.Semester;
-using SmartStudy.Server.Services.TaskItem;
-using SmartStudy.Server.Services.TaskLog;
-using SmartStudy.Server.Services.UserService;
-using SmartStudy.Server.Services.Schedule;
+using SmartStudy.Server.Services;
 using System.Reflection;
 using System.Text;
-using SmartStudy.Server.Helpers;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using SmartStudy.Server.Middlewares;
@@ -52,8 +37,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers()
     .AddJsonOptions(opts => {
-        // Register custom converter for TermType so it is serialized as number
-        opts.JsonSerializerOptions.Converters.Add(new TermTypeNumberConverter());
+        // Custom converters can be registered here if needed.
     });
 
 // Cấu hình OpenAPI với .NET 10
@@ -134,7 +118,7 @@ builder.Services.AddSingleton(config);
 builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<ICurrentUserService, CurrentUserService>()
-                .AddScoped<ISemesterService, SemesterService>()
+                .AddScoped<IStudyPlanService, StudyPlanService>()
                 .AddScoped<ITaskService, TaskService>()
                 .AddScoped<ICloudService, CloudinaryService>()
                 .AddScoped<IAssetService, AssetService>()
@@ -142,12 +126,11 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IAssetLinkService, AssetLinkService>()
                 .AddScoped<IRoutineService, RoutineService>()
                 .AddScoped<ILogService, LogService>()
-                .AddScoped<ILearningPathService, LearningPathService>()
-                .AddScoped<IGoalService, GoalService>()
                 .AddScoped<ICourseService, CourseService>()
+                .AddScoped<ITimelineEventService, TimelineEventService>()
                 .AddScoped<IRoutineService, RoutineService>()
                 .AddScoped<IChatService, ChatService>()
-                .AddScoped<IScheduleService, ScheduleService>()
+                .AddScoped<ISubjectService, SubjectService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<IMapper, ServiceMapper>();

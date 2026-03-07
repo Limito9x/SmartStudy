@@ -1,14 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities.Enums;
-using SmartStudy.Server.Services.UserService;
 
-namespace SmartStudy.Server.Services.AssetLink
+namespace SmartStudy.Server.Services
 {
     public interface IAssetLinkService
     {
-        System.Threading.Tasks.Task AddAssetLinkAsync(int assetId ,int linkedId, AssetLinkType linkType);
-        System.Threading.Tasks.Task RemoveAssetLinkByAsync(int linkedId, AssetLinkType linkType);
+        Task AddAssetLinkAsync(int assetId ,int linkedId, AssetLinkType linkType);
+        Task RemoveAssetLinkByAsync(int linkedId, AssetLinkType linkType);
     }
     public class AssetLinkService: IAssetLinkService
     {
@@ -20,7 +19,7 @@ namespace SmartStudy.Server.Services.AssetLink
             _currentUserService = currentUserService;
         }
 
-        public async System.Threading.Tasks.Task AddAssetLinkAsync(int assetId,int linkedId, AssetLinkType linkType)
+        public async Task AddAssetLinkAsync(int assetId,int linkedId, AssetLinkType linkType)
         {
             var userId = _currentUserService.UserId;
             var assetLink = new Entities.AssetLink
@@ -34,7 +33,7 @@ namespace SmartStudy.Server.Services.AssetLink
             await _context.SaveChangesAsync();
         }
 
-        public async System.Threading.Tasks.Task RemoveAssetLinkByAsync(int linkedId, AssetLinkType linkType)
+        public async Task RemoveAssetLinkByAsync(int linkedId, AssetLinkType linkType)
         {
             var assetLinks = _context.AssetLinks
                 .Where(al => al.LinkedId == linkedId && al.LinkedType == linkType).Include(al=>al.Asset);

@@ -5,11 +5,8 @@ using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Helpers;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
-using SmartStudy.Server.Services.AssetLink;
-using SmartStudy.Server.Services.Cloud;
-using SmartStudy.Server.Services.UserService;
 
-namespace SmartStudy.Server.Services.AssetService
+namespace SmartStudy.Server.Services
 {
     public interface IAssetService
     {

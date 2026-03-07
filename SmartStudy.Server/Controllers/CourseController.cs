@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
-using SmartStudy.Server.Services.Course;
+using SmartStudy.Server.Services;
 
 namespace SmartStudy.Server.Controllers
 {
@@ -16,10 +16,10 @@ namespace SmartStudy.Server.Controllers
             _CourseService = CourseService;
         }
 
-        [HttpGet("semester/{semesterId}", Name = "GetCoursesBySemester")]
-        public async Task<ActionResult<List<SimpleResponseCourseDto>>> GetCoursesBySemester(int semesterId)
+        [HttpGet("study-plan/{studyPlanId:int}", Name = "GetCoursesByStudyPlan")]
+        public async Task<ActionResult<List<SimpleResponseCourseDto>>> GetCoursesByStudyPlan(int studyPlanId)
         {
-            List<SimpleResponseCourseDto> courses = await _CourseService.GetCoursesBySemesterIdAsync(semesterId);
+            List<SimpleResponseCourseDto> courses = await _CourseService.GetCoursesByStudyPlanIdAsync(studyPlanId);
             return Ok(courses);
         }
 

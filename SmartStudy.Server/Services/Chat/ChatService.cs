@@ -7,11 +7,10 @@ using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Plugins;
-using SmartStudy.Server.Services.UserService;
 using System.Text;
 using System.Text.Json;
 
-namespace SmartStudy.Server.Services.Chat
+namespace SmartStudy.Server.Services
 {
     public interface IChatService
     {

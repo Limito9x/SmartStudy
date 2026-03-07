@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
-using SmartStudy.Server.Services.Routine;
+using SmartStudy.Server.Services;
 
 namespace SmartStudy.Server.Controllers
 {
@@ -16,7 +16,7 @@ namespace SmartStudy.Server.Controllers
         {
             _routineService = RoutineService;
         }
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name ="GetRoutineById")]
         public async Task<ActionResult<ResponseRoutineDto>> GetRoutineById(int id)
         {
             var Routine = await _routineService.GetRoutineByIdAsync(id);
@@ -24,21 +24,21 @@ namespace SmartStudy.Server.Controllers
             return Ok(Routine);
         }
 
-        [HttpGet]
+        [HttpGet(Name ="GetRoutines")]
         public async Task<ActionResult<List<ResponseRoutineDto>>> GetAllRoutines()
         {
             var Routines = await _routineService.GetRoutinesByUserIdAsync();
             return Ok(Routines);
         }
 
-        [HttpPost]
+        [HttpPost(Name ="CreateRoutine")]
         public async Task<ActionResult<ResponseRoutineDto>> CreateRoutine([FromBody] RequestRoutineDto RoutineDto)
         {
             var createdRoutine = await _routineService.CreateRoutineAsync(RoutineDto);
             return Ok(createdRoutine);
         }
 
-        [HttpPatch("{id}")]
+        [HttpPatch("{id}",Name ="UpdateRoutine")]
         public async Task<ActionResult<ResponseRoutineDto>> UpdateRoutine(int id, [FromBody] RequestRoutineDto RoutineDto)
         {
             var updatedRoutine = await _routineService.UpdateRoutineAsync(id, RoutineDto);
@@ -46,7 +46,7 @@ namespace SmartStudy.Server.Controllers
             return Ok(updatedRoutine);
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id}",Name ="DeleteRoutine")]
         public async Task<ActionResult> DeleteRoutine(int id)
         {
             var deleted = await _routineService.DeleteRoutineAsync(id);
@@ -54,7 +54,7 @@ namespace SmartStudy.Server.Controllers
             return NoContent();
         }
 
-        [HttpPost("{id}/generate-tasks")]
+        [HttpPost("{id}/generate-tasks",Name ="GenerateTasks")]
         public async Task<ActionResult> GenerateTasksForRoutine(int id, [FromQuery] DateTime? upToDate)
         {
             var targetDate = upToDate ?? DateTime.UtcNow.AddDays(14);
@@ -62,7 +62,7 @@ namespace SmartStudy.Server.Controllers
             return Ok();
         }
 
-        [HttpGet("{id}/upcoming-tasks")]
+        [HttpGet("{id}/upcoming-tasks",Name ="GetUpcomingRoutineTasks")]
         public async Task<ActionResult<List<ResponseTaskDto>>> GetUpcomingTasksForRoutine(int id, [FromQuery] int daysAhead = 7)
         {
             var tasks = await _routineService.GetUpcomingTasksAsync(id, daysAhead);

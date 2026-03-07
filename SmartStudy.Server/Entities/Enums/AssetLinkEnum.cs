@@ -1,8 +1,8 @@
-﻿namespace SmartStudy.Server.Entities.Enums
+namespace SmartStudy.Server.Entities.Enums
 {
     public enum AssetLinkType
     {
-        Semester,
+        StudyPlan,
         Course,
         Task,
         Log

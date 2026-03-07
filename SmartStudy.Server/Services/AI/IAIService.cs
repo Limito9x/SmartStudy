@@ -1,4 +1,4 @@
-﻿namespace SmartStudy.Server.Services.AI
+﻿namespace SmartStudy.Server.Services
 {
     public interface IAIService
     {

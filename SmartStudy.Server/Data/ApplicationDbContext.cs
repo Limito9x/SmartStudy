@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Entities;
@@ -19,23 +19,40 @@ namespace SmartStudy.Server.Data
         }
 
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
-        public DbSet<Semester> Semesters { get; set; } = null!;
+        public DbSet<AcademicYear> AcademicYears { get; set; } = null!;
+        public DbSet<AcademicTerm> AcademicTerms { get; set; } = null!;
+        public DbSet<Subject> Subjects { get; set; } = null!;
+        public DbSet<StudyPlan> StudyPlans { get; set; } = null!;
         public DbSet<TaskItem> Tasks { get; set; } = null!;
         public DbSet<Asset> Assets { get; set; } = null!;
         public DbSet<AssetLink> AssetLinks { get; set; } = null!;
-        public DbSet<Goal> Goals { get; set; } = null!;
         public DbSet<Course> Courses { get; set; } = null!;
-        public DbSet<Grade> Grades { get; set; } = null!; 
-        public DbSet<LearningPath> LearningPaths { get; set; } = null!;
         public DbSet<Routine> Routines { get; set; } = null!;
         public DbSet<Schedule> Schedules { get; set; } = null!;
         public DbSet<LogItem> Logs { get; set; } = null!;
         public DbSet<ChatSession> ChatSessions { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
+        public DbSet<TimelineEvent> TimelineEvents { get; set; } = null!;
+        public DbSet<EventRequirement> EventRequirements { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Seed master data
+            var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            builder.Entity<AcademicTerm>().HasData(
+                new AcademicTerm { Id = 1, Name = "Học kỳ 1", TermValue = 1, CreatedAt = seedDate },
+                new AcademicTerm { Id = 2, Name = "Học kỳ 2", TermValue = 2, CreatedAt = seedDate },
+                new AcademicTerm { Id = 3, Name = "Học kỳ Hè", TermValue = 3, CreatedAt = seedDate }
+            );
+
+            var academicYears = new List<AcademicYear>();
+            for(int i = 2020; i <= 2040; i++)
+            {
+                academicYears.Add(new AcademicYear { Id = i, StartYear = i, EndYear = i + 1, CreatedAt = seedDate });
+            }
+            builder.Entity<AcademicYear>().HasData(academicYears);
 
             // Ignore System.Threading.Tasks.Task type to avoid conflicts
             builder.Ignore<System.Threading.Tasks.Task>();
@@ -54,6 +71,7 @@ namespace SmartStudy.Server.Data
                     builder.Entity(entityType.ClrType).HasQueryFilter(lambda);
                 }
             }
+
         }
 
         public override int SaveChanges()

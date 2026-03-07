@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
-using SmartStudy.Server.Services.TaskLog;
+using SmartStudy.Server.Services;
 
 namespace SmartStudy.Server.Controllers
 {

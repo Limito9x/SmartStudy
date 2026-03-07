@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
-using SmartStudy.Server.Services.Auth;
+using SmartStudy.Server.Services;
 using System.Security.Claims;
 
 namespace SmartStudy.Server.Controllers

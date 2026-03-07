@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace SmartStudy.Server.Services.UserService
+namespace SmartStudy.Server.Services
 {
     public interface ICurrentUserService
     {

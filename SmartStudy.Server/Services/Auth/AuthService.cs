@@ -7,7 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using SmartStudy.Server.Exceptions;
 
-namespace SmartStudy.Server.Services.Auth
+namespace SmartStudy.Server.Services
 {
     public interface IAuthService
     {

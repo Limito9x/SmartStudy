@@ -1,7 +1,7 @@
 ﻿using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
 
-namespace SmartStudy.Server.Services.Cloud
+namespace SmartStudy.Server.Services
 {
     public interface ICloudService
     {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.SemanticKernel;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Helpers;
-using SmartStudy.Server.Services.Chat;
+using SmartStudy.Server.Services;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Threading.Tasks;

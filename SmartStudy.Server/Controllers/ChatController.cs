@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
-using SmartStudy.Server.Services.Chat;
+using SmartStudy.Server.Services;
 using System.Text.Json;
 
 namespace SmartStudy.Server.Controllers

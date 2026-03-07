@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace SmartStudy.Server.Services.Chat
+namespace SmartStudy.Server.Services
 {
     public class UIWidgetCollector
     {

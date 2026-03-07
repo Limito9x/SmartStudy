@@ -1,4 +1,4 @@
-﻿using Mapster;
+using Mapster;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
 
@@ -9,7 +9,7 @@ namespace SmartStudy.Server.Mappings
         public void Register(TypeAdapterConfig config)
         {
             config.NewConfig<UserSettingDto, User>()
-                .Ignore(dest => dest.Semesters);
+                .Ignore(dest => dest.StudyPlans);
               
         }
     }

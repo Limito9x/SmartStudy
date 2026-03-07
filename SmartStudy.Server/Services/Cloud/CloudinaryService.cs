@@ -3,7 +3,7 @@ using CloudinaryDotNet.Actions;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
 
-namespace SmartStudy.Server.Services.Cloud
+namespace SmartStudy.Server.Services
 {
     public class CloudinaryService : ICloudService
     {

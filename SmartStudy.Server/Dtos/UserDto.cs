@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace SmartStudy.Server.Dtos
 {
@@ -25,7 +25,7 @@ namespace SmartStudy.Server.Dtos
         int WeeksPerSemester,
         int? WeeksOfSummerSemester, // Tuần của học kỳ phụ/hè, nếu có
         float ProgramLength,
-        List<RequestSemesterDto> Semesters // Frontend tự động tính và đc xác thực bởi người dùng
+        List<RequestStudyPlanDto> StudyPlans // Frontend tự động tính và đc xác thực bởi người dùng
     );
 
     // DTO cho việc đăng nhập người dùng

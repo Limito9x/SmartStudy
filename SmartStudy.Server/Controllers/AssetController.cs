@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
-using SmartStudy.Server.Services.AssetService;
+using SmartStudy.Server.Services;
 using System.Security.Claims;
 
 namespace SmartStudy.Server.Controllers

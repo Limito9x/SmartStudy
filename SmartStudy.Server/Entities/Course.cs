@@ -1,36 +1,20 @@
-﻿using SmartStudy.Server.Entities.Enums;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace SmartStudy.Server.Entities
 {
     public class Course: BaseEntity
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public int Credits { get; set; }
-        public ICollection<Grade> Grades { get; set; } = new List<Grade>(); // Các cột điểm 
-        public float TargetGrade { get; set; }
-        public float ForecastGrade { get; set; }
-        public int SemesterId { get; set; }
-        public Semester? Semester { get; set; }
-        public int UserId { get; set; }
-        public User? User { get; set; }
-        // Course không có Goal vì tập trung vào quản lý Grade
-        // Các biến tính toán (NotMapped - Không lưu DB, chỉ tính khi get ra)
-        [NotMapped]
-        public double CurrentGPA
-        {
-            get
-            {
-                if (Grades == null || !Grades.Any()) return 0;
-                // Logic tính điểm trung bình dựa trên các cột điểm đã có
-                return Grades.Where(g => g.ActualScore.HasValue)
-                             .Sum(g => g.ActualScore.Value * g.Weight);
-            }
-        }
-        [NotMapped]
-        public string? LetterGrade { get; set; }
-        public ICollection<Schedule> ClassTimes { get; set; } = new List<Schedule>();
+        public double? TargetScore { get; set; }
+        public double? FinalScore { get; set; }
+        public int StudyPlanId { get; set; }
+        public StudyPlan? StudyPlan { get; set; }
+
+        public int SubjectId { get; set; }
+        public Subject? Subject { get; set; }
+
+        public ICollection<TimelineEvent> TimelineEvents { get; set; } = new List<TimelineEvent>();
         public ICollection<TaskItem>? Tasks { get; set; } = new List<TaskItem>();
+        // Classtime giờ giao phó cho Routine
         public ICollection<Routine>? Routines { get; set; } = new List<Routine>();
     }
 }
