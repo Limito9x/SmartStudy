@@ -1,5 +1,3 @@
-import type { UserSettingDto } from "@/services/api";
-import { baseSemesterSchema } from "../../semester/schema";
 import z from "zod";
 
 export const settingSchema = z.object({
@@ -13,14 +11,14 @@ export const settingSchema = z.object({
     .min(0, "Số tuần học kỳ hè phải lớn hơn hoặc bằng 0")
     .nullable(),
   programLength: z.number().min(1, "Thời gian đào tạo phải lớn hơn 0"),
-  semesters: z.array(
-    baseSemesterSchema.pick({
-      term: true,
-      year: true,
-      startDate: true,
-      endDate: true,
+  studyPlans: z.array(
+    z.object({
+      academicTermId: z.number().min(1),
+      academicYearId: z.number().min(1),
+      startDate: z.string().min(1),
+      endDate: z.string().min(1),
     }),
   ),
-}) satisfies z.ZodType<Record<keyof UserSettingDto, any>>;
+});
 
 export type SettingFormValues = z.infer<typeof settingSchema>;

@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { CreateCourseData, CreateCourseResponses, CreateGoalData, CreateGoalResponses, CreateSemesterData, CreateSemesterResponses, DeleteApiLearningPathsByLearningPathIdData, DeleteApiLearningPathsByLearningPathIdResponses, DeleteApiLogsByTaskLogIdData, DeleteApiLogsByTaskLogIdResponses, DeleteApiRoutinesByIdData, DeleteApiRoutinesByIdResponses, DeleteApiTasksByTaskIdData, DeleteApiTasksByTaskIdResponses, DeleteAssetData, DeleteAssetResponses, DeleteCourseData, DeleteCourseResponses, DeleteGoalData, DeleteGoalResponses, DeleteSemesterData, DeleteSemesterResponses, GetApiChatSessionsBySessionIdData, GetApiChatSessionsBySessionIdResponses, GetApiChatSessionsData, GetApiChatSessionsResponses, GetApiLearningPathsByLearningPathIdData, GetApiLearningPathsByLearningPathIdResponses, GetApiLearningPathsData, GetApiLearningPathsResponses, GetApiLogsByTaskLogIdData, GetApiLogsByTaskLogIdResponses, GetApiRoutinesByIdData, GetApiRoutinesByIdResponses, GetApiRoutinesByIdUpcomingTasksData, GetApiRoutinesByIdUpcomingTasksResponses, GetApiRoutinesData, GetApiRoutinesResponses, GetApiTasksByTaskIdData, GetApiTasksByTaskIdResponses, GetAssetsData, GetAssetsResponses, GetCourseByIdData, GetCourseByIdResponses, GetCoursesBySemesterData, GetCoursesBySemesterResponses, GetProfileData, GetProfileResponses, GetSchedulesBySemesterData, GetSchedulesBySemesterResponses, GetSchedulesData, GetSchedulesResponses, GetSemesterByIdData, GetSemesterByIdResponses, GetSemestersData, GetSemestersResponses, LoginData, LoginResponses, PatchApiLearningPathsByLearningPathIdData, PatchApiLearningPathsByLearningPathIdResponses, PatchApiRoutinesByIdData, PatchApiRoutinesByIdResponses, PatchApiTasksByTaskIdData, PatchApiTasksByTaskIdResponses, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsBySessionIdStreamResponses, PostApiChatSessionsData, PostApiChatSessionsResponses, PostApiLearningPathsData, PostApiLearningPathsResponses, PostApiLogsData, PostApiLogsResponses, PostApiRoutinesByIdGenerateTasksData, PostApiRoutinesByIdGenerateTasksResponses, PostApiRoutinesData, PostApiRoutinesResponses, PostApiTasksByTaskIdExecuteData, PostApiTasksByTaskIdExecuteResponses, PostApiTasksData, PostApiTasksResponses, PostApiUsersSettingData, PostApiUsersSettingResponses, PutApiLogsByTaskLogIdData, PutApiLogsByTaskLogIdResponses, RegisterData, RegisterResponses, RegisterScheduleData, RegisterScheduleResponses, UpdateCourseData, UpdateCourseResponses, UpdateGoalData, UpdateGoalResponses, UpdateSemesterData, UpdateSemesterResponses, UploadAssetsData, UploadAssetsResponses } from './types.gen';
+import type { BulkCreateSubjectsData, BulkCreateSubjectsResponses, CreateCourseData, CreateCourseResponses, CreateEvenetRequirementData, CreateEvenetRequirementResponses, CreateEventData, CreateEventResponses, CreateRoutineData, CreateRoutineResponses, CreateStudyPlanData, CreateStudyPlanResponses, CreateSubjectData, CreateSubjectResponses, DeleteApiTasksByTaskIdData, DeleteApiTasksByTaskIdResponses, DeleteAssetData, DeleteAssetResponses, DeleteCourseData, DeleteCourseResponses, DeleteEventData, DeleteEventRequirementData, DeleteEventRequirementResponses, DeleteEventResponses, DeleteLogData, DeleteLogResponses, DeleteRoutineData, DeleteRoutineResponses, DeleteStudyPlanData, DeleteStudyPlanResponses, DeleteSubjectData, DeleteSubjectResponses, GenerateTasksData, GenerateTasksResponses, GetApiChatSessionsBySessionIdData, GetApiChatSessionsBySessionIdResponses, GetApiChatSessionsData, GetApiChatSessionsResponses, GetApiTasksByTaskIdData, GetApiTasksByTaskIdResponses, GetAssetsData, GetAssetsResponses, GetCourseByIdData, GetCourseByIdResponses, GetCoursesByStudyPlanData, GetCoursesByStudyPlanResponses, GetEventRequirementsData, GetEventRequirementsResponses, GetEventsByCourseData, GetEventsByCourseResponses, GetLogData, GetLogResponses, GetProfileData, GetProfileResponses, GetRoutineByIdData, GetRoutineByIdResponses, GetRoutinesData, GetRoutinesResponses, GetStudyPlanByIdData, GetStudyPlanByIdResponses, GetStudyPlansData, GetStudyPlansResponses, GetSubjectsData, GetSubjectsResponses, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponses, LoginData, LoginResponses, PatchApiTasksByTaskIdStatusData, PatchApiTasksByTaskIdStatusResponses, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsBySessionIdStreamResponses, PostApiChatSessionsData, PostApiChatSessionsResponses, PostApiTasksByTaskIdLogsData, PostApiTasksByTaskIdLogsResponses, PostApiTasksData, PostApiTasksResponses, PostApiUsersSettingData, PostApiUsersSettingResponses, RegisterData, RegisterResponses, UpdateCourseData, UpdateCourseResponses, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponses, UpdateEventResponses, UpdateLogData, UpdateLogResponses, UpdateRoutineData, UpdateRoutineResponses, UpdateStudyPlanData, UpdateStudyPlanResponses, UpdateSubjectData, UpdateSubjectResponses, UpdateTaskInfoData, UpdateTaskInfoResponses, UploadAssetsData, UploadAssetsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -85,9 +85,9 @@ export const postApiChatSessionsBySessionIdStream = <ThrowOnError extends boolea
     }
 });
 
-export const getCoursesBySemester = <ThrowOnError extends boolean = false>(options: Options<GetCoursesBySemesterData, ThrowOnError>) => (options.client ?? client).get<GetCoursesBySemesterResponses, unknown, ThrowOnError>({
+export const getCoursesByStudyPlan = <ThrowOnError extends boolean = false>(options: Options<GetCoursesByStudyPlanData, ThrowOnError>) => (options.client ?? client).get<GetCoursesByStudyPlanResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/courses/semester/{semesterId}',
+    url: '/api/courses/study-plan/{studyPlanId}',
     ...options
 });
 
@@ -119,71 +119,15 @@ export const createCourse = <ThrowOnError extends boolean = false>(options: Opti
     }
 });
 
-export const createGoal = <ThrowOnError extends boolean = false>(options: Options<CreateGoalData, ThrowOnError>) => (options.client ?? client).post<CreateGoalResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/goals',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const deleteLog = <ThrowOnError extends boolean = false>(options: Options<DeleteLogData, ThrowOnError>) => (options.client ?? client).delete<DeleteLogResponses, unknown, ThrowOnError>({ url: '/api/logs/{taskLogId}', ...options });
 
-export const deleteGoal = <ThrowOnError extends boolean = false>(options: Options<DeleteGoalData, ThrowOnError>) => (options.client ?? client).delete<DeleteGoalResponses, unknown, ThrowOnError>({ url: '/api/goals/{goalId}', ...options });
-
-export const updateGoal = <ThrowOnError extends boolean = false>(options: Options<UpdateGoalData, ThrowOnError>) => (options.client ?? client).patch<UpdateGoalResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/goals/{goalId}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-export const getApiLearningPaths = <ThrowOnError extends boolean = false>(options?: Options<GetApiLearningPathsData, ThrowOnError>) => (options?.client ?? client).get<GetApiLearningPathsResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/learning-paths',
-    ...options
-});
-
-export const postApiLearningPaths = <ThrowOnError extends boolean = false>(options: Options<PostApiLearningPathsData, ThrowOnError>) => (options.client ?? client).post<PostApiLearningPathsResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/learning-paths',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-export const deleteApiLearningPathsByLearningPathId = <ThrowOnError extends boolean = false>(options: Options<DeleteApiLearningPathsByLearningPathIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiLearningPathsByLearningPathIdResponses, unknown, ThrowOnError>({ url: '/api/learning-paths/{LearningPathId}', ...options });
-
-export const getApiLearningPathsByLearningPathId = <ThrowOnError extends boolean = false>(options: Options<GetApiLearningPathsByLearningPathIdData, ThrowOnError>) => (options.client ?? client).get<GetApiLearningPathsByLearningPathIdResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/learning-paths/{LearningPathId}',
-    ...options
-});
-
-export const patchApiLearningPathsByLearningPathId = <ThrowOnError extends boolean = false>(options: Options<PatchApiLearningPathsByLearningPathIdData, ThrowOnError>) => (options.client ?? client).patch<PatchApiLearningPathsByLearningPathIdResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/learning-paths/{LearningPathId}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-export const deleteApiLogsByTaskLogId = <ThrowOnError extends boolean = false>(options: Options<DeleteApiLogsByTaskLogIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiLogsByTaskLogIdResponses, unknown, ThrowOnError>({ url: '/api/logs/{taskLogId}', ...options });
-
-export const getApiLogsByTaskLogId = <ThrowOnError extends boolean = false>(options: Options<GetApiLogsByTaskLogIdData, ThrowOnError>) => (options.client ?? client).get<GetApiLogsByTaskLogIdResponses, unknown, ThrowOnError>({
+export const getLog = <ThrowOnError extends boolean = false>(options: Options<GetLogData, ThrowOnError>) => (options.client ?? client).get<GetLogResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/logs/{taskLogId}',
     ...options
 });
 
-export const putApiLogsByTaskLogId = <ThrowOnError extends boolean = false>(options: Options<PutApiLogsByTaskLogIdData, ThrowOnError>) => (options.client ?? client).put<PutApiLogsByTaskLogIdResponses, unknown, ThrowOnError>({
+export const updateLog = <ThrowOnError extends boolean = false>(options: Options<UpdateLogData, ThrowOnError>) => (options.client ?? client).put<UpdateLogResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/logs/{taskLogId}',
     ...options,
@@ -193,25 +137,15 @@ export const putApiLogsByTaskLogId = <ThrowOnError extends boolean = false>(opti
     }
 });
 
-export const postApiLogs = <ThrowOnError extends boolean = false>(options: Options<PostApiLogsData, ThrowOnError>) => (options.client ?? client).post<PostApiLogsResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/logs',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
+export const deleteRoutine = <ThrowOnError extends boolean = false>(options: Options<DeleteRoutineData, ThrowOnError>) => (options.client ?? client).delete<DeleteRoutineResponses, unknown, ThrowOnError>({ url: '/api/routines/{id}', ...options });
 
-export const deleteApiRoutinesById = <ThrowOnError extends boolean = false>(options: Options<DeleteApiRoutinesByIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiRoutinesByIdResponses, unknown, ThrowOnError>({ url: '/api/routines/{id}', ...options });
-
-export const getApiRoutinesById = <ThrowOnError extends boolean = false>(options: Options<GetApiRoutinesByIdData, ThrowOnError>) => (options.client ?? client).get<GetApiRoutinesByIdResponses, unknown, ThrowOnError>({
+export const getRoutineById = <ThrowOnError extends boolean = false>(options: Options<GetRoutineByIdData, ThrowOnError>) => (options.client ?? client).get<GetRoutineByIdResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/routines/{id}',
     ...options
 });
 
-export const patchApiRoutinesById = <ThrowOnError extends boolean = false>(options: Options<PatchApiRoutinesByIdData, ThrowOnError>) => (options.client ?? client).patch<PatchApiRoutinesByIdResponses, unknown, ThrowOnError>({
+export const updateRoutine = <ThrowOnError extends boolean = false>(options: Options<UpdateRoutineData, ThrowOnError>) => (options.client ?? client).patch<UpdateRoutineResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/routines/{id}',
     ...options,
@@ -221,13 +155,13 @@ export const patchApiRoutinesById = <ThrowOnError extends boolean = false>(optio
     }
 });
 
-export const getApiRoutines = <ThrowOnError extends boolean = false>(options?: Options<GetApiRoutinesData, ThrowOnError>) => (options?.client ?? client).get<GetApiRoutinesResponses, unknown, ThrowOnError>({
+export const getRoutines = <ThrowOnError extends boolean = false>(options?: Options<GetRoutinesData, ThrowOnError>) => (options?.client ?? client).get<GetRoutinesResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/routines',
     ...options
 });
 
-export const postApiRoutines = <ThrowOnError extends boolean = false>(options: Options<PostApiRoutinesData, ThrowOnError>) => (options.client ?? client).post<PostApiRoutinesResponses, unknown, ThrowOnError>({
+export const createRoutine = <ThrowOnError extends boolean = false>(options: Options<CreateRoutineData, ThrowOnError>) => (options.client ?? client).post<CreateRoutineResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/routines',
     ...options,
@@ -237,22 +171,23 @@ export const postApiRoutines = <ThrowOnError extends boolean = false>(options: O
     }
 });
 
-export const postApiRoutinesByIdGenerateTasks = <ThrowOnError extends boolean = false>(options: Options<PostApiRoutinesByIdGenerateTasksData, ThrowOnError>) => (options.client ?? client).post<PostApiRoutinesByIdGenerateTasksResponses, unknown, ThrowOnError>({ url: '/api/routines/{id}/generate-tasks', ...options });
+export const generateTasks = <ThrowOnError extends boolean = false>(options: Options<GenerateTasksData, ThrowOnError>) => (options.client ?? client).post<GenerateTasksResponses, unknown, ThrowOnError>({ url: '/api/routines/{id}/generate-tasks', ...options });
 
-export const getApiRoutinesByIdUpcomingTasks = <ThrowOnError extends boolean = false>(options: Options<GetApiRoutinesByIdUpcomingTasksData, ThrowOnError>) => (options.client ?? client).get<GetApiRoutinesByIdUpcomingTasksResponses, unknown, ThrowOnError>({
+export const getUpcomingRoutineTasks = <ThrowOnError extends boolean = false>(options: Options<GetUpcomingRoutineTasksData, ThrowOnError>) => (options.client ?? client).get<GetUpcomingRoutineTasksResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/routines/{id}/upcoming-tasks',
     ...options
 });
 
-export const getSchedules = <ThrowOnError extends boolean = false>(options?: Options<GetSchedulesData, ThrowOnError>) => (options?.client ?? client).get<GetSchedulesResponses, unknown, ThrowOnError>({
+export const getStudyPlans = <ThrowOnError extends boolean = false>(options?: Options<GetStudyPlansData, ThrowOnError>) => (options?.client ?? client).get<GetStudyPlansResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/schedules',
+    url: '/api/study-plans',
     ...options
 });
 
-export const registerSchedule = <ThrowOnError extends boolean = false>(options: Options<RegisterScheduleData, ThrowOnError>) => (options.client ?? client).post<RegisterScheduleResponses, unknown, ThrowOnError>({
-    url: '/api/schedules',
+export const createStudyPlan = <ThrowOnError extends boolean = false>(options: Options<CreateStudyPlanData, ThrowOnError>) => (options.client ?? client).post<CreateStudyPlanResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/study-plans',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -260,21 +195,17 @@ export const registerSchedule = <ThrowOnError extends boolean = false>(options: 
     }
 });
 
-export const getSchedulesBySemester = <ThrowOnError extends boolean = false>(options: Options<GetSchedulesBySemesterData, ThrowOnError>) => (options.client ?? client).get<GetSchedulesBySemesterResponses, unknown, ThrowOnError>({
+export const deleteStudyPlan = <ThrowOnError extends boolean = false>(options: Options<DeleteStudyPlanData, ThrowOnError>) => (options.client ?? client).delete<DeleteStudyPlanResponses, unknown, ThrowOnError>({ url: '/api/study-plans/{studyPlanId}', ...options });
+
+export const getStudyPlanById = <ThrowOnError extends boolean = false>(options: Options<GetStudyPlanByIdData, ThrowOnError>) => (options.client ?? client).get<GetStudyPlanByIdResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/schedules/semester/{semesterId}',
+    url: '/api/study-plans/{studyPlanId}',
     ...options
 });
 
-export const getSemesters = <ThrowOnError extends boolean = false>(options?: Options<GetSemestersData, ThrowOnError>) => (options?.client ?? client).get<GetSemestersResponses, unknown, ThrowOnError>({
+export const updateStudyPlan = <ThrowOnError extends boolean = false>(options: Options<UpdateStudyPlanData, ThrowOnError>) => (options.client ?? client).put<UpdateStudyPlanResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/semesters',
-    ...options
-});
-
-export const createSemester = <ThrowOnError extends boolean = false>(options: Options<CreateSemesterData, ThrowOnError>) => (options.client ?? client).post<CreateSemesterResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/semesters',
+    url: '/api/study-plans/{studyPlanId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -282,17 +213,37 @@ export const createSemester = <ThrowOnError extends boolean = false>(options: Op
     }
 });
 
-export const deleteSemester = <ThrowOnError extends boolean = false>(options: Options<DeleteSemesterData, ThrowOnError>) => (options.client ?? client).delete<DeleteSemesterResponses, unknown, ThrowOnError>({ url: '/api/semesters/{SemesterId}', ...options });
-
-export const getSemesterById = <ThrowOnError extends boolean = false>(options: Options<GetSemesterByIdData, ThrowOnError>) => (options.client ?? client).get<GetSemesterByIdResponses, unknown, ThrowOnError>({
+export const getSubjects = <ThrowOnError extends boolean = false>(options?: Options<GetSubjectsData, ThrowOnError>) => (options?.client ?? client).get<GetSubjectsResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/semesters/{SemesterId}',
+    url: '/api/subjects',
     ...options
 });
 
-export const updateSemester = <ThrowOnError extends boolean = false>(options: Options<UpdateSemesterData, ThrowOnError>) => (options.client ?? client).put<UpdateSemesterResponses, unknown, ThrowOnError>({
+export const createSubject = <ThrowOnError extends boolean = false>(options: Options<CreateSubjectData, ThrowOnError>) => (options.client ?? client).post<CreateSubjectResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/semesters/{SemesterId}',
+    url: '/api/subjects',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const bulkCreateSubjects = <ThrowOnError extends boolean = false>(options: Options<BulkCreateSubjectsData, ThrowOnError>) => (options.client ?? client).post<BulkCreateSubjectsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/subjects/bulk',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deleteSubject = <ThrowOnError extends boolean = false>(options: Options<DeleteSubjectData, ThrowOnError>) => (options.client ?? client).delete<DeleteSubjectResponses, unknown, ThrowOnError>({ url: '/api/subjects/{subjectId}', ...options });
+
+export const updateSubject = <ThrowOnError extends boolean = false>(options: Options<UpdateSubjectData, ThrowOnError>) => (options.client ?? client).put<UpdateSubjectResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/subjects/{subjectId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -318,7 +269,7 @@ export const getApiTasksByTaskId = <ThrowOnError extends boolean = false>(option
     ...options
 });
 
-export const patchApiTasksByTaskId = <ThrowOnError extends boolean = false>(options: Options<PatchApiTasksByTaskIdData, ThrowOnError>) => (options.client ?? client).patch<PatchApiTasksByTaskIdResponses, unknown, ThrowOnError>({
+export const updateTaskInfo = <ThrowOnError extends boolean = false>(options: Options<UpdateTaskInfoData, ThrowOnError>) => (options.client ?? client).patch<UpdateTaskInfoResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/tasks/{taskId}',
     ...options,
@@ -328,9 +279,75 @@ export const patchApiTasksByTaskId = <ThrowOnError extends boolean = false>(opti
     }
 });
 
-export const postApiTasksByTaskIdExecute = <ThrowOnError extends boolean = false>(options: Options<PostApiTasksByTaskIdExecuteData, ThrowOnError>) => (options.client ?? client).post<PostApiTasksByTaskIdExecuteResponses, unknown, ThrowOnError>({
+export const patchApiTasksByTaskIdStatus = <ThrowOnError extends boolean = false>(options: Options<PatchApiTasksByTaskIdStatusData, ThrowOnError>) => (options.client ?? client).patch<PatchApiTasksByTaskIdStatusResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/tasks/{taskId}/execute',
+    url: '/api/tasks/{taskId}/status',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postApiTasksByTaskIdLogs = <ThrowOnError extends boolean = false>(options: Options<PostApiTasksByTaskIdLogsData, ThrowOnError>) => (options.client ?? client).post<PostApiTasksByTaskIdLogsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/tasks/{taskId}/logs',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const createEvent = <ThrowOnError extends boolean = false>(options: Options<CreateEventData, ThrowOnError>) => (options.client ?? client).post<CreateEventResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/events',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getEventsByCourse = <ThrowOnError extends boolean = false>(options: Options<GetEventsByCourseData, ThrowOnError>) => (options.client ?? client).get<GetEventsByCourseResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/events/course/{courseId}',
+    ...options
+});
+
+export const deleteEvent = <ThrowOnError extends boolean = false>(options: Options<DeleteEventData, ThrowOnError>) => (options.client ?? client).delete<DeleteEventResponses, unknown, ThrowOnError>({ url: '/api/events/{timelineEventId}', ...options });
+
+export const updateEvent = <ThrowOnError extends boolean = false>(options: Options<UpdateEventData, ThrowOnError>) => (options.client ?? client).patch<UpdateEventResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/events/{timelineEventId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getEventRequirements = <ThrowOnError extends boolean = false>(options: Options<GetEventRequirementsData, ThrowOnError>) => (options.client ?? client).get<GetEventRequirementsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/events/{eventId}/requirements',
+    ...options
+});
+
+export const createEvenetRequirement = <ThrowOnError extends boolean = false>(options: Options<CreateEvenetRequirementData, ThrowOnError>) => (options.client ?? client).post<CreateEvenetRequirementResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/events/{eventId}/requirements',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deleteEventRequirement = <ThrowOnError extends boolean = false>(options: Options<DeleteEventRequirementData, ThrowOnError>) => (options.client ?? client).delete<DeleteEventRequirementResponses, unknown, ThrowOnError>({ url: '/api/events/requirements/{requirementId}', ...options });
+
+export const updateEventRequirement = <ThrowOnError extends boolean = false>(options: Options<UpdateEventRequirementData, ThrowOnError>) => (options.client ?? client).patch<UpdateEventRequirementResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/events/requirements/{requirementId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

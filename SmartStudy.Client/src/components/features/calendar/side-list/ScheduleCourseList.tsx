@@ -1,6 +1,9 @@
-import { getCoursesBySemester, type SimpleResponseCourseDto } from "@/services/api";
+import {
+  getCoursesBySemester,
+  type SimpleResponseCourseDto,
+} from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
-import CourseList from "../../school-study/course/CourseList";
+import CourseList from "../../course/CourseList";
 
 interface ScheduleCourseListProps {
   semesterId: number | string | undefined;
@@ -11,7 +14,7 @@ interface ScheduleCourseListProps {
 export default function ScheduleCourseList({
   semesterId,
   selectedCourseId,
-  onSelectCourse
+  onSelectCourse,
 }: ScheduleCourseListProps) {
   const {
     data: courses,
@@ -33,12 +36,19 @@ export default function ScheduleCourseList({
     <div className="h-full overflow-y-auto">
       {isLoading && <p>Loading courses...</p>}
       {error && <p>Error loading courses: {error.message}</p>}
-      {courses && <CourseList selectedCourseId={selectedCourseId} courses={courses} listStyle="vertical" onSelectCourse={(courseId)=>{
-        const selected = courses.find(c => c.id === courseId);
-        if(selected && onSelectCourse){
-          onSelectCourse(selected);
-        }
-      }} />}
+      {courses && (
+        <CourseList
+          selectedCourseId={selectedCourseId}
+          courses={courses}
+          listStyle="vertical"
+          onSelectCourse={(courseId) => {
+            const selected = courses.find((c) => c.id === courseId);
+            if (selected && onSelectCourse) {
+              onSelectCourse(selected);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

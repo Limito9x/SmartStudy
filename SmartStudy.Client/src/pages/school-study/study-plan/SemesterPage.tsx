@@ -1,40 +1,31 @@
-import { getCoursesBySemester } from "@/services/api";
-import { useQuery } from "@tanstack/react-query";
-import CourseList from "@/components/features/school-study/course/CourseList";
+import CourseList from "@/components/features/course/CourseList";
 import { CourseForm } from "@/components/forms/course";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
-import type { SemesterOutletContext } from "@/layouts/SchoolStudyLayout";
+import type { SemesterOutletContext } from "@/layouts/StudyPlanLayout";
+import { useCourse } from "@/hooks/entities/useCourse";
 
 export default function SemesterPage() {
   const { semesterId } = useParams<{ semesterId: string }>();
-  const { currentSemester } = useOutletContext<SemesterOutletContext>();
+  const { currentStudyPlan } = useOutletContext<SemesterOutletContext>();
   const navigate = useNavigate();
 
   const {
     data: courses,
     isLoading: coursesLoading,
     error: coursesError,
-  } = useQuery({
-    queryKey: ["courses", semesterId],
-    queryFn: async () => {
-      if (!semesterId) return [];
-      const response = await getCoursesBySemester({
-        path: { semesterId: semesterId },
-      });
-      return response.data;
-    },
-    enabled: !!semesterId,
-  });
+  } = useCourse({
+    studyPlanId: Number(semesterId),
+  }).getCoursesByStudyPlan;
 
   const { openDialog, closeDialog } = useDialogStore();
 
   const handleAddCourse = () => {
     if (!semesterId) return;
     openDialog({
-      title: `Thêm lớp học phần cho học kỳ ${currentSemester ? `HK${currentSemester.term} ${currentSemester.year}` : ""}`,
+      title: `Thêm lớp học phần cho học kỳ ${currentStudyPlan ? `HK${currentStudyPlan.academicTermId} ${currentStudyPlan.academicYearId}` : ""}`,
       view: (
         <CourseForm semesterId={Number(semesterId)} onSuccess={closeDialog} />
       ),
@@ -43,8 +34,8 @@ export default function SemesterPage() {
 
   return (
     <div className="p-4 flex flex-col gap-4">
-      {currentSemester && (
-        <h1 className="text-2xl font-bold">{currentSemester.name}</h1>
+      {currentStudyPlan && (
+        <h1 className="text-2xl font-bold">{currentStudyPlan.displayName}</h1>
       )}
       {coursesLoading && <p>Loading courses...</p>}
       {coursesError && <p>Error loading courses: {coursesError.message}</p>}
@@ -58,7 +49,7 @@ export default function SemesterPage() {
               <Button onClick={handleAddCourse}>Thêm lớp học phần</Button>
               <Button
                 onClick={() =>
-                  navigate(`/app/semesters/${semesterId}/schedule`)
+                  navigate(`/app/study-plans/${semesterId}/schedule`)
                 }
               >
                 Sắp xếp TKB
@@ -68,7 +59,7 @@ export default function SemesterPage() {
           <CourseList
             courses={courses}
             onSelectCourse={(courseId) =>
-              navigate(`/app/semesters/${semesterId}/courses/${courseId}`)
+              navigate(`/app/study-plans/${semesterId}/courses/${courseId}`)
             }
           />
         </div>

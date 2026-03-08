@@ -1,6 +1,6 @@
-import { getSemesters, type SemesterStatus } from "@/services/api";
-import { useQuery } from "@tanstack/react-query";
-import { type ResponseSemesterDto } from "@/services/api";
+import { type StudyPlanStatus } from "@/services/api";
+import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
+import { type ResponseStudyPlanDto } from "@/services/api";
 import {
   Select,
   SelectContent,
@@ -10,8 +10,8 @@ import {
 } from "../components/ui/select";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 
-type SemesterStatusMap = Record<
-  SemesterStatus,
+type StudyPlanStatusMap = Record<
+  StudyPlanStatus,
   {
     text: string;
     color: string;
@@ -19,11 +19,11 @@ type SemesterStatusMap = Record<
 >;
 
 export type SemesterOutletContext = {
-  semesters: ResponseSemesterDto[] | undefined;
-  currentSemester: ResponseSemesterDto | null;
+  studyPlans: ResponseStudyPlanDto[] | undefined;
+  currentStudyPlan: ResponseStudyPlanDto | null;
 };
 
-const semesterStatusMap: SemesterStatusMap = {
+const semesterStatusMap: StudyPlanStatusMap = {
   Active: { text: "Đang học", color: "bg-blue-500" },
   Past: { text: "Đã kết thúc", color: "bg-gray-500" },
   Future: { text: "Sắp tới", color: "bg-green-300" },
@@ -33,18 +33,12 @@ export default function SchoolStudyLayout() {
   const navigate = useNavigate();
   const { semesterId } = useParams<{ semesterId: string }>();
 
-  const { data: semesters, isLoading } = useQuery({
-    queryKey: ["semesters"],
-    queryFn: async () => {
-      const response = await getSemesters();
-      return response.data;
-    },
-  });
+  const { data: studyPlans, isLoading } = useStudyPlan().getAllStudyPlans;
 
-  const currentSemester =
-    semesters?.find((s) => s.id.toString() === semesterId) ?? null;
+  const currentStudyPlan =
+    studyPlans?.find((s) => s.id.toString() === semesterId) ?? null;
 
-  const handleRedirectToSemester = (semester: ResponseSemesterDto) => {
+  const handleRedirectToSemester = (semester: ResponseStudyPlanDto) => {
     navigate(`/app/semesters/${semester.id}`);
   };
 
@@ -57,14 +51,14 @@ export default function SchoolStudyLayout() {
           <div className="flex items-center justify-between px-4 pt-4 shrink-0">
             <Select
               value={
-                currentSemester ? currentSemester.id.toString() : undefined
+                currentStudyPlan ? currentStudyPlan.id.toString() : undefined
               }
               onValueChange={(value) => {
-                const selectedSemester = semesters?.find(
+                const selectedStudyPlan = studyPlans?.find(
                   (s) => s.id.toString() === value,
                 );
-                if (selectedSemester) {
-                  handleRedirectToSemester(selectedSemester);
+                if (selectedStudyPlan) {
+                  handleRedirectToSemester(selectedStudyPlan);
                 }
               }}
             >
@@ -72,13 +66,13 @@ export default function SchoolStudyLayout() {
                 <SelectValue placeholder="Chọn học kỳ" />
               </SelectTrigger>
               <SelectContent>
-                {semesters?.map((semester) => {
-                  const title = `HK${semester.term} - ${semester.year}`;
-                  const statusInfo = semesterStatusMap[semester.status];
+                {studyPlans?.map((studyPlan) => {
+                  const title = `HK${studyPlan.academicTermId} - ${studyPlan.academicYearId}`;
+                  const statusInfo = semesterStatusMap[studyPlan.status];
                   return (
                     <SelectItem
-                      key={semester.id}
-                      value={semester.id.toString()}
+                      key={studyPlan.id}
+                      value={studyPlan.id.toString()}
                     >
                       <div className="flex items-center">
                         <span
@@ -93,7 +87,7 @@ export default function SchoolStudyLayout() {
             </Select>
           </div>
           <div className="flex-1 min-h-0 overflow-hidden">
-            <Outlet context={{ semesters, currentSemester }} />
+            <Outlet context={{ studyPlans, currentStudyPlan }} />
           </div>
         </>
       )}

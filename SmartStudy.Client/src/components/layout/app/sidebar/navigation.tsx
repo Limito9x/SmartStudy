@@ -6,6 +6,7 @@ const navigationItems = [
   { label: "Tổng quan", path: "/" },
   { label: "Học tập chính khóa", path: "/semesters" },
   { label: "Lịch trình", path: "/calendar" },
+  { label: "Quản lý môn học", path: "/subjects" },
 ];
 
 export default function Navigation() {

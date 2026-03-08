@@ -2,12 +2,13 @@ import { type RouteObject, useRoutes } from "react-router-dom";
 import LandingPage from "@/pages/landing/LandingPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/auth/LoginPage";
-import SchoolStudyLayout from "@/layouts/SchoolStudyLayout";
-import SemesterPage from "@/pages/school-study/semester/SemesterPage";
+import SchoolStudyLayout from "@/layouts/StudyPlanLayout";
+import SemesterPage from "@/pages/school-study/study-plan/SemesterPage";
 import SemesterSchedulePage from "@/pages/school-study/schedule/SemesterSchedulePage";
-import RedirectSemesterPage from "@/pages/school-study/semester/RedirectSemesterPage";
+import RedirectSemesterPage from "@/pages/school-study/study-plan/RedirectStudyPlanPage";
 import CoursePage from "@/pages/school-study/course/CoursePage";
 import CalendarPage from "@/pages/calendar/CalendarPage";
+import SubjectPage from "@/pages/subject/SubjectPage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -33,6 +34,10 @@ export default function AppRoutes() {
           element: <div>Profile Page</div>,
         },
         {
+          path: "subjects",
+          element: <SubjectPage />,
+        },
+        {
           path: "semesters",
           element: <SchoolStudyLayout />,
           children: [
@@ -52,13 +57,13 @@ export default function AppRoutes() {
             {
               path: ":semesterId/schedule",
               element: <SemesterSchedulePage />,
-            }
+            },
           ],
         },
         {
           path: "calendar",
           element: <CalendarPage />,
-        }
+        },
       ],
     },
   ];

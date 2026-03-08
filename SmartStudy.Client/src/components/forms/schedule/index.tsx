@@ -1,4 +1,4 @@
-import { scheduleSchema, type ScheduleFormValues } from "./schema";
+import { scheduleItemSchema as scheduleSchema, type ScheduleItemFormValues as ScheduleFormValues } from "./schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Form } from "@/components/ui/form";
@@ -23,13 +23,11 @@ export const ScheduleForm = ({
     duration: 1,
     durationUnit: "Hours",
     location: "",
-    ownerType: "Course",
-    ownerId: "",
   };
   const mergedDefaultValues = { ...baseDefaultValues, ...defaultValues };
 
-  const form = useForm<ScheduleFormValues>({
-    resolver: zodResolver(scheduleSchema),
+  const form = useForm<ScheduleFormValues, unknown, ScheduleFormValues>({
+    resolver: zodResolver(scheduleSchema as any),
     defaultValues: mergedDefaultValues,
   });
   const control = form.control;

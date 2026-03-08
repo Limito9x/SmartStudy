@@ -6,5 +6,10 @@ export default defineConfig({
     path: "./src/services/api",
     clean: true,
   },
-  plugins: ["@hey-api/client-axios", "@hey-api/sdk", "@hey-api/typescript"],
+  plugins: [
+    "@hey-api/client-axios",
+    "@hey-api/sdk",
+    "@hey-api/typescript",
+    "@tanstack/react-query",
+  ],
 });

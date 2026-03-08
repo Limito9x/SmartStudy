@@ -10,7 +10,7 @@ import {
   FormSelect,
   FormDatePicker,
 } from "@/components/form-controls";
-import { SemesterPreviewList } from "@/components/features/user/setting/SemesterPreviewList";
+import { StudyPlanPreviewList } from "@/components/features/user/setting/StudyPlanPreviewList";
 import { Button } from "@/components/ui/button";
 
 export const SettingForm = () => {
@@ -25,25 +25,30 @@ export const SettingForm = () => {
       weeksPerSemester: 16,
       weeksOfSummerSemester: 8,
       programLength: 4,
-      semesters: [],
+      studyPlans: [],
     },
   });
 
   const chosenSemPerYear = form.watch("semestersPerYear");
-  const semesters = form.watch("semesters");
+  const studyPlans = form.watch("studyPlans");
 
   const onSubmit = async (data: SettingFormValues) => {
     try {
-      const semesters =
-        form.getValues("semesters").length > 0
-          ? form.getValues("semesters")
+      const studyPlans =
+        form.getValues("studyPlans").length > 0
+          ? form.getValues("studyPlans")
           : generateSemesters(
               data.admissionDate,
               data.programLength,
               data.semestersPerYear,
               data.weeksPerSemester,
               data.weeksOfSummerSemester,
-            );
+            ).map((s) => ({
+              academicTermId: s.term,
+              academicYearId: s.year,
+              startDate: s.startDate.toISOString(),
+              endDate: s.endDate.toISOString(),
+            }));
 
       const payload: UserSettingDto = {
         admissionDate: data.admissionDate.toISOString(),
@@ -51,12 +56,7 @@ export const SettingForm = () => {
         weeksPerSemester: data.weeksPerSemester,
         weeksOfSummerSemester: data.weeksOfSummerSemester,
         programLength: data.programLength,
-        semesters: semesters.map((s) => ({
-          term: s.term,
-          year: s.year,
-          startDate: s.startDate.toISOString(),
-          endDate: s.endDate.toISOString(),
-        })),
+        studyPlans: studyPlans,
       };
 
       await postApiUsersSetting({ body: payload });
@@ -109,22 +109,30 @@ export const SettingForm = () => {
           type="button"
           onClick={() => {
             const values = form.getValues();
-            const semesters = generateSemesters(
+            const generated = generateSemesters(
               values.admissionDate,
               values.programLength,
               values.semestersPerYear,
               values.weeksPerSemester,
               values.weeksOfSummerSemester,
             );
-            form.setValue("semesters", semesters);
+            form.setValue(
+              "studyPlans",
+              generated.map((s) => ({
+                academicTermId: s.term,
+                academicYearId: s.year,
+                startDate: s.startDate.toISOString(),
+                endDate: s.endDate.toISOString(),
+              })),
+            );
           }}
         >
           Tạo lịch học tự động
         </Button>
-        {semesters.length > 0 && (
+        {studyPlans.length > 0 && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Xem trước lịch học:</h3>
-            <SemesterPreviewList semesters={semesters} />
+            <StudyPlanPreviewList studyPlans={studyPlans} />
           </div>
         )}
         <Button
