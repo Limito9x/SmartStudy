@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SmartStudy.Server.Constants;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services;
 
@@ -18,28 +19,28 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpGet(Name = "GetSubjects")]
-        public async Task<IActionResult> GetSubjects()
+        public async Task<ActionResult<PagedResult<ResponseSubjectDto>>> GetSubjects([FromQuery] PaginationParams pagingParams)
         {
-            var subjects = await _subjectService.GetAllSubjectsAsync();
+            var subjects = await _subjectService.GetAllSubjectsAsync(pagingParams);
             return Ok(subjects);
         }
 
         [HttpPost(Name = "CreateSubject")]
-        public async Task<IActionResult> CreateSubject(RequestSubjectDto subjectDto)
+        public async Task<ActionResult<ResponseSubjectDto>> CreateSubject(RequestSubjectDto subjectDto)
         {
             var createdSubject = await _subjectService.CreateSubjectAsync(subjectDto);
             return Ok(createdSubject);
         }
 
         [HttpPost("bulk", Name = "BulkCreateSubjects")]
-        public async Task<IActionResult> BulkCreateSubjects(List<RequestSubjectDto> subjectDtos)
+        public async Task<ActionResult<List<ResponseSubjectDto>>> BulkCreateSubjects(List<RequestSubjectDto> subjectDtos)
         {
             var createdSubjects = await _subjectService.BulkCreateSubjectsAsync(subjectDtos);
             return Ok(createdSubjects);
         }
 
         [HttpPut("{subjectId:int}", Name = "UpdateSubject")]
-        public async Task<IActionResult> UpdateSubject(int subjectId, RequestSubjectDto subjectDto)
+        public async Task<ActionResult<ResponseSubjectDto>> UpdateSubject(int subjectId, RequestSubjectDto subjectDto)
         {
             var updatedSubject = await _subjectService.UpdateSubjectAsync(subjectId, subjectDto);
             if (updatedSubject == null) return NotFound();

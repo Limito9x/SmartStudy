@@ -28,7 +28,7 @@ namespace SmartStudy.Server.Entities
         // Task thuộc về 1 yêu cầu
         public int? EventRequirementId { get; set; }
         public EventRequirement? EventRequirement { get; set; }
-        public LogItem? Log { get; set; }
+        public ICollection<LogItem>? Logs { get; set; } = new List<LogItem>();
         [NotMapped] // Không tạo cột này trong DB
         public bool IsOverdue
         {

@@ -150,7 +150,7 @@ namespace SmartStudy.Server.Services
                     await _context.Tasks
                         .Where(t => t.UserId == userId && t.RoutineId.HasValue && !activeRoutineIds.Contains((int)t.RoutineId)
                         && t.Status == Entities.Enums.TaskStatus.Pending
-                        && t.Log == null
+                        && t.Logs == null
                         )
                         .ExecuteDeleteAsync();
                 }

@@ -2,7 +2,22 @@
 
 namespace SmartStudy.Server.Dtos
 {
-    public record RequestLogDto
+    public record LogDto
+    (
+        int Id,
+        string? Note,
+        int? ActualDurationMinutes, // Số phút dành ra
+        int? ProductivityScore,
+        ComrehensiveLevel? ComrehensiveLevel,
+        DifficultyLevel? DifficultyLevel,
+        DateTime? TimerStartAt,
+        DateTime? TimerEndAt,
+        int? EventRequirementId,
+        float? EarnedValue
+    );
+
+    // Task generate log
+    public record LogWorkDto
     (
         string? Note,
         int? ActualDurationMinutes, // Số phút dành ra
@@ -11,23 +26,9 @@ namespace SmartStudy.Server.Dtos
         DifficultyLevel? DifficultyLevel,
         DateTime? TimerStartAt,
         DateTime? TimerEndAt,
-        string[]? Artifacts, // Để tạm lưu các file liên quan đến log này
         int? EventRequirementId,
         float? EarnedValue,
-        int TaskId
-    );
-
-    public record ResponseLogDto
-    (
-        int Id,
-        string? Note,
-        int? ActualDurationMinutes,
-        int? ProductivityScore,
-        ComrehensiveLevel? ComrehensiveLevel,
-        DifficultyLevel? DifficultyLevel,
-        DateTime? TimerStartAt,
-        DateTime? TimerEndAt,
-        string[]? Artifacts,
-        float? EarnedValue
+        List<int>? AssetIds,
+        bool markAsCompleted
     );
 }

@@ -13,8 +13,7 @@ namespace SmartStudy.Server.Data.Configurations
             
             // LogItem là dependent entity, TaskItem là principal entity
             builder.HasOne(l => l.Task)
-                .WithOne(t => t.Log)
-                .HasForeignKey<LogItem>(l => l.TaskId)
+                .WithMany(t => t.Logs)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

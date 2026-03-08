@@ -16,7 +16,6 @@ namespace SmartStudy.Server.Entities
         // Pomodora - Hardcore mode: log thời gian bắt đầu và kết thúc thực tế, để hỗ trợ đánh giá sau này
         public DateTime? TimerStartAt { get; set; }
         public DateTime? TimerEndAt { get; set; }
-        public string[]? Artifacts { get; set; } // Để tạm lưu các file liên quan đến log này
         public int TaskId { get; set; }
         public required TaskItem Task { get; set; }
         public int? EventRequirementId { get; set; }

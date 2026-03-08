@@ -10,8 +10,9 @@ namespace SmartStudy.Server.Services
     {
         Task<ResponseTaskDto> CreateTaskAsync(RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> GetTaskByIdAsync(int taskId);
-        Task<ResponseTaskDto> UpdateTaskByIdAsync(int taskId, RequestTaskDto taskItemDto);
-        Task<ResponseTaskDto?> ExecuteTaskByIdAsync(int taskId, ExecuteTaskDto TaskDto);
+        Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
+        Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
+        Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto Dto);
         Task<bool> DeleteTaskByIdAsync(int taskId);
     }
     public class TaskService: ITaskService
@@ -58,7 +59,7 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseTaskDto>(taskItem);
         }
 
-        public async Task<ResponseTaskDto?> UpdateTaskByIdAsync(int taskId, RequestTaskDto taskItemDto)
+        public async Task<ResponseTaskDto?> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto)
         {
             var userId = _currentUserService.UserId;
             var existingTaskItem = await _context.Tasks.FindAsync(taskId);
@@ -71,22 +72,65 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseTaskDto>(existingTaskItem);
         }
 
-        public async Task<ResponseTaskDto?> ExecuteTaskByIdAsync(int taskId, ExecuteTaskDto executeTaskDto)
+        public async Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto)
         {
             var userId = _currentUserService.UserId;
             var existingTaskItem = await _context.Tasks.FindAsync(taskId);
             if (existingTaskItem == null)
             {
-                return null;
+                throw new KeyNotFoundException("Không tìm thấy công việc");
             }
-            _mapper.Map(executeTaskDto, existingTaskItem);
-
-            var taskLogDto = executeTaskDto.logDto with { TaskId = taskId };
-
-            await _logService.CreateTaskLogAsync(taskLogDto);
+            existingTaskItem.Status = taskStatusDto.Status;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseTaskDto>(existingTaskItem);
+        }
+
+        public async Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto logWorkDto)
+        {
+            var userId = _currentUserService.UserId;
+            var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingTaskItem = await _context.Tasks.FindAsync(taskId);
+                if (existingTaskItem == null)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy công việc");
+                }
+                var log = _mapper.Map<Entities.LogItem>(logWorkDto);
+                _context.Logs.Add(log);
+                await _context.SaveChangesAsync();
+
+                if(logWorkDto.AssetIds != null && logWorkDto.AssetIds.Count > 0)
+                {
+                    var assets = await _context.Assets.Where(a => logWorkDto.AssetIds.Contains(a.Id)).ToListAsync();
+                    foreach (var asset in assets)
+                    {
+                        var assetLink = new Entities.AssetLink
+                        {
+                            AssetId = asset.Id,
+                            LinkedId = log.Id,
+                            LinkedType = AssetLinkType.Log
+                        };
+                        _context.AssetLinks.Add(assetLink);
+                    }
+                }
+
+                if (logWorkDto.markAsCompleted)
+                {
+                    existingTaskItem.Status = Entities.Enums.TaskStatus.Completed;
+                    _context.Tasks.Update(existingTaskItem);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return _mapper.Map<ResponseTaskDto>(existingTaskItem);
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> DeleteTaskByIdAsync(int taskId)

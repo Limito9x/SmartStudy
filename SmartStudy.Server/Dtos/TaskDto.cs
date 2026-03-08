@@ -16,12 +16,9 @@ namespace SmartStudy.Server.Dtos
         int? CourseId
     );
 
-    // Duyệt / Hoàn thành task
-    public record ExecuteTaskDto
+    public record TaskStatusDto
     (
-        string? Note,
-        RequestLogDto logDto,
-        Entities.Enums.TaskStatus NewStatus
+        Entities.Enums.TaskStatus Status
     );
 
     public record ResponseTaskDto
@@ -35,7 +32,7 @@ namespace SmartStudy.Server.Dtos
         DateTime? EndAt,
         TaskType Type,
         Entities.Enums.TaskStatus Status,
-        ResponseLogDto? Log,
+        List<LogDto>? Logs,
         int? RoutineId,
         int? ScheduleId,
         int CourseId

@@ -16,30 +16,23 @@ namespace SmartStudy.Server.Controllers
             _taskLogService = taskLogService;
         }
 
-        [HttpGet("{taskLogId}")]
-        public async Task<ActionResult<ResponseLogDto>> GetTaskLogById(int taskLogId)
+        [HttpGet("{taskLogId}",Name ="GetLog")]
+        public async Task<ActionResult<LogDto>> GetTaskLogById(int taskLogId)
         {
             var taskLog = await _taskLogService.GetTaskLogByIdAsync(taskLogId);
             if (taskLog == null) return NotFound();
             return Ok(taskLog);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<ResponseLogDto>> CreateTaskLog([FromBody] RequestLogDto ResponseLogDto)
+        [HttpPut("{taskLogId}",Name ="UpdateLog")]
+        public async Task<ActionResult<LogDto>> UpdateTaskLog(int taskLogId, [FromBody] LogDto LogDto)
         {
-            var createdTaskLog = await _taskLogService.CreateTaskLogAsync(ResponseLogDto);
-            return Ok(createdTaskLog);
-        }
-
-        [HttpPut("{taskLogId}")]
-        public async Task<ActionResult<ResponseLogDto>> UpdateTaskLog(int taskLogId, [FromBody] RequestLogDto ResponseLogDto)
-        {
-            var updatedTaskLog = await _taskLogService.UpdateTaskLogAsync(taskLogId, ResponseLogDto);
+            var updatedTaskLog = await _taskLogService.UpdateTaskLogAsync(taskLogId, LogDto);
             if (updatedTaskLog == null) return NotFound();
             return Ok(updatedTaskLog);
         }
 
-        [HttpDelete("{taskLogId}")]
+        [HttpDelete("{taskLogId}",Name ="DeleteLog")]
         public async Task<IActionResult> DeleteTaskLog(int taskLogId)
         {
             var result = await _taskLogService.DeleteTaskLogAsync(taskLogId);
