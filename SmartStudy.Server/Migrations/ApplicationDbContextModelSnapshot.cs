@@ -50,6 +50,22 @@ namespace SmartStudy.Server.Migrations
                         .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ConcurrencyStamp = "a1b2c3d4-0001-0000-0000-000000000000",
+                            Name = "Admin",
+                            NormalizedName = "ADMIN"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ConcurrencyStamp = "a1b2c3d4-0002-0000-0000-000000000000",
+                            Name = "Student",
+                            NormalizedName = "STUDENT"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -556,6 +572,9 @@ namespace SmartStudy.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AlternativeName")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -568,9 +587,15 @@ namespace SmartStudy.Server.Migrations
                     b.Property<double?>("FinalScore")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("Mentor")
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<int>("StudyPlanId")
                         .HasColumnType("integer");
@@ -804,9 +829,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("integer");
 
-                    b.PrimitiveCollection<int[]>("DaysOfMonth")
-                        .HasColumnType("integer[]");
-
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -814,12 +836,6 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("DurationUnit")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Frequency")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("Interval")
                         .HasColumnType("integer");
 
                     b.Property<string>("Location")
@@ -839,6 +855,52 @@ namespace SmartStudy.Server.Migrations
                     b.HasIndex("RoutineId");
 
                     b.ToTable("Schedules");
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.StudentInfo", b =>
+                {
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("AdmissionDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Cohort")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("CreditsPerSemester")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("CreditsPerSummerSemester")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Major")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<float>("ProgramLength")
+                        .HasColumnType("real");
+
+                    b.Property<int>("SemestersPerYear")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("TotalRequiredCredits")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("University")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int?>("WeeksOfSummerSemester")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("WeeksPerSemester")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("StudentInfos");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.StudyPlan", b =>
@@ -870,8 +932,8 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<bool>("IsCurrent")
-                        .HasColumnType("boolean");
+                    b.Property<int?>("MaxCredits")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Order")
                         .HasColumnType("integer");
@@ -1025,7 +1087,7 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("DueDate")
+                    b.Property<DateTime?>("DueDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Location")
@@ -1066,9 +1128,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("AdmissionDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -1082,7 +1141,8 @@ namespace SmartStudy.Server.Migrations
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
@@ -1107,14 +1167,8 @@ namespace SmartStudy.Server.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("boolean");
 
-                    b.Property<float>("ProgramLength")
-                        .HasColumnType("real");
-
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
-
-                    b.Property<int>("SemestersPerYear")
-                        .HasColumnType("integer");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -1122,12 +1176,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
-
-                    b.Property<int?>("WeeksOfSummerSemester")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("WeeksPerSemester")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -1318,9 +1366,21 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.HasOne("SmartStudy.Server.Entities.Routine", "Routine")
                         .WithMany("Schedules")
-                        .HasForeignKey("RoutineId");
+                        .HasForeignKey("RoutineId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Routine");
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.StudentInfo", b =>
+                {
+                    b.HasOne("SmartStudy.Server.Entities.User", "User")
+                        .WithOne("StudentInfo")
+                        .HasForeignKey("SmartStudy.Server.Entities.StudentInfo", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.StudyPlan", b =>
@@ -1460,6 +1520,9 @@ namespace SmartStudy.Server.Migrations
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("Routines");
+
+                    b.Navigation("StudentInfo")
+                        .IsRequired();
 
                     b.Navigation("StudyPlans");
 

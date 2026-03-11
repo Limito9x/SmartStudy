@@ -18,7 +18,7 @@ namespace SmartStudy.Server.Mappings
             config.NewConfig<Course, ResponseCourseDto>()
                 .Map(dest => dest.SubjectName, src => src.Subject != null ? src.Subject.Name : string.Empty);
 
-            config.NewConfig<Course, SimpleResponseCourseDto>()
+            config.NewConfig<Course, ResponseCourseDto>()
                 .Map(dest => dest.SubjectName, src => src.Subject != null ? src.Subject.Name : string.Empty);
         }
     }

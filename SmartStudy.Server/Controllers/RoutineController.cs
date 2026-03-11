@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Services;
 
 namespace SmartStudy.Server.Controllers
@@ -25,9 +26,12 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpGet(Name ="GetRoutines")]
-        public async Task<ActionResult<List<ResponseRoutineDto>>> GetAllRoutines()
+        public async Task<ActionResult<List<SimpleResponseRoutineDto>>> GetAllRoutines(
+            [FromQuery] int? StudyPlanId,
+            [FromQuery] TaskType? Type
+            )
         {
-            var Routines = await _routineService.GetRoutinesByUserIdAsync();
+            var Routines = await _routineService.GetRoutinesByUserIdAsync(StudyPlanId, Type);
             return Ok(Routines);
         }
 

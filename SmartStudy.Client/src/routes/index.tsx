@@ -3,12 +3,13 @@ import LandingPage from "@/pages/landing/LandingPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/auth/LoginPage";
 import SchoolStudyLayout from "@/layouts/StudyPlanLayout";
-import SemesterPage from "@/pages/school-study/study-plan/SemesterPage";
+import SemesterPage from "@/pages/school-study/study-plan/StudyPlanPage";
 import SemesterSchedulePage from "@/pages/school-study/schedule/SemesterSchedulePage";
 import RedirectSemesterPage from "@/pages/school-study/study-plan/RedirectStudyPlanPage";
 import CoursePage from "@/pages/school-study/course/CoursePage";
 import CalendarPage from "@/pages/calendar/CalendarPage";
 import SubjectPage from "@/pages/subject/SubjectPage";
+import OnboardingPage from "@/pages/survey/onboarding/OnboardingPage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -19,6 +20,10 @@ export default function AppRoutes() {
     {
       path: "/login",
       element: <LoginPage />,
+    },
+    {
+      path: "onboarding",
+      element: <OnboardingPage />,
     },
     {
       path: "/app",
@@ -38,15 +43,15 @@ export default function AppRoutes() {
           element: <SubjectPage />,
         },
         {
-          path: "semesters",
+          path: "study-plans",
           element: <SchoolStudyLayout />,
           children: [
             {
-              path: ":semesterId",
+              path: ":studyPlanId",
               element: <SemesterPage />,
             },
             {
-              path: ":semesterId/courses/:courseId",
+              path: ":studyPlanId/courses/:courseId",
               element: <CoursePage />,
             },
             {
@@ -55,7 +60,7 @@ export default function AppRoutes() {
               index: true,
             },
             {
-              path: ":semesterId/schedule",
+              path: ":studyPlanId/schedule",
               element: <SemesterSchedulePage />,
             },
           ],

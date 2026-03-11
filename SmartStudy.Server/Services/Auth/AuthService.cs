@@ -18,7 +18,7 @@ namespace SmartStudy.Server.Services
         Task<LoginResponseDto> LoginAsync(UserLoginDto model);
 
         // Lấy thông tin người dùng từ token JWT (nếu cần) --> check token
-        Task<UserResponseDto> GetUserProfileAsync(string userId);
+        Task<UserResponseDto> GetUserProfileAsync(int userId);
     }
     public class AuthService: IAuthService
     {
@@ -26,12 +26,14 @@ namespace SmartStudy.Server.Services
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager; 
         private readonly IConfiguration _configuration; // Đọc appsettings.json --> để lấy cấu hình JWT
+        private readonly string _secondSecretKey;
 
-        public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration = null)
+        public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _configuration = configuration;
+            _secondSecretKey = "SecondCustomSecretThatIsVeryLongAndHas256Bits!@#";
         }
 
         // Phương thức đăng ký người dùng mới
@@ -49,13 +51,15 @@ namespace SmartStudy.Server.Services
             {
                 Email = model.Email,
                 UserName = model.UserName ?? model.Email,
-                FullName = model.FullName
+                FullName = model.FullName,
+                StudentInfo = new StudentInfo()
             };
 
             // 3. Lưu người dùng vào cơ sở dữ liệu với mật khẩu đã mã hóa
             var result = await _userManager.CreateAsync(newUser, model.Password);
             if (result.Succeeded)
             {
+                await _userManager.AddToRoleAsync(newUser, "Student");
                 // 4. Trả về Response DTO nếu thành công
                 return new UserResponseDto
                 {                 
@@ -64,27 +68,8 @@ namespace SmartStudy.Server.Services
                     FullName = newUser.FullName,
                 };
             }
-            else
-            {
-                if(result.Errors.Any(e => e.Code == "PasswordTooShort"))
-                {
-                    throw new AppException("Mật khẩu phải có ít nhất 6 ký tự!");
-                }
-                if(result.Errors.Any(e => e.Code == "PasswordRequiresNonAlphanumeric"))
-                {
-                    throw new AppException("Mật khẩu phải chứa ít nhất một ký tự đặc biệt!");
-                }
-                if(result.Errors.Any(e => e.Code == "PasswordRequiresDigit"))
-                {
-                    throw new AppException("Mật khẩu phải chứa ít nhất một chữ số!");
-                }
-                if(result.Errors.Any(e => e.Code == "PasswordRequiresUpper"))
-                {
-                    throw new AppException("Mật khẩu phải chứa ít nhất một chữ cái viết hoa!");
-                }
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new ApplicationException($"An error occurred when registering: {errors}");
-            }
+            var errors = string.Join("\n", result.Errors.Select(e => e.Description));
+            throw new AppException($"Đăng ký thất bại:\n{errors}");
         }
 
         public async Task<LoginResponseDto> LoginAsync(UserLoginDto model)
@@ -92,18 +77,18 @@ namespace SmartStudy.Server.Services
             var user = await _userManager.FindByNameAsync(model.UserName);
             if (user == null)
             {
-                throw new AppException("Tên đăng nhập hoặc mật khẩu không chính xác");
+                throw new AppException("Tên đăng nhập hoặc mật khẩu không chính xác!");
             }
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (!result.Succeeded)
             {
-                throw new AppException("Mật khẩu không trùng khớp, vui lòng thử lại!");
+                throw new AppException("Tên đăng nhập hoặc mật khẩu không chính xác!");
             }
 
             // Tạo Access Token (JWT), vì Refresh Token tương đối phức tạp nên sẽ triển khai sau
-            var tokenString = GenerateJwtToken(user);
+            var tokenString = await GenerateJwtToken(user);
             return new LoginResponseDto
             {
                 Email = user.Email,
@@ -115,20 +100,26 @@ namespace SmartStudy.Server.Services
         }
 
         // Hàm tiện ích để tạo JWT, đặt là private vì chỉ sử dụng bên trong AuthService
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
+            var roles = await _userManager.GetRolesAsync(user); // Lấy danh sách role của user, có thể dùng để thêm claim nếu cần
             // A. Tạo danh sách các claim muốn chứa trong token
             // Claim tương đương như Payload trong JWT
             var claims = new List<Claim>
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim("fullName", user.FullName)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email!),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
             // B. Lấy key từ cấu hình và mã hóa
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecurityKey"]??"CustomSecretKey"));
+            var keystring = _configuration?["JwtSettings:SecurityKey"] ?? _secondSecretKey;
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keystring));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256); // Credentials để ký token
 
             // C. Tạo object token
@@ -136,7 +127,7 @@ namespace SmartStudy.Server.Services
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(3),
                 signingCredentials: creds
             );
 
@@ -144,9 +135,9 @@ namespace SmartStudy.Server.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task<UserResponseDto> GetUserProfileAsync(string userId)
+        public async Task<UserResponseDto> GetUserProfileAsync(int userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 throw new Exception("User not found");

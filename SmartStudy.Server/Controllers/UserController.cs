@@ -15,10 +15,10 @@ namespace SmartStudy.Server.Controllers
         {
             _userService = userService;
         }
-        [HttpPost("setting")]
-        public async Task<ActionResult> SettingUserContext([FromBody] UserSettingDto settingDto)
+        [HttpPatch("setting/student-info")]
+        public async Task<ActionResult> SettingStudentInfo([FromBody] StudentInfoDto settingDto)
         {
-            await _userService.SettingUserContext(settingDto);
+            await _userService.SettingStudentInfo(settingDto);
             return Ok();
         }
     }

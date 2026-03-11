@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 type StudyPlanStatusMap = Record<
   StudyPlanStatus,
@@ -25,21 +25,20 @@ export type SemesterOutletContext = {
 
 const semesterStatusMap: StudyPlanStatusMap = {
   Active: { text: "Đang học", color: "bg-blue-500" },
-  Past: { text: "Đã kết thúc", color: "bg-gray-500" },
-  Future: { text: "Sắp tới", color: "bg-green-300" },
+  Completed: { text: "Đã kết thúc", color: "bg-gray-500" },
+  Planning: { text: "Sắp tới", color: "bg-green-300" },
 };
 
 export default function SchoolStudyLayout() {
   const navigate = useNavigate();
-  const { semesterId } = useParams<{ semesterId: string }>();
 
   const { data: studyPlans, isLoading } = useStudyPlan().getAllStudyPlans;
 
   const currentStudyPlan =
-    studyPlans?.find((s) => s.id.toString() === semesterId) ?? null;
+    studyPlans?.find((s) => s.status === "Active") ?? null;
 
   const handleRedirectToSemester = (semester: ResponseStudyPlanDto) => {
-    navigate(`/app/semesters/${semester.id}`);
+    navigate(`/app/study-plans/${semester.id}`);
   };
 
   return (
@@ -86,7 +85,7 @@ export default function SchoolStudyLayout() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1 min-h-0 overflow-hidden">
+          <div className="flex-1 min-h-0 h-full overflow-hidden">
             <Outlet context={{ studyPlans, currentStudyPlan }} />
           </div>
         </>

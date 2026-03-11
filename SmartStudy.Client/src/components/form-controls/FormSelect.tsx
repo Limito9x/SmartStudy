@@ -18,6 +18,7 @@ interface FormSelectProps<
   T extends FieldValues,
 > extends BaseFormControlProps<T> {
   options?: Option[];
+  valueAsNumber?: boolean;
 }
 
 export function FormSelect<T extends FieldValues>({
@@ -26,6 +27,7 @@ export function FormSelect<T extends FieldValues>({
   label,
   placeholder,
   options = [],
+  valueAsNumber = false,
 }: FormSelectProps<T>) {
   return (
     <BaseFormField
@@ -35,7 +37,9 @@ export function FormSelect<T extends FieldValues>({
       render={(field) => (
         <Select
           value={field.value?.toString()}
-          onValueChange={(val) => field.onChange(val)}
+          onValueChange={(val) =>
+            field.onChange(valueAsNumber ? Number(val) : val)
+          }
         >
           <SelectTrigger>
             <SelectValue placeholder={placeholder} />

@@ -34,6 +34,7 @@ namespace SmartStudy.Server.Data
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
         public DbSet<TimelineEvent> TimelineEvents { get; set; } = null!;
         public DbSet<EventRequirement> EventRequirements { get; set; } = null!;
+        public DbSet<StudentInfo> StudentInfos { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -53,6 +54,11 @@ namespace SmartStudy.Server.Data
                 academicYears.Add(new AcademicYear { Id = i, StartYear = i, EndYear = i + 1, CreatedAt = seedDate });
             }
             builder.Entity<AcademicYear>().HasData(academicYears);
+
+            builder.Entity<IdentityRole<int>>().HasData(
+                new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN", ConcurrencyStamp = "a1b2c3d4-0001-0000-0000-000000000000" },
+                new IdentityRole<int> { Id = 2, Name = "Student", NormalizedName = "STUDENT", ConcurrencyStamp = "a1b2c3d4-0002-0000-0000-000000000000" }
+            );
 
             // Ignore System.Threading.Tasks.Task type to avoid conflicts
             builder.Ignore<System.Threading.Tasks.Task>();
@@ -76,6 +82,7 @@ namespace SmartStudy.Server.Data
 
         public override int SaveChanges()
         {
+            NormalizeDateTimeKinds();
             UpdateAuditableEntities();
             UpdateSoftDeletableEntities();
             return base.SaveChanges();
@@ -83,9 +90,23 @@ namespace SmartStudy.Server.Data
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
+            NormalizeDateTimeKinds();
             UpdateAuditableEntities();
             UpdateSoftDeletableEntities();
             return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void NormalizeDateTimeKinds()
+        {
+            foreach (var entry in ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified))
+            {
+                foreach (var property in entry.Properties)
+                {
+                    if (property.CurrentValue is DateTime dt && dt.Kind == DateTimeKind.Unspecified)
+                        property.CurrentValue = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                }
+            }
         }
 
         private void UpdateAuditableEntities()

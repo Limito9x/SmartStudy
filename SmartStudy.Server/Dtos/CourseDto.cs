@@ -1,4 +1,4 @@
-using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
 {
@@ -7,7 +7,9 @@ namespace SmartStudy.Server.Dtos
         int StudyPlanId,
         int SubjectId,
         double? TargetScore,
-        double? FinalScore
+        double? FinalScore,
+        string? Mentor,
+        string? AlternativeName
     );
 
     public record ResponseCourseDto
@@ -16,18 +18,14 @@ namespace SmartStudy.Server.Dtos
         int StudyPlanId,
         int SubjectId,
         string SubjectName,
+        string? Mentor,
+        string? AlternativeName,
         int Credits,
         double? TargetScore,
         double? FinalScore
     );
 
-    public record SimpleResponseCourseDto
-    (
-        int Id,
-        int SubjectId,
-        string SubjectName,
-        int Credits,
-        double? TargetScore,
-        double? FinalScore
-    );
+    public record SyncDraftCoursesDto(List<int> SelectedCourseIds);
+
+    public record UpdateCourseStatusDto(CourseStatus Status);
 }

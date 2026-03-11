@@ -19,13 +19,20 @@ namespace SmartStudy.Server.Dtos
         public string FullName { get; set; }
     }
 
-    public record UserSettingDto(
+    public record StudentInfoDto(
+        // Thông tin cần thiết để tính toán kế hoạch học tập
         DateTime AdmissionDate,
         int SemestersPerYear, // 2 hoặc 3, tùy theo hệ thống giáo dục
         int WeeksPerSemester,
         int? WeeksOfSummerSemester, // Tuần của học kỳ phụ/hè, nếu có
         float ProgramLength,
-        List<RequestStudyPlanDto> StudyPlans // Frontend tự động tính và đc xác thực bởi người dùng
+    // Thông tin để hiển thị trong profile, có thể bổ sung sau
+        string? University,
+        string? Major,
+        string? Cohort,
+        int? TotalRequiredCredits,
+        int? CreditsPerSemester,
+        int? CreditsPerSummerSemester
     );
 
     // DTO cho việc đăng nhập người dùng

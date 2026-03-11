@@ -16,7 +16,12 @@ namespace SmartStudy.Server.Data.Configurations
             builder.HasIndex(r => new { r.Name, r.UserId })
                 .IsUnique()
                 .HasFilter("\"DeletedAt\" IS NULL");
-            
+
+            builder.HasMany(r => r.Schedules)
+                .WithOne(s => s.Routine)
+                .HasForeignKey(s => s.RoutineId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

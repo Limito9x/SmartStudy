@@ -10,6 +10,7 @@ namespace SmartStudy.Server.Services
     {
         Task<ResponseTaskDto> CreateTaskAsync(RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> GetTaskByIdAsync(int taskId);
+        Task<List<ResponseTaskDto>> GetTasksAsync(DateTime? fromDate, DateTime? toDate);
         Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
         Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto Dto);
@@ -57,6 +58,40 @@ namespace SmartStudy.Server.Services
                 return null;
             }
             return _mapper.Map<ResponseTaskDto>(taskItem);
+        }
+
+        public async Task<List<ResponseTaskDto>> GetTasksAsync(DateTime? from, DateTime? to)
+        {
+            var userId = _currentUserService.UserId;
+            var query = _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.UserId == userId);
+            if (from.HasValue)
+            {
+                var fromDate = DateOnly.FromDateTime(from.Value);
+                var fromTime = TimeOnly.FromDateTime(from.Value);
+                query = query.Where(t =>
+                    t.TaskDate > fromDate ||
+                    (t.TaskDate == fromDate && t.StartTime >= fromTime)
+                );
+            }
+            
+            if (to.HasValue)
+            {
+                var toDate = DateOnly.FromDateTime(to.Value);
+                var toTime = TimeOnly.FromDateTime(to.Value);
+                query = query.Where(t => 
+                    t.TaskDate < toDate || 
+                    (t.TaskDate == toDate && t.StartTime <= toTime)
+                );
+            }
+
+            var tasks = await query
+                .OrderBy(t => t.TaskDate)
+                .ThenBy(t => t.StartTime)
+                .ToListAsync();
+
+            return _mapper.Map<List<ResponseTaskDto>>(tasks);
         }
 
         public async Task<ResponseTaskDto?> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto)

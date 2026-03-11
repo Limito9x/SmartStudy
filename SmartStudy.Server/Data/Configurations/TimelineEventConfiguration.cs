@@ -9,7 +9,6 @@ namespace SmartStudy.Server.Data.Configurations
         public void Configure(EntityTypeBuilder<TimelineEvent> builder)
         {
             builder.Property(x => x.Title).HasMaxLength(300).IsRequired();
-            builder.Property(x => x.DueDate).IsRequired();
 
             builder.HasOne(x => x.Course)
                 .WithMany(c => c.TimelineEvents)

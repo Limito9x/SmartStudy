@@ -17,9 +17,9 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpGet("study-plan/{studyPlanId:int}", Name = "GetCoursesByStudyPlan")]
-        public async Task<ActionResult<List<SimpleResponseCourseDto>>> GetCoursesByStudyPlan(int studyPlanId)
+        public async Task<ActionResult<List<ResponseCourseDto>>> GetCoursesByStudyPlan(int studyPlanId)
         {
-            List<SimpleResponseCourseDto> courses = await _CourseService.GetCoursesByStudyPlanIdAsync(studyPlanId);
+            List<ResponseCourseDto> courses = await _CourseService.GetCoursesByStudyPlanIdAsync(studyPlanId);
             return Ok(courses);
         }
 
@@ -51,6 +51,13 @@ namespace SmartStudy.Server.Controllers
         {
             var deleted = await _CourseService.DeleteCourseAsync(courseId);
             if (!deleted) return NotFound();
+            return NoContent();
+        }
+
+        [HttpPatch("{courseId:int}/status", Name = "UpdateCourseStatus")]
+        public async Task<ActionResult> UpdateCourseStatus(int courseId, [FromBody] UpdateCourseStatusDto dto)
+        {
+            await _CourseService.UpdateCourseStatusAsync(courseId, dto);
             return NoContent();
         }
     }

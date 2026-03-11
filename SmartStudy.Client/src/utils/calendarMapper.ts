@@ -1,10 +1,10 @@
-import type { ScheduleResponseDto } from "@/services/api";
+import type { ScheduleDto } from "@/services/api";
 import type { CalendarEvent } from "@/components/features/calendar/WeekCalendar";
 
 export function mapCourseSchedulesToCalendarEvents({
   schedules,
 }: {
-  schedules: ScheduleResponseDto[];
+  schedules: ScheduleDto[];
 }): CalendarEvent[] {
   const durationUnitToMinutes = (duration: number, unit: string) => {
     switch (unit) {

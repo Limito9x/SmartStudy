@@ -22,11 +22,26 @@ export type AssetResponseDto = {
     formFieldKey: null | string;
 };
 
+export type BulkCreateStudyPlanDto = {
+    studyPlans: Array<RequestStudyPlanDto>;
+};
+
+export type CalendarTaskDto = {
+    id: number | string;
+    title: string;
+    startDate: string;
+    startTime: string;
+    endTime: string;
+    location: null | string;
+};
+
 export type ChatDto = {
     prompt: string;
 };
 
 export type ComrehensiveLevel = number;
+
+export type CourseStatus = 'Draft' | 'Enrolled' | 'Completed' | 'Dropped';
 
 export type DayOfWeek = number;
 
@@ -52,8 +67,6 @@ export type EventRequirementResDto = {
 export type EventType = 'Exam' | 'Assignment' | 'Presentation' | 'ProjectDeadline' | 'Other';
 
 export type FileType = number;
-
-export type Frequency = 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
 
 export type IFormFile = Blob | File;
 
@@ -108,6 +121,8 @@ export type RequestCourseDto = {
     subjectId: number | string;
     targetScore: null | number | string;
     finalScore: null | number | string;
+    mentor: null | string;
+    alternativeName: null | string;
 };
 
 export type RequestRoutineDto = {
@@ -120,6 +135,15 @@ export type RequestRoutineDto = {
     courseId: null | number | string;
     eventRequirementId: null | number | string;
     schedules: null | Array<ScheduleDto>;
+};
+
+export type RequestScheduleDto = {
+    routineId: number | string;
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    duration: number | string;
+    durationUnit: TimeUnit;
+    location: null | string;
 };
 
 export type RequestStudyPlanDto = {
@@ -163,6 +187,8 @@ export type ResponseCourseDto = {
     studyPlanId: number | string;
     subjectId: number | string;
     subjectName: string;
+    mentor: null | string;
+    alternativeName: null | string;
     credits: number | string;
     targetScore: null | number | string;
     finalScore: null | number | string;
@@ -178,6 +204,16 @@ export type ResponseRoutineDto = {
     eventRequirementId: null | number | string;
     schedules: Array<ScheduleDto>;
     tasks: null | Array<ResponseTaskDto>;
+};
+
+export type ResponseScheduleDto = {
+    id: number | string;
+    routineId: number | string;
+    dayOfWeek: DayOfWeek;
+    startTime: null | string;
+    duration: null | number | string;
+    durationUnit: null | TimeUnit;
+    location: null | string;
 };
 
 export type ResponseStudyPlanDto = {
@@ -228,10 +264,7 @@ export type ResponseTimelineEventDto = {
 
 export type ScheduleDto = {
     id: number | string;
-    frequency: Frequency;
-    interval: number | string;
     dayOfWeek: DayOfWeek;
-    daysOfMonth: null | Array<number | string>;
     startTime: string;
     duration: number | string;
     durationUnit: TimeUnit;
@@ -243,16 +276,32 @@ export type SessionDto = {
     semesterId: null | number | string;
 };
 
-export type SimpleResponseCourseDto = {
+export type SimpleResponseRoutineDto = {
     id: number | string;
-    subjectId: number | string;
-    subjectName: string;
-    credits: number | string;
-    targetScore: null | number | string;
-    finalScore: null | number | string;
+    name: string;
+    description: null | string;
+    startDate: null | string;
+    endDate: null | string;
+    courseId: null | number | string;
+    eventRequirementId: null | number | string;
+    schedules: Array<ScheduleDto>;
 };
 
-export type StudyPlanStatus = 'Past' | 'Active' | 'Future';
+export type StudentInfoDto = {
+    admissionDate: string;
+    semestersPerYear: number | string;
+    weeksPerSemester: number | string;
+    weeksOfSummerSemester: null | number | string;
+    programLength: number | string;
+    university: null | string;
+    major: null | string;
+    cohort: null | string;
+    totalRequiredCredits: null | number | string;
+    creditsPerSemester: null | number | string;
+    creditsPerSummerSemester: null | number | string;
+};
+
+export type StudyPlanStatus = 'Planning' | 'Active' | 'Completed';
 
 export type SubjectType = 'Theory' | 'Practice' | 'Project' | 'Thesis';
 
@@ -265,6 +314,22 @@ export type TaskStatusDto = {
 export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'LifeHabit';
 
 export type TimeUnit = 'Minutes' | 'Hours' | 'Periods';
+
+export type UpdateCourseStatusDto = {
+    status: CourseStatus;
+};
+
+export type UpdateScheduleDto = {
+    dayOfWeek: DayOfWeek;
+    startTime: string;
+    duration: number | string;
+    durationUnit: TimeUnit;
+    location: null | string;
+};
+
+export type UpdateStudyPlanStatusDto = {
+    status: StudyPlanStatus;
+};
 
 export type UserLoginDto = {
     userName: string;
@@ -283,15 +348,6 @@ export type UserResponseDto = {
     email?: string;
     userName?: string;
     fullName?: string;
-};
-
-export type UserSettingDto = {
-    admissionDate: string;
-    semestersPerYear: number | string;
-    weeksPerSemester: number | string;
-    weeksOfSummerSemester: null | number | string;
-    programLength: number | string;
-    studyPlans: Array<RequestStudyPlanDto>;
 };
 
 export type GetAssetsData = {
@@ -399,6 +455,26 @@ export type GetProfileResponses = {
 
 export type GetProfileResponse = GetProfileResponses[keyof GetProfileResponses];
 
+export type GetCalendarData = {
+    body?: never;
+    path?: never;
+    query?: {
+        studyPlanId?: number | string;
+        fromDate?: string;
+        toDate?: string;
+    };
+    url: '/api/calendar';
+};
+
+export type GetCalendarResponses = {
+    /**
+     * OK
+     */
+    200: Array<CalendarTaskDto>;
+};
+
+export type GetCalendarResponse = GetCalendarResponses[keyof GetCalendarResponses];
+
 export type GetApiChatSessionsBySessionIdData = {
     body?: never;
     path: {
@@ -472,7 +548,7 @@ export type GetCoursesByStudyPlanResponses = {
     /**
      * OK
      */
-    200: Array<SimpleResponseCourseDto>;
+    200: Array<ResponseCourseDto>;
 };
 
 export type GetCoursesByStudyPlanResponse = GetCoursesByStudyPlanResponses[keyof GetCoursesByStudyPlanResponses];
@@ -544,6 +620,22 @@ export type CreateCourseResponses = {
 };
 
 export type CreateCourseResponse = CreateCourseResponses[keyof CreateCourseResponses];
+
+export type UpdateCourseStatusData = {
+    body: UpdateCourseStatusDto;
+    path: {
+        courseId: number;
+    };
+    query?: never;
+    url: '/api/courses/{courseId}/status';
+};
+
+export type UpdateCourseStatusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type DeleteLogData = {
     body?: never;
@@ -652,7 +744,10 @@ export type UpdateRoutineResponse = UpdateRoutineResponses[keyof UpdateRoutineRe
 export type GetRoutinesData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        StudyPlanId?: number | string;
+        Type?: TaskType;
+    };
     url: '/api/routines';
 };
 
@@ -660,7 +755,7 @@ export type GetRoutinesResponses = {
     /**
      * OK
      */
-    200: Array<ResponseRoutineDto>;
+    200: Array<SimpleResponseRoutineDto>;
 };
 
 export type GetRoutinesResponse = GetRoutinesResponses[keyof GetRoutinesResponses];
@@ -719,6 +814,56 @@ export type GetUpcomingRoutineTasksResponses = {
 
 export type GetUpcomingRoutineTasksResponse = GetUpcomingRoutineTasksResponses[keyof GetUpcomingRoutineTasksResponses];
 
+export type CreateScheduleData = {
+    body: RequestScheduleDto;
+    path?: never;
+    query?: never;
+    url: '/api/schedules';
+};
+
+export type CreateScheduleResponses = {
+    /**
+     * OK
+     */
+    200: ResponseScheduleDto;
+};
+
+export type CreateScheduleResponse = CreateScheduleResponses[keyof CreateScheduleResponses];
+
+export type DeleteScheduleData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/schedules/{id}';
+};
+
+export type DeleteScheduleResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type UpdateScheduleData = {
+    body: UpdateScheduleDto;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/schedules/{id}';
+};
+
+export type UpdateScheduleResponses = {
+    /**
+     * OK
+     */
+    200: ResponseScheduleDto;
+};
+
+export type UpdateScheduleResponse = UpdateScheduleResponses[keyof UpdateScheduleResponses];
+
 export type GetStudyPlansData = {
     body?: never;
     path?: never;
@@ -750,6 +895,20 @@ export type CreateStudyPlanResponses = {
 };
 
 export type CreateStudyPlanResponse = CreateStudyPlanResponses[keyof CreateStudyPlanResponses];
+
+export type BulkCreateStudyPlansData = {
+    body: BulkCreateStudyPlanDto;
+    path?: never;
+    query?: never;
+    url: '/api/study-plans/bulk';
+};
+
+export type BulkCreateStudyPlansResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type DeleteStudyPlanData = {
     body?: never;
@@ -802,6 +961,22 @@ export type UpdateStudyPlanResponses = {
 };
 
 export type UpdateStudyPlanResponse = UpdateStudyPlanResponses[keyof UpdateStudyPlanResponses];
+
+export type UpdateStudyPlanStatusData = {
+    body: UpdateStudyPlanStatusDto;
+    path: {
+        planId: number;
+    };
+    query?: never;
+    url: '/api/study-plans/{planId}/status';
+};
+
+export type UpdateStudyPlanStatusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetSubjectsData = {
     body?: never;
@@ -889,23 +1064,43 @@ export type UpdateSubjectResponses = {
 
 export type UpdateSubjectResponse = UpdateSubjectResponses[keyof UpdateSubjectResponses];
 
-export type PostApiTasksData = {
+export type GetTasksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        fromDate?: string;
+        toDate?: string;
+        studyPlanId?: number | string;
+    };
+    url: '/api/tasks';
+};
+
+export type GetTasksResponses = {
+    /**
+     * OK
+     */
+    200: Array<ResponseTaskDto>;
+};
+
+export type GetTasksResponse = GetTasksResponses[keyof GetTasksResponses];
+
+export type CreateTaskData = {
     body: RequestTaskDto;
     path?: never;
     query?: never;
     url: '/api/tasks';
 };
 
-export type PostApiTasksResponses = {
+export type CreateTaskResponses = {
     /**
      * OK
      */
     200: ResponseTaskDto;
 };
 
-export type PostApiTasksResponse = PostApiTasksResponses[keyof PostApiTasksResponses];
+export type CreateTaskResponse = CreateTaskResponses[keyof CreateTaskResponses];
 
-export type DeleteApiTasksByTaskIdData = {
+export type DeleteTaskByIdData = {
     body?: never;
     path: {
         taskId: number | string;
@@ -914,14 +1109,14 @@ export type DeleteApiTasksByTaskIdData = {
     url: '/api/tasks/{taskId}';
 };
 
-export type DeleteApiTasksByTaskIdResponses = {
+export type DeleteTaskByIdResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type GetApiTasksByTaskIdData = {
+export type GetTaskByIdData = {
     body?: never;
     path: {
         taskId: number | string;
@@ -930,14 +1125,14 @@ export type GetApiTasksByTaskIdData = {
     url: '/api/tasks/{taskId}';
 };
 
-export type GetApiTasksByTaskIdResponses = {
+export type GetTaskByIdResponses = {
     /**
      * OK
      */
     200: ResponseTaskDto;
 };
 
-export type GetApiTasksByTaskIdResponse = GetApiTasksByTaskIdResponses[keyof GetApiTasksByTaskIdResponses];
+export type GetTaskByIdResponse = GetTaskByIdResponses[keyof GetTaskByIdResponses];
 
 export type UpdateTaskInfoData = {
     body: RequestTaskDto;
@@ -957,7 +1152,7 @@ export type UpdateTaskInfoResponses = {
 
 export type UpdateTaskInfoResponse = UpdateTaskInfoResponses[keyof UpdateTaskInfoResponses];
 
-export type PatchApiTasksByTaskIdStatusData = {
+export type UpdateTaskStatusData = {
     body: TaskStatusDto;
     path: {
         taskId: number | string;
@@ -966,16 +1161,16 @@ export type PatchApiTasksByTaskIdStatusData = {
     url: '/api/tasks/{taskId}/status';
 };
 
-export type PatchApiTasksByTaskIdStatusResponses = {
+export type UpdateTaskStatusResponses = {
     /**
      * OK
      */
     200: ResponseTaskDto;
 };
 
-export type PatchApiTasksByTaskIdStatusResponse = PatchApiTasksByTaskIdStatusResponses[keyof PatchApiTasksByTaskIdStatusResponses];
+export type UpdateTaskStatusResponse = UpdateTaskStatusResponses[keyof UpdateTaskStatusResponses];
 
-export type PostApiTasksByTaskIdLogsData = {
+export type CreateTaskLogWorkData = {
     body: LogWorkDto;
     path: {
         taskId: number | string;
@@ -984,14 +1179,14 @@ export type PostApiTasksByTaskIdLogsData = {
     url: '/api/tasks/{taskId}/logs';
 };
 
-export type PostApiTasksByTaskIdLogsResponses = {
+export type CreateTaskLogWorkResponses = {
     /**
      * OK
      */
     200: ResponseTaskDto;
 };
 
-export type PostApiTasksByTaskIdLogsResponse = PostApiTasksByTaskIdLogsResponses[keyof PostApiTasksByTaskIdLogsResponses];
+export type CreateTaskLogWorkResponse = CreateTaskLogWorkResponses[keyof CreateTaskLogWorkResponses];
 
 export type CreateEventData = {
     body: RequestTimelineEventDto;
@@ -1131,14 +1326,14 @@ export type UpdateEventRequirementResponses = {
 
 export type UpdateEventRequirementResponse = UpdateEventRequirementResponses[keyof UpdateEventRequirementResponses];
 
-export type PostApiUsersSettingData = {
-    body: UserSettingDto;
+export type PatchApiUsersSettingStudentInfoData = {
+    body: StudentInfoDto;
     path?: never;
     query?: never;
-    url: '/api/users/setting';
+    url: '/api/users/setting/student-info';
 };
 
-export type PostApiUsersSettingResponses = {
+export type PatchApiUsersSettingStudentInfoResponses = {
     /**
      * OK
      */

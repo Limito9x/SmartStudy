@@ -40,7 +40,11 @@ namespace SmartStudy.Server.Controllers
             {
                 return Unauthorized("User Id should not be empty");
             }
-            var result = await _authService.GetUserProfileAsync(userId);
+            if (!int.TryParse(userId, out var userIdInt))
+            {
+                return Unauthorized("Invalid user ID format");
+            }
+            var result = await _authService.GetUserProfileAsync(userIdInt);
 
             if(result == null)
             {

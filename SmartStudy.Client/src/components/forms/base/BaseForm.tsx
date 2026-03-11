@@ -14,6 +14,7 @@ interface BaseFormProps<T extends FieldValues> {
   onSubmit: (data: T) => void;
   // Kỹ thuật Render Props: Cho phép component con truy cập vào methods của form
   children: (methods: UseFormReturn<T>) => React.ReactNode;
+  formId?: string; // Thêm formId để liên kết với nút submit bên ngoài form
 }
 
 export function BaseForm<T extends FieldValues>({
@@ -29,7 +30,14 @@ export function BaseForm<T extends FieldValues>({
 
   return (
     <Form {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+            methods.handleSubmit(onSubmit)(e);
+        }}
+        className="space-y-4"
+      >
         {children(methods as UseFormReturn<T>)}
       </form>
     </Form>

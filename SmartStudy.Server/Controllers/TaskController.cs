@@ -17,7 +17,7 @@ namespace SmartStudy.Server.Controllers
             _TaskService = Taskservice;
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateTask")]
         public async Task<ActionResult<ResponseTaskDto>> CreateTask([FromBody] RequestTaskDto dto)
         {
             Console.WriteLine("Creating task with DTO: "+ dto);
@@ -25,12 +25,23 @@ namespace SmartStudy.Server.Controllers
             return Ok(created);
         }
 
-        [HttpGet("{taskId}")]
+        [HttpGet("{taskId}",Name = "GetTaskById")]
         public async Task<ActionResult<ResponseTaskDto>> GetTaskById(int taskId)
         {
             var task = await _TaskService.GetTaskByIdAsync(taskId);
             if (task == null) return NotFound();
             return Ok(task);
+        }
+        
+        [HttpGet(Name = "GetTasks")]
+        public async Task<ActionResult<List<ResponseTaskDto>>> GetTasks(
+            [FromQuery] DateTime? fromDate,
+            [FromQuery] DateTime? toDate,
+            [FromQuery] int? studyPlanId
+            )
+        {
+            var tasks = await _TaskService.GetTasksAsync(fromDate, toDate);
+            return Ok(tasks);
         }
 
         [HttpPatch("{taskId}",Name ="UpdateTaskInfo")]
@@ -41,14 +52,14 @@ namespace SmartStudy.Server.Controllers
             return Ok(updated);
         }
 
-        [HttpPatch("{taskId}/status")]
+        [HttpPatch("{taskId}/status", Name = "UpdateTaskStatus")]
         public async Task<ActionResult<ResponseTaskDto>> UpdateTaskStatus(int taskId, [FromBody] TaskStatusDto dto)
         {
             ResponseTaskDto updated = await _TaskService.UpdateTaskStatusAsync(taskId, dto);
             return Ok(updated);
         }
 
-        [HttpPost("{taskId}/logs")]
+        [HttpPost("{taskId}/logs", Name = "CreateTaskLogWork")]
         public async Task<ActionResult<ResponseTaskDto>> LogWork(int taskId, [FromBody] LogWorkDto dto)
         {
             var executed = await _TaskService.LogWorkAsync(taskId, dto);
@@ -56,7 +67,7 @@ namespace SmartStudy.Server.Controllers
             return Ok(executed);
         }
 
-        [HttpDelete("{taskId}")]
+        [HttpDelete("{taskId}", Name = "DeleteTaskById")]
         public async Task<IActionResult> DeleteTaskById(int taskId)
         {
             var isDeleted = await _TaskService.DeleteTaskByIdAsync(taskId);

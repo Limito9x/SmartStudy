@@ -8,9 +8,7 @@ namespace SmartStudy.Server.Mappings
     {
         public void Register(TypeAdapterConfig config)
         {
-            config.NewConfig<UserSettingDto, User>()
-                .Ignore(dest => dest.StudyPlans);
-              
+            // User mappings
         }
     }
 }

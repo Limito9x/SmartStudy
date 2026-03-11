@@ -6,14 +6,13 @@ namespace SmartStudy.Server.Services
 {
     public interface IUserService
     {
-        public Task SettingUserContext(UserSettingDto settingDto);
+        public Task SettingStudentInfo(StudentInfoDto settingDto);
     }
     public class UserService : IUserService
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IMapper _mapster;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IStudyPlanService _studyPlanService;
 
         public UserService(
             ApplicationDbContext dbContext,
@@ -25,24 +24,18 @@ namespace SmartStudy.Server.Services
             _dbContext = dbContext;
             _mapster = mapster;
             _currentUserService = currentUserService;
-            _studyPlanService = studyPlanService;
         }
 
-        public async Task SettingUserContext(UserSettingDto settingDto)
+        public async Task SettingStudentInfo(StudentInfoDto settingDto)
         {
             var userId = _currentUserService.UserId;
-            var user = await _dbContext.Users.FindAsync(userId);
+            var user = await _dbContext.StudentInfos.FindAsync(userId);
 
             if (user == null)
             {
-                throw new KeyNotFoundException("User not found");
+                throw new KeyNotFoundException("Không tìm thấy sinh viên");
             }
             _mapster.Map(settingDto, user);
-
-            if (settingDto.StudyPlans != null && settingDto.StudyPlans.Count > 0)
-            {
-                await _studyPlanService.BulkSetupStudyPlansAsync(userId, settingDto.StudyPlans);
-            }
 
             await _dbContext.SaveChangesAsync();
         }

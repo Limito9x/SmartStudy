@@ -4,16 +4,10 @@ import type { ScheduleDto, RequestRoutineDto } from "@/services/api";
 // --- Schedule Item (dùng trong Routine) ---
 
 export const scheduleItemSchema = z.object({
-  id: z.coerce.number().optional(),
-  frequency: z.enum(["Daily", "Weekly", "Monthly", "Yearly"], {
-    message: "Tần suất không được để trống",
-  }),
-  interval: z.coerce.number().min(1, "Chu kỳ lặp phải lớn hơn hoặc bằng 1"),
   dayOfWeek: z.coerce
     .number()
     .min(0, "Ngày trong tuần không hợp lệ")
     .max(6, "Ngày trong tuần không hợp lệ"),
-  daysOfMonth: z.array(z.coerce.number()).nullable().optional(),
   startTime: z.string().refine((time) => {
     const [hours, minutes] = time.split(":").map(Number);
     return (
@@ -32,7 +26,16 @@ export const scheduleItemSchema = z.object({
   location: z.string().nullable().optional(),
 }) satisfies z.ZodType<Partial<ScheduleDto>, any, any>;
 
-export type ScheduleItemFormValues = z.infer<typeof scheduleItemSchema>;
+export type ScheduleItemFormInput = z.input<typeof scheduleItemSchema>;
+export type ScheduleItemFormValues = z.output<typeof scheduleItemSchema>;
+
+export const defaultScheduleItemValues: ScheduleItemFormInput = {
+  dayOfWeek: 1,
+  startTime: "08:00",
+  duration: 60,
+  durationUnit: "Minutes",
+  location: "",
+};
 
 // --- Routine ---
 
@@ -52,4 +55,14 @@ export const routineSchema = z.object({
   schedules: z.array(scheduleItemSchema).nullable().optional(),
 }) satisfies z.ZodType<Partial<Record<keyof RequestRoutineDto, any>>, any, any>;
 
-export type RoutineFormValues = z.infer<typeof routineSchema>;
+export type RoutineFormInput = z.input<typeof routineSchema>;
+export type RoutineFormValues = z.output<typeof routineSchema>;
+
+export const scheduleSchema = z.object({
+  dayOfWeek: z.number().min(0).max(6),
+  startTime: z.string().min(1,"Giờ bắt đầu không được để trống"), // "08:00"
+  duration: z.number().min(1),
+  location: z.string().optional(),
+});
+
+export type ScheduleFormValues = z.infer<typeof scheduleSchema>;

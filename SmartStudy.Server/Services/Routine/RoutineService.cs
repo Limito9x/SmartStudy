@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
 
 namespace SmartStudy.Server.Services
@@ -16,7 +17,8 @@ namespace SmartStudy.Server.Services
     {
         Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto);
         Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId);
-        Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync();
+        Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(
+            int? StudyPlanId, TaskType? Type);
         Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto);
         Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
@@ -45,9 +47,21 @@ namespace SmartStudy.Server.Services
 
                 _context.Routines.Add(Routine);
 
-                await _context.SaveChangesAsync();
+                var schedules = RoutineDto.
+                Schedules?.Select(s => {
+                    var schedule = _mapper.Map<Schedule>(s);
+                    schedule.RoutineId = Routine.Id;
+                    return schedule;
+                }).ToList();
 
-                return _mapper.Map<ResponseRoutineDto>(Routine);       
+                if (schedules != null && schedules.Any())
+                {
+                    _context.Schedules.AddRange(schedules);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<ResponseRoutineDto>(Routine);       
         }
 
         public async Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId)
@@ -59,14 +73,21 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseRoutineDto>(Routine);
         }
 
-        public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync()
+        public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, TaskType? Type)
         {
             var userId = _currentUserService.UserId;
-            var Routines = await _context.Routines
+            var query = _context.Routines
                 .AsNoTracking()
-                .Where(r => r.UserId == userId)
-                .ToListAsync();
-            return _mapper.Map<List<SimpleResponseRoutineDto>>(Routines);
+                .Where(r => r.UserId == userId);
+
+            if (StudyPlanId.HasValue)
+                query = query.Where(r => r.CourseId != null && r.Course.StudyPlanId == StudyPlanId);
+
+            if (Type.HasValue)
+                query = query.Where(r => r.Type == Type);
+
+            var routines = await query.ToListAsync();
+            return _mapper.Map<List<SimpleResponseRoutineDto>>(routines);
         }
 
         public async Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto)
@@ -76,6 +97,24 @@ namespace SmartStudy.Server.Services
                 .FirstOrDefaultAsync(r => r.Id == RoutineId);
             if (existingRoutine == null) return null;
             _mapper.Map(RoutineDto, existingRoutine);
+
+            CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>
+            (
+                existingEntities: existingRoutine.Schedules,
+                incomingDtos: RoutineDto.Schedules ?? new List<ScheduleDto>(),
+                entityKeySelector: s => s.Id,
+                dtoKeySelector: s => s.Id,
+                updateAction: (existingSchedule, dtoSchedule) =>
+                {
+                    _mapper.Map(dtoSchedule, existingSchedule);
+                },
+                createFunc: dtoSchedule =>
+                {
+                    var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
+                    newSchedule.RoutineId = existingRoutine.Id;
+                    return newSchedule;
+                }
+            );
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseRoutineDto>(existingRoutine);

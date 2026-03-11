@@ -5,8 +5,6 @@ import {
   PaginationEllipsis,
   PaginationItem,
   PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
   Select,
@@ -16,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface TablePaginationProps {
   page: number;
@@ -88,7 +87,9 @@ export default function TablePagination({
         <PaginationContent>
           {/* Nút Prev */}
           <PaginationItem>
-            <PaginationPrevious
+            <PaginationLink
+              aria-label="Trang trước"
+              size={"icon"}
               onClick={(e) => {
                 e.preventDefault(); // Chống giật trang web
                 if (page > 1) onPaginationChange(page - 1, pageSize);
@@ -97,7 +98,9 @@ export default function TablePagination({
               className={
                 page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"
               }
-            />
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </PaginationLink>
           </PaginationItem>
 
           {/* Vòng lặp in số trang */}
@@ -121,7 +124,9 @@ export default function TablePagination({
 
           {/* Nút Next */}
           <PaginationItem>
-            <PaginationNext
+            <PaginationLink
+              aria-label="Trang sau"
+              size={"icon"}
               onClick={(e) => {
                 e.preventDefault();
                 if (page < totalPages) onPaginationChange(page + 1, pageSize);
@@ -131,7 +136,9 @@ export default function TablePagination({
                   ? "pointer-events-none opacity-50"
                   : "cursor-pointer"
               }
-            />
+            >
+              <ChevronRight className="h-4 w-4" />
+            </PaginationLink>
           </PaginationItem>
         </PaginationContent>
       </Pagination>

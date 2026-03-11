@@ -15,8 +15,8 @@ export default function DashboardLayout() {
   const { isOpen, title, description, view, closeDialog } = useDialogStore();
 
   return (
-    <div className="dashboard-layout w-max-screen h-screen">
-      <div className="dashboard-content flex h-full">
+    <div className="dashboard-layout h-screen w-full overflow-hidden">
+      <div className="dashboard-content flex h-full min-w-0">
         <SidebarProvider>
           <Sidebar />
           <div className="main-content flex-1 min-w-0 flex flex-col overflow-hidden">
@@ -40,7 +40,7 @@ export default function DashboardLayout() {
                 {view}
               </DialogContent>
             </Dialog>
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
               <Outlet />
             </div>
           </div>

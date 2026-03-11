@@ -18,6 +18,13 @@ namespace SmartStudy.Server.Data.Configurations
                 .HasForeignKey(c => c.SubjectId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            
+
+            builder.HasMany(c => c.Routines)
+                .WithOne(r => r.Course)
+                .HasForeignKey(r => r.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.HasIndex(c => new { c.StudyPlanId, c.SubjectId });
         }
     }

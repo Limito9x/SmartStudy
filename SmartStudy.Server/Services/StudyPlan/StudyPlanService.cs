@@ -1,7 +1,9 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using SmartStudy.Server.Constants;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Services
@@ -13,7 +15,10 @@ namespace SmartStudy.Server.Services
         Task<ResponseStudyPlanDto?> GetStudyPlanByIdAsync(int studyPlanId);
         Task<ResponseStudyPlanDto?> UpdateStudyPlanAsync(int studyPlanId, RequestStudyPlanDto studyPlanDto);
         Task<bool> DeleteStudyPlanAsync(int studyPlanId);
-        Task BulkSetupStudyPlansAsync(int userId, List<RequestStudyPlanDto> dtos);
+        Task BulkSetupStudyPlansAsync(BulkCreateStudyPlanDto dto);
+        //Task SyncDraftCoursesAsync(int planId, SyncDraftCoursesDto dto);
+        //Task CommitStudyPlanAsync(int planId);
+        Task UpdateStudyPlanStatusAsync(int planId, UpdateStudyPlanStatusDto dto);
     }
 
     public class StudyPlanService : IStudyPlanService
@@ -21,18 +26,21 @@ namespace SmartStudy.Server.Services
         private readonly ApplicationDbContext _context;
         private readonly IAssetLinkService _assetLinkService;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IRoutineService _routineService;
         private readonly IMapper _mapper;
 
         public StudyPlanService(
             ApplicationDbContext context,
             IAssetLinkService assetLinkService,
             ICurrentUserService currentUserService,
+            IRoutineService routingService,
             IMapper mapper
         )
         {
             _context = context;
             _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
+            _routineService = routingService;
             _mapper = mapper;
         }
 
@@ -43,11 +51,11 @@ namespace SmartStudy.Server.Services
             var studyPlan = _mapper.Map<Entities.StudyPlan>(studyPlanDto);
             studyPlan.UserId = userId;
 
-            await ProcessStudyPlanChangesAsync(studyPlan.UserId, list =>
-            {
-                list.Add(studyPlan);
-                _context.StudyPlans.Add(studyPlan);
-            });
+            await _context.SaveChangesAsync();
+
+            var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
+                ReorderStudyPlans(spList);
+                await _context.SaveChangesAsync();
 
             await _context.Entry(studyPlan).Reference(x => x.AcademicTerm).LoadAsync();
             await _context.Entry(studyPlan).Reference(x => x.AcademicYear).LoadAsync();
@@ -96,14 +104,11 @@ namespace SmartStudy.Server.Services
 
             _mapper.Map(studyPlanDto, studyPlan);
 
-            await ProcessStudyPlanChangesAsync(userId, list =>
-            {
-                var target = list.FirstOrDefault(s => s.Id == studyPlanId);
-                if (target != null)
-                {
-                    _mapper.Map(studyPlanDto, target);
-                }
-            });
+            await _context.SaveChangesAsync();
+
+            var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
+                    ReorderStudyPlans(spList);
+                    await _context.SaveChangesAsync();
 
             return _mapper.Map<ResponseStudyPlanDto>(studyPlan);
         }
@@ -113,53 +118,182 @@ namespace SmartStudy.Server.Services
             var userId = _currentUserService.UserId;
             bool isDeleted = false;
 
-            await ProcessStudyPlanChangesAsync(userId, list =>
-            {
-                var target = list.FirstOrDefault(s => s.Id == studyPlanId);
-                if (target != null)
-                {
-                    list.Remove(target);
-                    _context.StudyPlans.Remove(target);
-                    isDeleted = true;
-                }
-            });
+            var studyPlan = await _context.StudyPlans.FindAsync(studyPlanId);
+            if (studyPlan == null) return false;
+
+            _context.StudyPlans.Remove(studyPlan);
+            await _context.SaveChangesAsync();
+             isDeleted = true;
+
+            var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
+                    ReorderStudyPlans(spList);
+                    await _context.SaveChangesAsync();
 
             if (isDeleted) await _assetLinkService.RemoveAssetLinkByAsync(studyPlanId, AssetLinkType.StudyPlan);
 
             return isDeleted;
         }
 
-        private async Task ProcessStudyPlanChangesAsync(int userId, Action<List<Entities.StudyPlan>> modifyListAction)
+        private void ReorderStudyPlans(List<Entities.StudyPlan> plans)
         {
-            var allStudyPlans = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
+            // Sắp xếp theo ngày bắt đầu
+            var sortedPlans = plans.OrderBy(s => s.StartDate).ToList();
 
-            modifyListAction(allStudyPlans);
-
-            var sorted = allStudyPlans.OrderBy(s => s.StartDate).ToList();
-            for (int i = 0; i < sorted.Count; i++)
+            // Đánh lại số thứ tự
+            for (int i = 0; i < sortedPlans.Count; i++)
             {
-                sorted[i].Order = i + 1;
+                sortedPlans[i].Order = i + 1;
+            }
+        }
+
+        public async Task BulkSetupStudyPlansAsync(BulkCreateStudyPlanDto dtos)
+        {
+            var userId = _currentUserService.UserId;
+
+            // 1. Dọn rác cũ (Nếu dùng EF 7/8 thì xài ExecuteDeleteAsync cho lẹ)
+            var oldPlans = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
+            _context.StudyPlans.RemoveRange(oldPlans);
+
+            // 2. Map data mới
+            var newPlans = _mapper.Map<List<Entities.StudyPlan>>(dtos.StudyPlans);
+            newPlans.ForEach(p => p.UserId = userId);
+
+            // 3. TÁI SỬ DỤNG HÀM ĐÁNH SỐ Ở ĐÂY
+            ReorderStudyPlans(newPlans);
+
+            // 4. Lưu vào DB
+            _context.StudyPlans.AddRange(newPlans);
+            await _context.SaveChangesAsync();
+        }
+
+        //public async Task SyncDraftCoursesAsync(int planId, SyncDraftCoursesDto dto)
+        //{
+        //    var studyPlan = await _context.StudyPlans.Include(sp=>sp.Courses).FirstOrDefaultAsync(p => p.Id == planId);
+        //    if (studyPlan == null) return;
+        //    _currentUserService.CheckAuthorized(studyPlan.UserId, nameof(Entities.StudyPlan));
+
+        //    var courses = studyPlan.Courses;
+        //    if(courses!=null && courses.Count>0)
+        //    {
+        //        foreach (var course in courses)
+        //        {
+        //            if (dto.SelectedCourseIds.Contains(course.Id))
+        //            {
+        //                course.Status = CourseStatus.Enrolled;
+        //            }
+        //            else
+        //            {
+        //                course.Status = CourseStatus.Draft;
+        //            }
+        //        }
+        //    }    
+
+        //    await _context.SaveChangesAsync();
+        //}
+
+        //public async Task CommitStudyPlanAsync(int planId)
+        //{
+        //    var userId = _currentUserService.UserId;
+        //    var studyPlan = await _context.StudyPlans.FirstOrDefaultAsync(p => p.Id == planId);
+        //    if (studyPlan == null) return;
+        //    _currentUserService.CheckAuthorized(studyPlan.UserId, nameof(Entities.StudyPlan));
+
+        //    using var transaction = await _context.Database.BeginTransactionAsync();
+        //    try
+        //    {
+        //        // Set IsCurrent = false for all plans of this user
+        //        var allUserPlans = await _context.StudyPlans.Where(p => p.UserId == userId).ToListAsync();
+        //        foreach (var plan in allUserPlans)
+        //            plan.IsCurrent = false;
+
+        //        // Activate this plan
+        //        studyPlan.Status = StudyPlanStatus.Active;
+        //        studyPlan.IsCurrent = true;
+
+        //        // Purge remaining draft courses (does not call SaveChanges)
+        //        await PurgeDraftCoursesAsync(planId);
+
+        //        await _context.SaveChangesAsync();
+
+        //        var enrolledCourses = await _context.Courses
+        //            .Include(c => c.Subject)
+        //            .Where(c => c.StudyPlanId == planId && c.Status == CourseStatus.Enrolled)
+        //            .ToListAsync();
+
+        //        var term = studyPlan.AcademicTermId;
+        //        var year = studyPlan.AcademicYearId;
+
+        //        // Sự kiện mẫu
+        //        var autoGeneratedEvents = new List<TimelineEvent>();
+        //        foreach (var course in enrolledCourses)
+        //        {
+
+        //            // Tạo sự kiện mẫu
+        //            var generatedEvents = GenerateAutoEventsForCourseAsync(course.Id, course.Subject.Type);
+        //            if (generatedEvents != null)
+        //            {
+        //                autoGeneratedEvents.AddRange(generatedEvents);
+        //            }
+        //        }
+
+        //        await _context.TimelineEvents.AddRangeAsync(autoGeneratedEvents);
+
+        //        await _context.SaveChangesAsync();
+        //        await transaction.CommitAsync();
+        //    }
+        //    catch (Exception)
+        //    {
+        //        await transaction.RollbackAsync();
+        //        throw;
+        //    }
+        //}
+
+        public async Task UpdateStudyPlanStatusAsync(int planId, UpdateStudyPlanStatusDto dto)
+        {
+            var studyPlan = await _context.StudyPlans
+                .Include(p => p.Courses)
+                .FirstOrDefaultAsync(p => p.Id == planId);
+            if (studyPlan == null) return;
+            _currentUserService.CheckAuthorized(studyPlan.UserId, nameof(Entities.StudyPlan));
+
+            if (studyPlan.Courses != null)
+            {
+                foreach (var course in studyPlan.Courses.Where(c => c.Status == CourseStatus.Enrolled))
+                {
+                    course.Status = CourseStatus.Completed;
+                }
             }
 
             await _context.SaveChangesAsync();
         }
 
-        public async Task BulkSetupStudyPlansAsync(int userId, List<RequestStudyPlanDto> dtos)
+        private async Task PurgeDraftCoursesAsync(int planId)
         {
-            await ProcessStudyPlanChangesAsync(userId, list =>
-            {
-                _context.StudyPlans.RemoveRange(list);
-                list.Clear();
-
-                var newEntities = _mapper.Map<List<Entities.StudyPlan>>(dtos);
-                foreach (var item in newEntities)
-                {
-                    item.UserId = userId;
-                    list.Add(item);
-                    _context.StudyPlans.Add(item);
-                }
-            });
+            var drafts = await _context.Courses
+                .Where(c => c.StudyPlanId == planId && c.Status == CourseStatus.Draft)
+                .ExecuteDeleteAsync();
         }
+
+        //private List<TimelineEvent>? GenerateAutoEventsForCourseAsync(int courseId, SubjectType subjectType)
+        //{
+        //    // Bí kíp C#: Luôn dùng TryGetValue với Dictionary để không bao giờ bị Crash app
+        //    if (SubjectEventRegistry.Templates.TryGetValue(subjectType, out var templates))
+        //    {
+        //        // Dùng LINQ Select để "đúc" từ Template thành Entity thật
+        //        var timelineEvents = templates.Select(t => new TimelineEvent
+        //        {
+        //            CourseId = courseId,
+        //            Title = t.Title,
+        //            Type = t.Type,
+        //            Priority = t.Priority,
+        //            DueDate = null
+        //        }).ToList();
+                
+        //        return timelineEvents;
+        //    }
+            
+        //    return null;
+        //}
     }
 }
 

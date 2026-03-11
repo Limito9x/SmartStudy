@@ -24,6 +24,13 @@ namespace SmartStudy.Server.Controllers
             return Ok(createdStudyPlan);
         }
 
+        [HttpPost("bulk", Name ="BulkCreateStudyPlans")]
+        public async Task<IActionResult> BulkCreateStudyPlans([FromBody] BulkCreateStudyPlanDto studyPlanDtos)
+        {
+            await _studyPlanService.BulkSetupStudyPlansAsync(studyPlanDtos);
+            return Ok();
+        }
+
         [HttpGet(Name = "GetStudyPlans")]
         public async Task<ActionResult<List<ResponseStudyPlanDto>>> GetStudyPlans()
         {
@@ -52,6 +59,27 @@ namespace SmartStudy.Server.Controllers
         {
             var result = await _studyPlanService.DeleteStudyPlanAsync(studyPlanId);
             if (!result) return NotFound();
+            return NoContent();
+        }
+
+        //[HttpPut("{planId:int}/drafts", Name = "SyncDraftCourses")]
+        //public async Task<ActionResult> SyncDraftCourses(int planId, [FromBody] SyncDraftCoursesDto dto)
+        //{
+        //    await _studyPlanService.SyncDraftCoursesAsync(planId, dto);
+        //    return NoContent();
+        //}
+
+        //[HttpPatch("{planId:int}/commit", Name = "CommitStudyPlan")]
+        //public async Task<ActionResult> CommitStudyPlan(int planId)
+        //{
+        //    await _studyPlanService.CommitStudyPlanAsync(planId);
+        //    return NoContent();
+        //}
+
+        [HttpPatch("{planId:int}/status", Name = "UpdateStudyPlanStatus")]
+        public async Task<ActionResult> UpdateStudyPlanStatus(int planId, [FromBody] UpdateStudyPlanStatusDto dto)
+        {
+            await _studyPlanService.UpdateStudyPlanStatusAsync(planId, dto);
             return NoContent();
         }
     }

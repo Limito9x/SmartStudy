@@ -5,6 +5,7 @@ import {
   getCoursesByStudyPlanOptions,
   updateCourseMutation,
   createCourseMutation,
+  deleteCourseMutation
 } from "@/services/api/@tanstack/react-query.gen";
 
 interface UseCourseOptions {
@@ -52,10 +53,24 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
     },
   });
 
+  const deleteCourse = useMutation({
+    ...deleteCourseMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: getCoursesByStudyPlanQueryKey({
+          path: { studyPlanId: studyPlanId! },
+        }),
+      });
+      alert("Xóa khóa học thành công");
+    },
+  });
+
+
   return {
     getCoursesByStudyPlan,
     getCourseById,
     createCourse,
     updateCourse,
+    deleteCourse
   };
 };

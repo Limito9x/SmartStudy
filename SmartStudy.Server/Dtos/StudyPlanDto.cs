@@ -5,9 +5,9 @@ namespace SmartStudy.Server.Dtos
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum StudyPlanStatus
     {
-        Past,
+        Planning,
         Active,
-        Future
+        Completed
     }
 
     public record RequestStudyPlanDto
@@ -16,6 +16,16 @@ namespace SmartStudy.Server.Dtos
         int AcademicYearId,
         DateTime StartDate,
         DateTime EndDate
+    );
+
+    public record BulkCreateStudyPlanDto
+    (
+        List<RequestStudyPlanDto> StudyPlans // Frontend tự động tính và đc xác thực bởi người dùng)
+    );
+
+    public record CommitStudyPlanDto
+    (
+        List<int> EnrollingCourseIds
     );
 
     public record ResponseStudyPlanDto
@@ -44,5 +54,7 @@ namespace SmartStudy.Server.Dtos
     (
         string Prompt
     );
+
+    public record UpdateStudyPlanStatusDto(StudyPlanStatus Status);
 }
 

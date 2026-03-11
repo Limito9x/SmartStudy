@@ -1,5 +1,6 @@
 import type { FieldValues } from "react-hook-form";
 import { Input } from "../ui/input";
+import { NumberInput } from "../ui/custom/number-input";
 import type React from "react";
 import type { BaseFormControlProps } from "./type";
 import { BaseFormField } from "./BaseFormField";
@@ -22,18 +23,25 @@ export function FormInput<T extends FieldValues>({
       control={control}
       name={name}
       label={label}
-      render={(field) => (
-        <Input
-          placeholder={placeholder}
-          type={type}
-          {...field}
-          onChange={(e) => {
-            const value =
-              type === "number" ? e.target.valueAsNumber : e.target.value;
-            field.onChange(value);
-          }}
-        />
-      )}
+      render={(field) =>
+        type === "number" ? (
+          <NumberInput
+            placeholder={placeholder}
+            {...field}
+            // onChange đã được xử lý trong NumberInput để đảm bảo luôn trả về number hoặc null
+          />
+        ) : (
+          <Input
+            placeholder={placeholder}
+            type={type}
+            {...field}
+            onChange={(e) => {
+              let value = e.target.value;
+              field.onChange(value);
+            }}
+          />
+        )
+      }
     />
   );
 }
