@@ -11,6 +11,8 @@ import CalendarPage from "@/pages/calendar/CalendarPage";
 import SubjectPage from "@/pages/subject/SubjectPage";
 import OnboardingPage from "@/pages/survey/onboarding/OnboardingPage";
 import MainPage from "@/pages/main/MainPage";
+import { AuthGuard } from "@/components/guard/AuthGuard";
+import { OnboardingGuard } from "@/components/guard/OnboardingGuard";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -23,52 +25,62 @@ export default function AppRoutes() {
       element: <LoginPage />,
     },
     {
-      path: "onboarding",
-      element: <OnboardingPage />,
-    },
-    {
-      path: "/app",
-      element: <DashboardLayout />,
+      element: <AuthGuard />,
       children: [
         {
-          path: "",
-          element: <MainPage />,
-          index: true,
+          path: "onboarding",
+          element: <OnboardingPage />,
         },
         {
-          path: "profile",
-          element: <div>Profile Page</div>,
-        },
-        {
-          path: "subjects",
-          element: <SubjectPage />,
-        },
-        {
-          path: "study-plans",
-          element: <SchoolStudyLayout />,
+          element: <OnboardingGuard />,
           children: [
             {
-              path: ":studyPlanId",
-              element: <SemesterPage />,
-            },
-            {
-              path: ":studyPlanId/courses/:courseId",
-              element: <CoursePage />,
-            },
-            {
-              path: "",
-              element: <RedirectSemesterPage />,
-              index: true,
-            },
-            {
-              path: ":studyPlanId/schedule",
-              element: <SemesterSchedulePage />,
+              path: "/app",
+              element: <DashboardLayout />,
+              children: [
+                {
+                  path: "",
+                  element: <MainPage />,
+                  index: true,
+                },
+                {
+                  path: "profile",
+                  element: <div>Profile Page</div>,
+                },
+                {
+                  path: "subjects",
+                  element: <SubjectPage />,
+                },
+                {
+                  path: "study-plans",
+                  element: <SchoolStudyLayout />,
+                  children: [
+                    {
+                      path: ":studyPlanId",
+                      element: <SemesterPage />,
+                    },
+                    {
+                      path: ":studyPlanId/courses/:courseId",
+                      element: <CoursePage />,
+                    },
+                    {
+                      path: "",
+                      element: <RedirectSemesterPage />,
+                      index: true,
+                    },
+                    {
+                      path: ":studyPlanId/schedule",
+                      element: <SemesterSchedulePage />,
+                    },
+                  ],
+                },
+                {
+                  path: "calendar",
+                  element: <CalendarPage />,
+                },
+              ],
             },
           ],
-        },
-        {
-          path: "calendar",
-          element: <CalendarPage />,
         },
       ],
     },

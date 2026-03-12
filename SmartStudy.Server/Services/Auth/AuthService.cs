@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Exceptions;
 
 namespace SmartStudy.Server.Services
@@ -74,7 +75,9 @@ namespace SmartStudy.Server.Services
 
         public async Task<LoginResponseDto> LoginAsync(UserLoginDto model)
         {
-            var user = await _userManager.FindByNameAsync(model.UserName);
+            var user = await _userManager.Users
+                .Include(u => u.StudentInfo)
+                .FirstOrDefaultAsync(u => u.UserName == model.UserName);
             if (user == null)
             {
                 throw new AppException("Tên đăng nhập hoặc mật khẩu không chính xác!");
@@ -94,7 +97,8 @@ namespace SmartStudy.Server.Services
                 Email = user.Email,
                 UserName = user.UserName,
                 FullName = user.FullName,
-                Token = tokenString
+                Token = tokenString,
+                HasCompletedOnboarding = user.StudentInfo.University != null // Giả sử onboarding hoàn thành khi đã có ngày nhập học
             };
 
         }

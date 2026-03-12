@@ -98,6 +98,7 @@ export type LoginResponseDto = {
     userName?: string;
     fullName?: string;
     token: string;
+    hasCompletedOnboarding?: boolean;
 };
 
 export type LogWorkDto = {

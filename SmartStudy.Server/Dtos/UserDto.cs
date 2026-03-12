@@ -59,5 +59,6 @@ namespace SmartStudy.Server.Dtos
         public string UserName { get; set; }
         public string FullName { get; set; }
         public required string Token { get; set; }
+        public bool HasCompletedOnboarding  { get; set; }
     }
 }

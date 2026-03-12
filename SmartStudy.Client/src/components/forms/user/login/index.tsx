@@ -21,8 +21,14 @@ export const LoginForm = () => {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       const response = await loginApi({ body: data });
-      if (response.data) useAuthStore.getState().login(response.data);
-      navigate("/app");
+      if (response.data) {
+        useAuthStore.getState().login(response.data);
+        if (response.data.hasCompletedOnboarding) {
+          navigate("/app");
+        } else {
+          navigate("/onboarding");
+        }
+      }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);
     }
@@ -44,7 +50,9 @@ export const LoginForm = () => {
           placeholder="Nhập mật khẩu của bạn"
           type="password"
         />
-        <Button type="submit">Đăng nhập</Button>
+        <Button type="submit" className="w-full mt-2">
+          Đăng nhập
+        </Button>
       </form>
     </Form>
   );
