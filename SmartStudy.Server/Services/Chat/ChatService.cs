@@ -74,6 +74,7 @@ namespace SmartStudy.Server.Services
 
         public async IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message)
         {
+            var userId = _currentUserService.UserId;
             _uIWidgetCollector.Clear();
 
             if (!_kernel.Plugins.Contains("UIPlugin")) {
@@ -87,18 +88,32 @@ namespace SmartStudy.Server.Services
                 .OrderBy(m => m.CreatedAt)
                 .Select(m => new { m.Role, m.Content })
                 .ToList();
+            
+            var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
+            var todayTasks = await _context.Tasks
+                .Where(t => t.UserId == userId && t.TaskDate == today)
+                .Include(t => t.Course)
+                .OrderBy(t => t.StartTime)
+                .ToListAsync();
+            
+            var taskContext = todayTasks.Any()
+                ? string.Join("\n", todayTasks.Select(t =>
+                    $"- {t.Name} | {t.StartTime?.ToString("HH:mm") ?? "chưa có giờ"} | {t.Status} | Môn: {t.Course?.Name ?? "không có"}"))
+                : "Hôm nay không có task nào.";
 
             var history = new ChatHistory();
 
             // 2. Thêm system message TRƯỚC lịch sử
-            history.AddSystemMessage(@"
-    You are LifeOS AI.
-    CRITICAL INSTRUCTION:
-    If the user asks to create a Semester (e.g., 'Semester for IELTS', 'travel Semester'), you MUST NOT just describe it.
-    You MUST call the 'RenderSemester' function with the detailed JSON data.
-    
-    Do NOT ask for confirmation. Just generate the Semester and call the function immediately.
-");
+            history.AddSystemMessage($"""
+                                          Bạn là trợ lý học tập thông minh của SmartStudy, hỗ trợ sinh viên Việt Nam quản lý lịch học.
+                                          Hôm nay là {today:dd/MM/yyyy}.
+                                          
+                                          LỊCH HỌC HÔM NAY:
+                                          {taskContext}
+                                          
+                                          Trả lời ngắn gọn, thân thiện, bằng tiếng Việt.
+                                          Chỉ tư vấn về học tập, lịch học, quản lý thời gian.
+                                      """);
 
             // 3. Load lịch sử chat
             foreach (var msg in dbMessages)

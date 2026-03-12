@@ -189,7 +189,13 @@ export default function RoutineSidebar({
                         {weekdayMap[schedule.dayOfWeek]} · {schedule.startTime}
                       </span>
                       <button
-                        onClick={() => deleteSchedule(Number(schedule.id))}
+                        onClick={() =>
+                          deleteSchedule.mutate({
+                            path: {
+                              id: Number(schedule.id),
+                            },
+                          })
+                        }
                         className="opacity-40 hover:opacity-100 hover:text-destructive ml-2"
                       >
                         <X size={11} />

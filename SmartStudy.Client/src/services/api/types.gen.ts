@@ -39,6 +39,14 @@ export type ChatDto = {
     prompt: string;
 };
 
+export type ChatHistoryDto = {
+    id: number | string;
+    role: string;
+    content: string;
+    data: null | string;
+    type: string;
+};
+
 export type ComrehensiveLevel = number;
 
 export type CourseStatus = 'Draft' | 'Enrolled' | 'Completed' | 'Dropped';
@@ -69,6 +77,8 @@ export type EventType = 'Exam' | 'Assignment' | 'Presentation' | 'ProjectDeadlin
 export type FileType = number;
 
 export type IFormFile = Blob | File;
+
+export type IFormFileCollection = Array<IFormFile>;
 
 export type LogDto = {
     id: number | string;
@@ -275,7 +285,11 @@ export type ScheduleDto = {
 
 export type SessionDto = {
     title: string;
-    semesterId: null | number | string;
+};
+
+export type SessionResponseDto = {
+    id: number | string;
+    title: string;
 };
 
 export type SimpleResponseRoutineDto = {
@@ -374,11 +388,13 @@ export type GetAssetsResponse = GetAssetsResponses[keyof GetAssetsResponses];
 
 export type UploadAssetsData = {
     body: {
-        Files?: Array<IFormFile>;
-        LinkedId?: number | string;
-        LinkedType?: AssetLinkType;
-        Category?: AssetLinkCategory;
-        FormFieldKey?: string;
+        filepond?: IFormFileCollection;
+    } & {
+        linkedId?: number | string;
+    } & {
+        linkedType?: AssetLinkType;
+    } & {
+        category?: AssetLinkCategory;
     };
     path?: never;
     query?: never;
@@ -478,7 +494,7 @@ export type GetCalendarResponses = {
 
 export type GetCalendarResponse = GetCalendarResponses[keyof GetCalendarResponses];
 
-export type GetApiChatSessionsBySessionIdData = {
+export type GetChatSessionByIdData = {
     body?: never;
     path: {
         sessionId: number | string;
@@ -487,35 +503,39 @@ export type GetApiChatSessionsBySessionIdData = {
     url: '/api/Chat/sessions/{sessionId}';
 };
 
-export type GetApiChatSessionsBySessionIdResponses = {
+export type GetChatSessionByIdResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<ChatHistoryDto>;
 };
 
-export type GetApiChatSessionsData = {
+export type GetChatSessionByIdResponse = GetChatSessionByIdResponses[keyof GetChatSessionByIdResponses];
+
+export type GetAllChatSessionsData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/Chat/sessions';
 };
 
-export type GetApiChatSessionsResponses = {
+export type GetAllChatSessionsResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: Array<SessionResponseDto>;
 };
 
-export type PostApiChatSessionsData = {
+export type GetAllChatSessionsResponse = GetAllChatSessionsResponses[keyof GetAllChatSessionsResponses];
+
+export type CreateChatSessionData = {
     body: SessionDto;
     path?: never;
     query?: never;
     url: '/api/Chat/sessions';
 };
 
-export type PostApiChatSessionsResponses = {
+export type CreateChatSessionResponses = {
     /**
      * OK
      */

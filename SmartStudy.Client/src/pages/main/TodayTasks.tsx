@@ -52,25 +52,13 @@ export default function TodayTasks() {
 
   const { from, to } = useMemo(() => {
     const now = new Date();
-    const start = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0,
-      0,
-      0,
-    );
-    const end = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999,
-    );
-    return { from: start.toISOString(), to: end.toISOString() };
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const dateStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+
+    return {
+      from: `${dateStr}T00:00:00`,
+      to: `${dateStr}T23:59:59`,
+    };
   }, []);
 
   const { data: tasks } = getTasks({ from, to });

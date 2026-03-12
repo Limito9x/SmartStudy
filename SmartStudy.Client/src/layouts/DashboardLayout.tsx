@@ -10,6 +10,7 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Sidebar } from "../components/layout/app/sidebar/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppHeader from "@/components/layout/app/app-header";
+import ChatDrawer from "@/components/chats/ChatDrawer";
 
 export default function DashboardLayout() {
   const { isOpen, title, description, view, closeDialog } = useDialogStore();
@@ -43,6 +44,7 @@ export default function DashboardLayout() {
             <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
               <Outlet />
             </div>
+            <ChatDrawer />
           </div>
         </SidebarProvider>
       </div>

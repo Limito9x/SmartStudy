@@ -11,6 +11,8 @@
     "gen-api": "openapi-ts"
   },
   "dependencies": {
+    "@assistant-ui/react": "^0.12.17",
+    "@assistant-ui/react-markdown": "^0.12.5",
     "@base-ui/react": "^1.2.0",
     "@hookform/resolvers": "^5.2.2",
     "@openapitools/openapi-generator-cli": "^2.29.0",
@@ -19,6 +21,8 @@
     "@schedule-x/react": "^4.1.0",
     "@schedule-x/theme-default": "^4.3.1",
     "@tailwindcss/vite": "^4.2.0",
+    "@tanstack/ai": "^0.6.3",
+    "@tanstack/ai-react": "^0.6.4",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
     "axios": "^1.13.5",
@@ -40,6 +44,7 @@
     "react-hook-form": "^7.71.2",
     "react-imask": "^7.6.1",
     "react-router-dom": "^7.13.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.11"

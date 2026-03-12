@@ -42,7 +42,7 @@ namespace SmartStudy.Server.Services
 
             // Prompt engineering: Ép kiểu JSON chặt chẽ hơn
             var prompt = $@"
-                Role: Expert Semesterner specialize in specific areas based on user requirements.
+                Role: Expert planner specialize in specific areas based on user requirements.
                 Task: Create a detailed Semester for '{userInput}'.
                 Constraint: Return ONLY raw JSON. No markdown.
                 INSTRUCTION FOR DATES:

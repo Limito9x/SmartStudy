@@ -22,13 +22,9 @@ export const useSchedule = () => {
     },
   });
 
-  const deleteSchedule = (id: number) =>
+  const deleteSchedule =
     useMutation({
-      ...deleteScheduleMutation({
-        path: {
-          id,
-        },
-      }),
+      ...deleteScheduleMutation(),
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: getCalendarQueryKey(),

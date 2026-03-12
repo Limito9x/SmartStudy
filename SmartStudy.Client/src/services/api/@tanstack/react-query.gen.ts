@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { bulkCreateStudyPlans, bulkCreateSubjects, createCourse, createEvenetRequirement, createEvent, createRoutine, createSchedule, createStudyPlan, createSubject, createTask, createTaskLogWork, deleteAsset, deleteCourse, deleteEvent, deleteEventRequirement, deleteLog, deleteRoutine, deleteSchedule, deleteStudyPlan, deleteSubject, deleteTaskById, generateTasks, getApiChatSessions, getApiChatSessionsBySessionId, getAssets, getCalendar, getCourseById, getCoursesByStudyPlan, getEventRequirements, getEventsByCourse, getLog, getProfile, getRoutineById, getRoutines, getStudyPlanById, getStudyPlans, getSubjects, getTaskById, getTasks, getUpcomingRoutineTasks, login, type Options, patchApiUsersSettingStudentInfo, postApiChatSessions, postApiChatSessionsBySessionIdStream, register, updateCourse, updateCourseStatus, updateEvent, updateEventRequirement, updateLog, updateRoutine, updateSchedule, updateStudyPlan, updateStudyPlanStatus, updateSubject, updateTaskInfo, updateTaskStatus, uploadAssets } from '../sdk.gen';
-import type { BulkCreateStudyPlansData, BulkCreateSubjectsData, BulkCreateSubjectsResponse, CreateCourseData, CreateCourseResponse, CreateEvenetRequirementData, CreateEvenetRequirementResponse, CreateEventData, CreateEventResponse, CreateRoutineData, CreateRoutineResponse, CreateScheduleData, CreateScheduleResponse, CreateStudyPlanData, CreateStudyPlanResponse, CreateSubjectData, CreateSubjectResponse, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponse, CreateTaskResponse, DeleteAssetData, DeleteCourseData, DeleteEventData, DeleteEventRequirementData, DeleteLogData, DeleteRoutineData, DeleteScheduleData, DeleteStudyPlanData, DeleteSubjectData, DeleteTaskByIdData, GenerateTasksData, GetApiChatSessionsBySessionIdData, GetApiChatSessionsData, GetAssetsData, GetAssetsResponse, GetCalendarData, GetCalendarResponse, GetCourseByIdData, GetCourseByIdResponse, GetCoursesByStudyPlanData, GetCoursesByStudyPlanResponse, GetEventRequirementsData, GetEventRequirementsResponse, GetEventsByCourseData, GetEventsByCourseResponse, GetLogData, GetLogResponse, GetProfileData, GetProfileResponse, GetRoutineByIdData, GetRoutineByIdResponse, GetRoutinesData, GetRoutinesResponse, GetStudyPlanByIdData, GetStudyPlanByIdResponse, GetStudyPlansData, GetStudyPlansResponse, GetSubjectsData, GetSubjectsResponse, GetTaskByIdData, GetTaskByIdResponse, GetTasksData, GetTasksResponse, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponse, LoginData, LoginResponse, PatchApiUsersSettingStudentInfoData, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsData, RegisterData, RegisterResponse, UpdateCourseData, UpdateCourseResponse, UpdateCourseStatusData, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponse, UpdateEventResponse, UpdateLogData, UpdateLogResponse, UpdateRoutineData, UpdateRoutineResponse, UpdateScheduleData, UpdateScheduleResponse, UpdateStudyPlanData, UpdateStudyPlanResponse, UpdateStudyPlanStatusData, UpdateSubjectData, UpdateSubjectResponse, UpdateTaskInfoData, UpdateTaskInfoResponse, UpdateTaskStatusData, UpdateTaskStatusResponse, UploadAssetsData, UploadAssetsResponse } from '../types.gen';
+import { bulkCreateStudyPlans, bulkCreateSubjects, createChatSession, createCourse, createEvenetRequirement, createEvent, createRoutine, createSchedule, createStudyPlan, createSubject, createTask, createTaskLogWork, deleteAsset, deleteCourse, deleteEvent, deleteEventRequirement, deleteLog, deleteRoutine, deleteSchedule, deleteStudyPlan, deleteSubject, deleteTaskById, generateTasks, getAllChatSessions, getAssets, getCalendar, getChatSessionById, getCourseById, getCoursesByStudyPlan, getEventRequirements, getEventsByCourse, getLog, getProfile, getRoutineById, getRoutines, getStudyPlanById, getStudyPlans, getSubjects, getTaskById, getTasks, getUpcomingRoutineTasks, login, type Options, patchApiUsersSettingStudentInfo, postApiChatSessionsBySessionIdStream, register, updateCourse, updateCourseStatus, updateEvent, updateEventRequirement, updateLog, updateRoutine, updateSchedule, updateStudyPlan, updateStudyPlanStatus, updateSubject, updateTaskInfo, updateTaskStatus, uploadAssets } from '../sdk.gen';
+import type { BulkCreateStudyPlansData, BulkCreateSubjectsData, BulkCreateSubjectsResponse, CreateChatSessionData, CreateCourseData, CreateCourseResponse, CreateEvenetRequirementData, CreateEvenetRequirementResponse, CreateEventData, CreateEventResponse, CreateRoutineData, CreateRoutineResponse, CreateScheduleData, CreateScheduleResponse, CreateStudyPlanData, CreateStudyPlanResponse, CreateSubjectData, CreateSubjectResponse, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponse, CreateTaskResponse, DeleteAssetData, DeleteCourseData, DeleteEventData, DeleteEventRequirementData, DeleteLogData, DeleteRoutineData, DeleteScheduleData, DeleteStudyPlanData, DeleteSubjectData, DeleteTaskByIdData, GenerateTasksData, GetAllChatSessionsData, GetAllChatSessionsResponse, GetAssetsData, GetAssetsResponse, GetCalendarData, GetCalendarResponse, GetChatSessionByIdData, GetChatSessionByIdResponse, GetCourseByIdData, GetCourseByIdResponse, GetCoursesByStudyPlanData, GetCoursesByStudyPlanResponse, GetEventRequirementsData, GetEventRequirementsResponse, GetEventsByCourseData, GetEventsByCourseResponse, GetLogData, GetLogResponse, GetProfileData, GetProfileResponse, GetRoutineByIdData, GetRoutineByIdResponse, GetRoutinesData, GetRoutinesResponse, GetStudyPlanByIdData, GetStudyPlanByIdResponse, GetStudyPlansData, GetStudyPlansResponse, GetSubjectsData, GetSubjectsResponse, GetTaskByIdData, GetTaskByIdResponse, GetTasksData, GetTasksResponse, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponse, LoginData, LoginResponse, PatchApiUsersSettingStudentInfoData, PostApiChatSessionsBySessionIdStreamData, RegisterData, RegisterResponse, UpdateCourseData, UpdateCourseResponse, UpdateCourseStatusData, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponse, UpdateEventResponse, UpdateLogData, UpdateLogResponse, UpdateRoutineData, UpdateRoutineResponse, UpdateScheduleData, UpdateScheduleResponse, UpdateStudyPlanData, UpdateStudyPlanResponse, UpdateStudyPlanStatusData, UpdateSubjectData, UpdateSubjectResponse, UpdateTaskInfoData, UpdateTaskInfoResponse, UpdateTaskStatusData, UpdateTaskStatusResponse, UploadAssetsData, UploadAssetsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -141,11 +141,11 @@ export const getCalendarOptions = (options?: Options<GetCalendarData>) => queryO
     queryKey: getCalendarQueryKey(options)
 });
 
-export const getApiChatSessionsBySessionIdQueryKey = (options: Options<GetApiChatSessionsBySessionIdData>) => createQueryKey('getApiChatSessionsBySessionId', options);
+export const getChatSessionByIdQueryKey = (options: Options<GetChatSessionByIdData>) => createQueryKey('getChatSessionById', options);
 
-export const getApiChatSessionsBySessionIdOptions = (options: Options<GetApiChatSessionsBySessionIdData>) => queryOptions<unknown, AxiosError<DefaultError>, unknown, ReturnType<typeof getApiChatSessionsBySessionIdQueryKey>>({
+export const getChatSessionByIdOptions = (options: Options<GetChatSessionByIdData>) => queryOptions<GetChatSessionByIdResponse, AxiosError<DefaultError>, GetChatSessionByIdResponse, ReturnType<typeof getChatSessionByIdQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getApiChatSessionsBySessionId({
+        const { data } = await getChatSessionById({
             ...options,
             ...queryKey[0],
             signal,
@@ -153,14 +153,14 @@ export const getApiChatSessionsBySessionIdOptions = (options: Options<GetApiChat
         });
         return data;
     },
-    queryKey: getApiChatSessionsBySessionIdQueryKey(options)
+    queryKey: getChatSessionByIdQueryKey(options)
 });
 
-export const getApiChatSessionsQueryKey = (options?: Options<GetApiChatSessionsData>) => createQueryKey('getApiChatSessions', options);
+export const getAllChatSessionsQueryKey = (options?: Options<GetAllChatSessionsData>) => createQueryKey('getAllChatSessions', options);
 
-export const getApiChatSessionsOptions = (options?: Options<GetApiChatSessionsData>) => queryOptions<unknown, AxiosError<DefaultError>, unknown, ReturnType<typeof getApiChatSessionsQueryKey>>({
+export const getAllChatSessionsOptions = (options?: Options<GetAllChatSessionsData>) => queryOptions<GetAllChatSessionsResponse, AxiosError<DefaultError>, GetAllChatSessionsResponse, ReturnType<typeof getAllChatSessionsQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getApiChatSessions({
+        const { data } = await getAllChatSessions({
             ...options,
             ...queryKey[0],
             signal,
@@ -168,13 +168,13 @@ export const getApiChatSessionsOptions = (options?: Options<GetApiChatSessionsDa
         });
         return data;
     },
-    queryKey: getApiChatSessionsQueryKey(options)
+    queryKey: getAllChatSessionsQueryKey(options)
 });
 
-export const postApiChatSessionsMutation = (options?: Partial<Options<PostApiChatSessionsData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiChatSessionsData>> => {
-    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiChatSessionsData>> = {
+export const createChatSessionMutation = (options?: Partial<Options<CreateChatSessionData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<CreateChatSessionData>> => {
+    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<CreateChatSessionData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await postApiChatSessions({
+            const { data } = await createChatSession({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

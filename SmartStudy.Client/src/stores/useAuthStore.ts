@@ -6,10 +6,12 @@ interface AuthState {
   login: (userData: LoginResponseDto) => void;
   logout: () => void;
   isAuthhenticated: boolean;
+  token: string | null;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
+  token: localStorage.getItem("token") ?? null,
   isAuthhenticated: false,
   login: (userData) => {
     if (userData.token) {

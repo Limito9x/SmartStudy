@@ -18,15 +18,15 @@ namespace SmartStudy.Server.Controllers
             _chatService = chatService;
         }
 
-        [HttpGet("sessions/{sessionId}")]
-        public async Task<IActionResult> GetMessagesBySessionId(int sessionId)
+        [HttpGet("sessions/{sessionId}", Name = "GetChatSessionById")]
+        public async Task<ActionResult<List<ChatHistoryDto>>> GetMessagesBySessionId(int sessionId)
         {
             var messages = await _chatService.GetMessagesBySessionId(sessionId);
             return Ok(messages);
         }
 
-        [HttpGet("sessions")]
-        public async Task<IActionResult> GetAllSessions()
+        [HttpGet("sessions", Name = "GetAllChatSessions")]
+        public async Task<ActionResult<List<SessionResponseDto>>> GetAllSessions()
         {
             var sessions = await _chatService.GetSessions();
             return Ok(sessions);
@@ -109,7 +109,7 @@ namespace SmartStudy.Server.Controllers
         /// <summary>
         /// Create new chat session
         /// </summary>
-        [HttpPost("sessions")]
+        [HttpPost("sessions", Name = "CreateChatSession")]
         public async Task<IActionResult> CreateSession([FromBody] SessionDto sessionDto)
         {
             await _chatService.CreateSession(sessionDto);

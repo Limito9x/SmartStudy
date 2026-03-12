@@ -117,8 +117,8 @@ namespace SmartStudy.Server.Services
 
             await _context.Tasks
                 .Where(t => t.ScheduleId == scheduleId 
-                    && t.Status == TaskStatus.Pending
-                    && t.Logs == null || !t.Logs.Any())
+                            && t.Status == TaskStatus.Pending
+                            && (t.Logs == null || !t.Logs.Any()))
                 .ExecuteDeleteAsync();
 
             _context.Schedules.Remove(schedule);
@@ -248,7 +248,7 @@ namespace SmartStudy.Server.Services
         private static DateTime GetGenerationStartDate(Routine routine)
         {
             var startDate = routine.StartDate;
-            var today = DateTime.Today;
+            var today = DateTime.Today.Date;
             
             // Ngày nào lớn hơn lấy ngày đó
             return startDate > today ? startDate : today;

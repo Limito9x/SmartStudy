@@ -70,6 +70,7 @@ namespace SmartStudy.Server.Services
             {
                 var fromDate = DateOnly.FromDateTime(from.Value);
                 var fromTime = TimeOnly.FromDateTime(from.Value);
+                Console.WriteLine($"Filtering tasks from {fromDate} {fromTime}");
                 query = query.Where(t =>
                     t.TaskDate > fromDate ||
                     (t.TaskDate == fromDate && t.StartTime >= fromTime)
@@ -80,6 +81,7 @@ namespace SmartStudy.Server.Services
             {
                 var toDate = DateOnly.FromDateTime(to.Value);
                 var toTime = TimeOnly.FromDateTime(to.Value);
+                Console.WriteLine($"Filtering tasks to {toDate} {toTime}");
                 query = query.Where(t => 
                     t.TaskDate < toDate || 
                     (t.TaskDate == toDate && t.StartTime <= toTime)
@@ -133,6 +135,7 @@ namespace SmartStudy.Server.Services
                     throw new KeyNotFoundException("Không tìm thấy công việc");
                 }
                 var log = _mapper.Map<Entities.LogItem>(logWorkDto);
+                log.TaskId = taskId;
                 _context.Logs.Add(log);
                 await _context.SaveChangesAsync();
 
