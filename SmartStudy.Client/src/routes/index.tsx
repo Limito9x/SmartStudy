@@ -10,6 +10,7 @@ import CoursePage from "@/pages/school-study/course/CoursePage";
 import CalendarPage from "@/pages/calendar/CalendarPage";
 import SubjectPage from "@/pages/subject/SubjectPage";
 import OnboardingPage from "@/pages/survey/onboarding/OnboardingPage";
+import MainPage from "@/pages/main/MainPage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -31,7 +32,7 @@ export default function AppRoutes() {
       children: [
         {
           path: "",
-          element: <div>Dashboard Page</div>,
+          element: <MainPage />,
           index: true,
         },
         {

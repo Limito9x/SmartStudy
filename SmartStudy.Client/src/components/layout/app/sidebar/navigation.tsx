@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
   { label: "Tổng quan", path: "/" },
-  { label: "Học tập chính khóa", path: "/study-plans" },
+  { label: "Kế hoạch học tập", path: "/study-plans" },
   { label: "Lịch trình", path: "/calendar" },
   { label: "Quản lý môn học", path: "/subjects" },
 ];

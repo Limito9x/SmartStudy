@@ -90,17 +90,19 @@ export default function CoursePage() {
   const status = statusMap[course?.status ?? ""];
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-8xl mx-auto p-6 space-y-6">
       {/* Back button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-2 gap-1.5 text-muted-foreground hover:text-foreground"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft size={16} />
-        Quay lại
-      </Button>
+      <div className="flex">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="-ml-3 gap-1.5 text-muted-foreground hover:text-foreground"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft size={16} />
+          Quay lại
+        </Button>
+      </div>
 
       {course && (
         <>

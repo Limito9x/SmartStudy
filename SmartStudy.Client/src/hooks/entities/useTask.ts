@@ -21,6 +21,7 @@ export const useTask = () => {
           toDate: to,
         },
       }),
+      enabled: !!from && !!to,
     });
 
   const getTaskById = (id: number) =>
@@ -38,7 +39,6 @@ export const useTask = () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
-      alert("Tạo công việc thành công");
     },
   });
 
@@ -48,49 +48,33 @@ export const useTask = () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
-      alert("Thêm log công việc thành công");
     },
   });
 
-  const updateTaskInfo = (id: number) => useMutation({
-    ...updateTaskInfoMutation({
-        path: {
-            taskId: id,
-        }
-    }),
+  const updateTaskInfo = useMutation({
+    ...updateTaskInfoMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
-      alert("Cập nhật công việc thành công");
     },
   });
 
-  const updateTaskStatus = (id: number) => useMutation({
-    ...updateTaskStatusMutation({
-        path: {
-            taskId: id,
-        }
-    }),
+  const updateTaskStatus = useMutation({
+    ...updateTaskStatusMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
-      alert("Cập nhật trạng thái công việc thành công");
     },
   });
 
-  const deleteTaskById = (id: number) => useMutation({
-    ...deleteTaskByIdMutation({
-      path: {
-        taskId: id,
-      }
-    }),
+  const deleteTaskById = useMutation({
+    ...deleteTaskByIdMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
-      alert("Xóa công việc thành công");
     },
   });
 

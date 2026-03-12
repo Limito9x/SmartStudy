@@ -115,65 +115,65 @@ export default function EventsTab({ courseId }: { courseId: number }) {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {events?.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground text-sm">
           Chưa có sự kiện nào
         </div>
       ) : (
-        events?.map((event) => {
-          const p =
-            priorityConfig[event.priority as keyof typeof priorityConfig];
-          const formattedDate = formatDueDate(event.dueDate);
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {events?.map((event) => {
+            const p =
+              priorityConfig[event.priority as keyof typeof priorityConfig];
+            const formattedDate = formatDueDate(event.dueDate);
 
-          return (
-            <div
-              key={event.id}
-              className="rounded-xl border bg-card p-4 flex items-center gap-3"
-            >
-              {/* Priority icon */}
-              <div className={`p-1.5 rounded-lg ${p?.bg} shrink-0`}>
-                <Flag size={14} className={p?.color} />
-              </div>
+            return (
+              <div
+                key={event.id}
+                className="rounded-xl border bg-card p-4 flex flex-col gap-3"
+              >
+                {/* Top row: priority icon + title + actions */}
+                <div className="flex items-start gap-2">
+                  <div className={`p-1.5 rounded-lg ${p?.bg} shrink-0 mt-0.5`}>
+                    <Flag size={14} className={p?.color} />
+                  </div>
+                  <p className="font-medium text-sm flex-1 min-w-0 leading-snug">
+                    {event.title}
+                  </p>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      onClick={() => handleUpdateEvent(Number(event.id), event)}
+                    >
+                      <Edit2 size={13} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDeleteEvent(Number(event.id))}
+                    >
+                      <Trash2 size={13} />
+                    </Button>
+                  </div>
+                </div>
 
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm">{event.title}</p>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {/* Bottom row: type badge + date */}
+                <div className="flex items-center gap-2 flex-wrap pl-8">
                   <Badge variant="outline" className="text-xs h-5">
                     {typeConfig[event.type]?.label ?? event.type}
                   </Badge>
-                  <div className="flex items-center gap-1">
-                    <Calendar size={11} className="text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
-                      {formattedDate ?? "Chưa có ngày"}
-                    </span>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Calendar size={11} />
+                    <span>{formattedDate ?? "Chưa có ngày"}</span>
                   </div>
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-7"
-                  onClick={() => handleUpdateEvent(Number(event.id), event)}
-                >
-                  <Edit2 size={12} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                  onClick={() => handleDeleteEvent(Number(event.id))}
-                >
-                  <Trash2 size={13} />
-                </Button>
-              </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
 
       <Button
