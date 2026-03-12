@@ -8,7 +8,7 @@ namespace SmartStudy.Server.Services
     public class CloudinaryService : ICloudService
     {
         private readonly Cloudinary _cloudinary;
-        private readonly string baseFolder = "Semester Management Project";
+        private readonly string baseFolder = "SmartStudy";
 
         public CloudinaryService(IConfiguration config)
         {

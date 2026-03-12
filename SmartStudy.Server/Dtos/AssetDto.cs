@@ -1,4 +1,5 @@
-﻿using SmartStudy.Server.Entities.Enums;
+﻿using Microsoft.AspNetCore.Mvc;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
 {
@@ -7,8 +8,8 @@ namespace SmartStudy.Server.Dtos
         List<IFormFile> Files,
         int LinkedId,
         AssetLinkType LinkedType,
-        AssetLinkCategory Category,
-        string? FormFieldKey
+        AssetLinkCategory Category = AssetLinkCategory.Reference,
+        string? FormFieldKey = null
     );
 
     public record AssetResponseDto

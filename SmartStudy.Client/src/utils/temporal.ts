@@ -6,7 +6,6 @@ export function toScheduleXEvent(event: {
   endTime: string; // "09:30"
   location?: string;
 }) {
-  console.log("Converting event to ScheduleXEvent:", event);
   const [startHour, startMinute] = event.startTime.split(":").map(Number);
   const [endHour, endMinute] = event.endTime.split(":").map(Number);
   const [year, month, day] = event.startDate.split("-").map(Number);

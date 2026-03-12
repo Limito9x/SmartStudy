@@ -42,7 +42,7 @@ namespace SmartStudy.Server.Services
 
             var routine = await _context.Routines
                 .Include(r => r.Course)
-                    .ThenInclude(c => c.StudyPlan)
+                    .Include(r => r.StudyPlan)
                 .FirstOrDefaultAsync(r => r.Id == dto.RoutineId && r.UserId == userId)
                 ?? throw new KeyNotFoundException("Không tìm thấy routine");
 
@@ -151,7 +151,7 @@ namespace SmartStudy.Server.Services
                     t.DurationMinutes.HasValue &&  // phải có thời lượng
                     t.TaskDate.Value >= fromDate &&
                     t.TaskDate.Value <= toDate &&
-                    t.Course.StudyPlanId == studyPlanId)
+                    t.StudyPlanId == studyPlanId)
                 .OrderBy(t => t.TaskDate)
                 .ThenBy(t => t.StartTime)
                 .ToListAsync();
@@ -222,7 +222,8 @@ namespace SmartStudy.Server.Services
                     Status = TaskStatus.Pending,
                     Type = routine.Type,
                     EventRequirementId = routine.EventRequirementId,
-                    CourseId = routine.CourseId
+                    CourseId = routine.CourseId,
+                    StudyPlanId = routine.StudyPlanId
                 });
             }
 
@@ -246,25 +247,18 @@ namespace SmartStudy.Server.Services
 
         private static DateTime GetGenerationStartDate(Routine routine)
         {
-            var today = DateTime.UtcNow.Date;
-            var studyPlan = routine.Course.StudyPlan;
-            var studyPlanStartDate = studyPlan?.StartDate?.Date;
-
-            if (studyPlanStartDate.HasValue && studyPlanStartDate.Value > today)
-            {
-                return studyPlanStartDate.Value;
-            }
-
-            return today;
+            var startDate = routine.StartDate;
+            var today = DateTime.Today;
+            
+            // Ngày nào lớn hơn lấy ngày đó
+            return startDate > today ? startDate : today;
         }
 
         private static DateTime GetGenerationEndDate(Routine routine, DateTime generationStartDate)
         {
-            var studyPlan = routine.Course.StudyPlan;
+            var studyPlan = routine.StudyPlan;
 
-            return routine.EndDate?.Date
-                ?? studyPlan?.EndDate?.Date
-                ?? generationStartDate.AddDays(30);
+            return (DateTime)(routine.EndDate.HasValue ? routine.EndDate : studyPlan.EndDate);
         }
     }
 }

@@ -1,11 +1,11 @@
 import { useOutletContext } from "react-router-dom";
-import type { SemesterOutletContext } from "@/layouts/StudyPlanLayout";
+import type { StudyPlanOutletContext } from "@/layouts/StudyPlanLayout";
 import OverviewTab from "./OverviewTab";
 import SchedulingTab from "./SchedulingTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function StudyPlanPage() {
-  const { currentStudyPlan } = useOutletContext<SemesterOutletContext>();
+  const { selectedStudyPlan } = useOutletContext<StudyPlanOutletContext>();
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -22,8 +22,8 @@ export default function StudyPlanPage() {
           value="overview"
           className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 mt-2"
         >
-          {currentStudyPlan && (
-            <OverviewTab studyPlanId={Number(currentStudyPlan.id)} />
+          {selectedStudyPlan && (
+            <OverviewTab studyPlanId={Number(selectedStudyPlan.id)} />
           )}
         </TabsContent>
 
@@ -31,8 +31,8 @@ export default function StudyPlanPage() {
           value="scheduling"
           className="flex-1 min-h-0 overflow-hidden mt-2"
         >
-          {currentStudyPlan && (
-            <SchedulingTab studyPlanId={Number(currentStudyPlan.id)} />
+          {selectedStudyPlan && (
+            <SchedulingTab />
           )}
         </TabsContent>
       </Tabs>

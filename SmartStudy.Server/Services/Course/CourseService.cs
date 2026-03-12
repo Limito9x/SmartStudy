@@ -104,15 +104,14 @@ namespace SmartStudy.Server.Services
                 // Hễ 1 lớp đc tạo ra
                 // Thì sẽ tạo ra 1 routine tương ứng để chứa lịch học của lớp đó
                 var routineDto = new RequestRoutineDto(
-                    Id: 0,
                     Name: $"Lịch học {course.Name}",
                     Description: $"Lịch học cho môn {course.Name} - HK{term} ({year}-{year + 1})",
                     StartDate: studyPlan.StartDate,
                     EndDate: studyPlan.EndDate,
                     Type: TaskType.ClassSession,
                     CourseId: course.Id,
-                    Schedules: null,
-                    EventRequirementId: null
+                    EventRequirementId: null,
+                    StudyPlanId: studyPlan.Id
                 );
 
                 var routine = _mapper.Map<Routine>(routineDto);
@@ -216,15 +215,14 @@ namespace SmartStudy.Server.Services
                 var year = studyPlan?.AcademicYearId;
 
                 var routineDto = new RequestRoutineDto(
-                    Id: 0,
                     Name: $"Lịch học {course.Name}",
-                    Description: $"Lịch học cho môn {course.Name} - HK${term}(${year}-${year + 1})",
+                    Description: $"Lịch học cho môn {course.Name} - HK{term}({year}-{year + 1})",
                     StartDate: studyPlan.StartDate,
                     EndDate: studyPlan.EndDate,
                     Type: TaskType.ClassSession,
                     CourseId: course.Id,
-                    Schedules: null,
-                    EventRequirementId: null
+                    EventRequirementId: null,
+                    StudyPlanId: studyPlan.Id
                 );
 
                 var newRoutine = _mapper.Map<Routine>(routineDto);

@@ -11,19 +11,23 @@ export const useRoutine = () => {
   const queryClient = useQueryClient();
 
   const getAllRoutines = ({
-  studyPlanId,
-  type,
-}: {
-  studyPlanId?: number;
-  type?: TaskType;
-}) => useQuery({
-    ...getRoutinesOptions({
-      query: {
-        StudyPlanId: studyPlanId,
-        Type: type,
-      },
-    }),
-  });
+    studyPlanId,
+    courseId,
+    type,
+  }: {
+    studyPlanId?: number;
+    courseId?: number;
+    type?: TaskType;
+  }) =>
+    useQuery({
+      ...getRoutinesOptions({
+        query: {
+          StudyPlanId: studyPlanId,
+          CourseId: courseId,
+          Type: type,
+        },
+      }),
+    });
 
   const createRoutine = useMutation({
     ...createRoutineMutation(),

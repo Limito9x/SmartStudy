@@ -2,7 +2,6 @@ import { BaseForm } from "../base/BaseForm";
 import { subjectSchema, type SubjectFormValues } from "./schema";
 import { FormInput, FormSelect } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
-import { useId } from "react";
 
 interface SubjectFormProps {
   defaultValues?: SubjectFormValues;

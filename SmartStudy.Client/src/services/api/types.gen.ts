@@ -6,7 +6,7 @@ export type ClientOptions = {
 
 export type AssetLinkCategory = number;
 
-export type AssetLinkType = number;
+export type AssetLinkType = 'StudyPlan' | 'Course' | 'Task' | 'Log';
 
 export type AssetResponseDto = {
     id: number | string;
@@ -126,7 +126,6 @@ export type RequestCourseDto = {
 };
 
 export type RequestRoutineDto = {
-    id: number | string;
     name: string;
     description: null | string;
     startDate: null | string;
@@ -134,7 +133,7 @@ export type RequestRoutineDto = {
     type: TaskType;
     courseId: null | number | string;
     eventRequirementId: null | number | string;
-    schedules: null | Array<ScheduleDto>;
+    studyPlanId: number | string;
 };
 
 export type RequestScheduleDto = {
@@ -168,6 +167,7 @@ export type RequestTaskDto = {
     type: TaskType;
     linkedFormIds: null | Array<number | string>;
     courseId: null | number | string;
+    studyPlanId: number | string;
 };
 
 export type RequestTimelineEventDto = {
@@ -192,6 +192,8 @@ export type ResponseCourseDto = {
     credits: number | string;
     targetScore: null | number | string;
     finalScore: null | number | string;
+    status: CourseStatus;
+    timelineEvents: null | Array<ResponseTimelineEventDto>;
 };
 
 export type ResponseRoutineDto = {
@@ -282,6 +284,7 @@ export type SimpleResponseRoutineDto = {
     description: null | string;
     startDate: null | string;
     endDate: null | string;
+    type: TaskType;
     courseId: null | number | string;
     eventRequirementId: null | number | string;
     schedules: Array<ScheduleDto>;
@@ -311,7 +314,7 @@ export type TaskStatusDto = {
     status: TaskStatus;
 };
 
-export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'LifeHabit';
+export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting';
 
 export type TimeUnit = 'Minutes' | 'Hours' | 'Periods';
 
@@ -746,6 +749,7 @@ export type GetRoutinesData = {
     path?: never;
     query?: {
         StudyPlanId?: number | string;
+        CourseId?: number | string;
         Type?: TaskType;
     };
     url: '/api/routines';

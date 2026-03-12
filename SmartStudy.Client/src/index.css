@@ -171,10 +171,10 @@ body {
   cursor: pointer;
 }
 
-/* Hover effect */
-.sx__time-grid-cell:hover {
-  background-color: rgba(59, 130, 246, 0.08) !important;
+.sx__time-grid-day:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
+
 
 .sx__week-grid > div {
   cursor: pointer !important;
@@ -182,4 +182,14 @@ body {
 
 .sx__week-grid > div:hover {
   background-color: rgba(59, 130, 246, 0.08) !important;
+}
+
+.sx__time-grid-dayContent:hover {
+  background-color: rgba(66, 133, 244, 0.05); /* Màu xanh nhạt */
+  cursor: pointer;
+}
+
+/* Nếu bạn muốn hiệu ứng trên từng khung giờ cụ thể (phụ thuộc vào cấu hình time-grid) */
+.sx__time-grid-event:hover {
+  filter: brightness(0.9);
 }

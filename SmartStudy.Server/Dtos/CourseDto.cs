@@ -22,7 +22,9 @@ namespace SmartStudy.Server.Dtos
         string? AlternativeName,
         int Credits,
         double? TargetScore,
-        double? FinalScore
+        double? FinalScore,
+        CourseStatus Status,
+        List<ResponseTimelineEventDto>? TimelineEvents
     );
 
     public record SyncDraftCoursesDto(List<int> SelectedCourseIds);

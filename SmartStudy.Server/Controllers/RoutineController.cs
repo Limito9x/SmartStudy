@@ -28,10 +28,11 @@ namespace SmartStudy.Server.Controllers
         [HttpGet(Name ="GetRoutines")]
         public async Task<ActionResult<List<SimpleResponseRoutineDto>>> GetAllRoutines(
             [FromQuery] int? StudyPlanId,
+            [FromQuery] int? CourseId,
             [FromQuery] TaskType? Type
             )
         {
-            var Routines = await _routineService.GetRoutinesByUserIdAsync(StudyPlanId, Type);
+            var Routines = await _routineService.GetRoutinesByUserIdAsync(StudyPlanId, CourseId , Type);
             return Ok(Routines);
         }
 

@@ -17,12 +17,11 @@ namespace SmartStudy.Server.Services
     {
         Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto);
         Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId);
-        Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(
-            int? StudyPlanId, TaskType? Type);
+        Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, int? CourseId, TaskType? Type);
         Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto);
         Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
-        Task BulkSaveRoutineAsync(List<RequestRoutineDto> RoutineDtos);
+        Task BulkSaveRoutineAsync(List<SyncRoutineDto> RoutineDtos);
         Task<bool> DeleteRoutineAsync(int RoutineId);
     }
     public class RoutineService : IRoutineService
@@ -47,17 +46,17 @@ namespace SmartStudy.Server.Services
 
                 _context.Routines.Add(Routine);
 
-                var schedules = RoutineDto.
-                Schedules?.Select(s => {
-                    var schedule = _mapper.Map<Schedule>(s);
-                    schedule.RoutineId = Routine.Id;
-                    return schedule;
-                }).ToList();
-
-                if (schedules != null && schedules.Any())
-                {
-                    _context.Schedules.AddRange(schedules);
-            }
+            //     var schedules = RoutineDto.
+            //     Schedules?.Select(s => {
+            //         var schedule = _mapper.Map<Schedule>(s);
+            //         schedule.RoutineId = Routine.Id;
+            //         return schedule;
+            //     }).ToList();
+            //
+            //     if (schedules != null && schedules.Any())
+            //     {
+            //         _context.Schedules.AddRange(schedules);
+            // }
 
             await _context.SaveChangesAsync();
 
@@ -73,15 +72,18 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseRoutineDto>(Routine);
         }
 
-        public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, TaskType? Type)
+        public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, int? CourseId, TaskType? Type)
         {
             var userId = _currentUserService.UserId;
-            var query = _context.Routines
+            var query = _context.Routines.Include(r=>r.Schedules)
                 .AsNoTracking()
                 .Where(r => r.UserId == userId);
 
             if (StudyPlanId.HasValue)
-                query = query.Where(r => r.CourseId != null && r.Course.StudyPlanId == StudyPlanId);
+                query = query.Where(r => r.StudyPlanId == StudyPlanId);
+            
+            if(CourseId.HasValue)
+                query = query.Where(r => r.CourseId == CourseId);
 
             if (Type.HasValue)
                 query = query.Where(r => r.Type == Type);
@@ -98,23 +100,25 @@ namespace SmartStudy.Server.Services
             if (existingRoutine == null) return null;
             _mapper.Map(RoutineDto, existingRoutine);
 
-            CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>
-            (
-                existingEntities: existingRoutine.Schedules,
-                incomingDtos: RoutineDto.Schedules ?? new List<ScheduleDto>(),
-                entityKeySelector: s => s.Id,
-                dtoKeySelector: s => s.Id,
-                updateAction: (existingSchedule, dtoSchedule) =>
-                {
-                    _mapper.Map(dtoSchedule, existingSchedule);
-                },
-                createFunc: dtoSchedule =>
-                {
-                    var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
-                    newSchedule.RoutineId = existingRoutine.Id;
-                    return newSchedule;
-                }
-            );
+            // Tạm ẩn Collection
+            
+            // CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>
+            // (
+            //     existingEntities: existingRoutine.Schedules,
+            //     incomingDtos: RoutineDto.Schedules ?? new List<ScheduleDto>(),
+            //     entityKeySelector: s => s.Id,
+            //     dtoKeySelector: s => s.Id,
+            //     updateAction: (existingSchedule, dtoSchedule) =>
+            //     {
+            //         _mapper.Map(dtoSchedule, existingSchedule);
+            //     },
+            //     createFunc: dtoSchedule =>
+            //     {
+            //         var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
+            //         newSchedule.RoutineId = existingRoutine.Id;
+            //         return newSchedule;
+            //     }
+            // );
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseRoutineDto>(existingRoutine);
@@ -129,7 +133,7 @@ namespace SmartStudy.Server.Services
             return true;
         }
 
-        public async Task BulkSaveRoutineAsync(List<RequestRoutineDto> RoutineDtos)
+        public async Task BulkSaveRoutineAsync(List<SyncRoutineDto> RoutineDtos)
         {
             int userId = _currentUserService.UserId;
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -146,7 +150,7 @@ namespace SmartStudy.Server.Services
                     .ToListAsync();
 
                 // Đồng bộ tầng 1: Routine
-                CollectionHelper.SyncCollection<Routine, RequestRoutineDto, int>
+                CollectionHelper.SyncCollection<Routine, SyncRoutineDto, int>
                     (
                         existingEntities: existingRoutines,
                         incomingDtos: RoutineDtos,

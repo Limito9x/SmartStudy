@@ -8,7 +8,7 @@ namespace SmartStudy.Server.Entities.Enums
         ClassSession,  // Buổi học trên trường (Sinh ra từ Routine cố định, cấm xóa bậy)
         SelfStudy,     // Buổi tự học (User tự tạo hoặc AI gợi ý ôn thi)
         AssignmentWork,// Buổi ngồi cày bài tập (Khác với ngày NỘP bài bên TimelineEvent)
-        LifeHabit      // Các thói quen khác (Tập gym, đọc sách...)
+        Meeting // Họp 
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

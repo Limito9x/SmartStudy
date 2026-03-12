@@ -7,13 +7,15 @@ namespace SmartStudy.Server.Entities
         public required string Name { get; set; }
         public string? Description { get; set; }
         public TaskType Type { get; set; } = TaskType.SelfStudy;
-        public DateTime StartDate = DateTime.UtcNow;
+        public DateTime StartDate { get; set; } = DateTime.UtcNow;
         public DateTime? EndDate { get; set; }
         public DateTime NextOccurrence { get; set; }
         public int UserId { get; set; }
         public required User User { get; set; }
-        public int CourseId { get; set; }
-        public Course Course { get; set; }
+        public int StudyPlanId { get; set; }
+        public StudyPlan StudyPlan { get; set; }
+        public int? CourseId { get; set; }
+        public Course? Course { get; set; }
         public int? EventRequirementId { get; set; }
         public EventRequirement? EventRequirement { get; set; }
         // Các Task do Routine tạo ra

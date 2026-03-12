@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 type StudyPlanStatusMap = Record<
   StudyPlanStatus,
@@ -18,9 +19,10 @@ type StudyPlanStatusMap = Record<
   }
 >;
 
-export type SemesterOutletContext = {
+export type StudyPlanOutletContext = {
   studyPlans: ResponseStudyPlanDto[] | undefined;
-  currentStudyPlan: ResponseStudyPlanDto | null;
+  currentStudyPlan: ResponseStudyPlanDto | null; // kỳ Active
+  selectedStudyPlan: ResponseStudyPlanDto | null; // kỳ đang xem
 };
 
 const semesterStatusMap: StudyPlanStatusMap = {
@@ -31,15 +33,19 @@ const semesterStatusMap: StudyPlanStatusMap = {
 
 export default function SchoolStudyLayout() {
   const navigate = useNavigate();
-
+  
   const { data: studyPlans, isLoading } = useStudyPlan().getAllStudyPlans;
 
   const currentStudyPlan =
     studyPlans?.find((s) => s.status === "Active") ?? null;
+  const [selectedStudyPlan, setSelectedStudyPlan] =
+    useState<ResponseStudyPlanDto | null>(null);
 
-  const handleRedirectToSemester = (semester: ResponseStudyPlanDto) => {
-    navigate(`/app/study-plans/${semester.id}`);
-  };
+    useEffect(() => {
+      if (studyPlans && !selectedStudyPlan) {
+        setSelectedStudyPlan(currentStudyPlan ?? studyPlans[0] ?? null);
+      }
+    }, [studyPlans]);
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -50,14 +56,13 @@ export default function SchoolStudyLayout() {
           <div className="flex items-center justify-between px-4 pt-4 shrink-0">
             <Select
               value={
-                currentStudyPlan ? currentStudyPlan.id.toString() : undefined
+                selectedStudyPlan ? selectedStudyPlan.id.toString() : undefined
               }
               onValueChange={(value) => {
-                const selectedStudyPlan = studyPlans?.find(
-                  (s) => s.id.toString() === value,
-                );
-                if (selectedStudyPlan) {
-                  handleRedirectToSemester(selectedStudyPlan);
+                const plan = studyPlans?.find((s) => s.id.toString() === value);
+                if (plan) {
+                  setSelectedStudyPlan(plan);
+                  navigate(`/app/study-plans/${plan.id}`);
                 }
               }}
             >
@@ -86,7 +91,13 @@ export default function SchoolStudyLayout() {
             </Select>
           </div>
           <div className="flex-1 min-h-0 h-full overflow-hidden">
-            <Outlet context={{ studyPlans, currentStudyPlan }} />
+            <Outlet
+              context={{
+                studyPlans,
+                currentStudyPlan, // kỳ Active
+                selectedStudyPlan, // kỳ đang xem
+              }}
+            />
           </div>
         </>
       )}

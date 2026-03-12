@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getRoutinesQueryKey,
   createScheduleMutation,
   deleteScheduleMutation,
   getCalendarQueryKey
@@ -13,6 +14,9 @@ export const useSchedule = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getCalendarQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getRoutinesQueryKey(),
       });
       alert("Tạo lịch học thành công");
     },
@@ -28,6 +32,9 @@ export const useSchedule = () => {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: getCalendarQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getRoutinesQueryKey(),
         });
         alert("Xóa lịch học thành công");
       },

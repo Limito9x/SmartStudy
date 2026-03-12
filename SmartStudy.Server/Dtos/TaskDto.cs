@@ -13,7 +13,8 @@ namespace SmartStudy.Server.Dtos
         DateTime? EndAt,
         TaskType Type,
         List<int>? LinkedFormIds,
-        int? CourseId
+        int? CourseId,
+        int StudyPlanId
     );
 
     public record TaskStatusDto

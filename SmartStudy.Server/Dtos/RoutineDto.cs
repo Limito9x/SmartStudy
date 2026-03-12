@@ -4,6 +4,17 @@ using SmartStudy.Server.Entities.Enums;
 namespace SmartStudy.Server.Dtos
 {
     public record RequestRoutineDto(
+        string Name,
+        string? Description,
+        DateTime? StartDate,
+        DateTime? EndDate,
+        TaskType Type,
+        int? CourseId,
+        int? EventRequirementId,
+        int StudyPlanId
+    );
+    
+    public record SyncRoutineDto(
         int Id,
         string Name,
         string? Description,
@@ -12,6 +23,7 @@ namespace SmartStudy.Server.Dtos
         TaskType Type,
         int? CourseId,
         int? EventRequirementId,
+        int StudyPlanId,
         List<ScheduleDto>? Schedules
     );
 
@@ -33,6 +45,7 @@ namespace SmartStudy.Server.Dtos
         string? Description,
         DateTime? StartDate,
         DateTime? EndDate,
+        TaskType Type,
         int? CourseId,
         int? EventRequirementId,
         List<ScheduleDto> Schedules

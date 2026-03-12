@@ -23,8 +23,10 @@ namespace SmartStudy.Server.Entities
         public Routine? Routine { get; set; }
         public int? ScheduleId { get; set; }
         public Schedule? Schedule { get; set; }
-        public int CourseId { get; set; }
-        public Course Course { get; set; }
+        public int? CourseId { get; set; }
+        public Course? Course { get; set; }
+        public int StudyPlanId { get; set; }
+        public StudyPlan StudyPlan { get; set; }
         // Task thuộc về 1 yêu cầu
         public int? EventRequirementId { get; set; }
         public EventRequirement? EventRequirement { get; set; }

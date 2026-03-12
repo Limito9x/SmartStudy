@@ -1,8 +1,8 @@
 import { Navigate, useOutletContext } from "react-router-dom";
-import type { SemesterOutletContext } from "@/layouts/StudyPlanLayout";
+import type { StudyPlanOutletContext } from "@/layouts/StudyPlanLayout";
 
 export default function RedirectStudyPlanPage() {
-  const { currentStudyPlan } = useOutletContext<SemesterOutletContext>();
+  const { currentStudyPlan } = useOutletContext<StudyPlanOutletContext>();
 
   if (!currentStudyPlan) {
     return <div>Không có kế hoạch học tập nào đang hoạt động</div>;
