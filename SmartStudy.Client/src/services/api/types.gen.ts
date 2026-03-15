@@ -47,9 +47,22 @@ export type ChatHistoryDto = {
     type: string;
 };
 
-export type ComrehensiveLevel = number;
+export type ComprehensionLevel = number;
 
-export type CourseStatus = 'Draft' | 'Enrolled' | 'Completed' | 'Dropped';
+export type CourseStatus = 'Enrolled' | 'Completed' | 'Dropped';
+
+export type DashboardSummaryDto = {
+    weeklyStudyHours?: number | string;
+    weeklyProductivity?: number | string;
+    hoursDelta?: number | string;
+    productivityDelta?: number | string;
+    weeklyCompletionRate?: number | string;
+    daysLeftInPlan?: null | number | string;
+    currentPlanName?: null | string;
+    overdueTasks?: Array<TodayTaskDto>;
+    todayTasks?: Array<TodayTaskDto>;
+    upcomingEvents?: Array<UpcomingEventDto>;
+};
 
 export type DayOfWeek = number;
 
@@ -83,10 +96,10 @@ export type IFormFileCollection = Array<IFormFile>;
 export type LogDto = {
     id: number | string;
     note: null | string;
-    actualDurationMinutes: null | number | string;
-    productivityScore: null | number | string;
-    comrehensiveLevel: null | ComrehensiveLevel;
+    actualDuration: null | number | string;
+    comprehensionLevel: null | ComprehensionLevel;
     difficultyLevel: null | DifficultyLevel;
+    productivity: number | string;
     timerStartAt: null | string;
     timerEndAt: null | string;
     eventRequirementId: null | number | string;
@@ -104,8 +117,7 @@ export type LoginResponseDto = {
 export type LogWorkDto = {
     note: null | string;
     actualDurationMinutes: null | number | string;
-    productivityScore: null | number | string;
-    comrehensiveLevel: null | ComrehensiveLevel;
+    comprehensionLevel: null | ComprehensionLevel;
     difficultyLevel: null | DifficultyLevel;
     timerStartAt: null | string;
     timerEndAt: null | string;
@@ -128,22 +140,22 @@ export type PagedResultOfResponseSubjectDto = {
 export type PriorityLevel = number;
 
 export type RequestCourseDto = {
+    name: string;
     studyPlanId: number | string;
-    subjectId: number | string;
     targetScore: null | number | string;
     finalScore: null | number | string;
-    mentor: null | string;
-    alternativeName: null | string;
+    goal: null | string;
 };
 
 export type RequestRoutineDto = {
     name: string;
+    instructor: null | string;
     description: null | string;
-    startDate: null | string;
+    startDate: string;
     endDate: null | string;
     type: TaskType;
     courseId: null | number | string;
-    eventRequirementId: null | number | string;
+    timelineEventId: null | number | string;
     studyPlanId: number | string;
 };
 
@@ -152,13 +164,11 @@ export type RequestScheduleDto = {
     dayOfWeek: DayOfWeek;
     startTime: string;
     duration: number | string;
-    durationUnit: TimeUnit;
     location: null | string;
 };
 
 export type RequestStudyPlanDto = {
-    academicTermId: number | string;
-    academicYearId: number | string;
+    name: string;
     startDate: string;
     endDate: string;
 };
@@ -172,11 +182,10 @@ export type RequestSubjectDto = {
 export type RequestTaskDto = {
     name: string;
     description: null | string;
-    dueDate: null | string;
-    startAt: null | string;
-    endAt: null | string;
+    taskDate: null | string;
+    startTime: null | string;
+    plannedDuration: null | number | string;
     type: TaskType;
-    linkedFormIds: null | Array<number | string>;
     courseId: null | number | string;
     studyPlanId: number | string;
 };
@@ -194,27 +203,26 @@ export type RequestTimelineEventDto = {
 export type RequirementStrategy = 'Additive' | 'Averaging' | 'MaxValue' | 'TaskBased';
 
 export type ResponseCourseDto = {
-    id: number | string;
-    studyPlanId: number | string;
-    subjectId: number | string;
-    subjectName: string;
-    mentor: null | string;
-    alternativeName: null | string;
-    credits: number | string;
-    targetScore: null | number | string;
-    finalScore: null | number | string;
-    status: CourseStatus;
-    timelineEvents: null | Array<ResponseTimelineEventDto>;
+    id?: number | string;
+    studyPlanId?: number | string;
+    name?: string;
+    targetScore?: null | number | string;
+    finalScore?: null | number | string;
+    goal?: null | string;
+    status?: CourseStatus;
+    progress?: number | string;
+    timelineEvents?: null | Array<ResponseTimelineEventDto>;
 };
 
 export type ResponseRoutineDto = {
     id: number | string;
     name: string;
+    instructor: null | string;
     description: null | string;
-    startDate: null | string;
+    startDate: string;
     endDate: null | string;
     courseId: null | number | string;
-    eventRequirementId: null | number | string;
+    timelineEventId: null | number | string;
     schedules: Array<ScheduleDto>;
     tasks: null | Array<ResponseTaskDto>;
 };
@@ -225,15 +233,12 @@ export type ResponseScheduleDto = {
     dayOfWeek: DayOfWeek;
     startTime: null | string;
     duration: null | number | string;
-    durationUnit: null | TimeUnit;
     location: null | string;
 };
 
 export type ResponseStudyPlanDto = {
     id: number | string;
-    academicTermId: number | string;
-    academicYearId: number | string;
-    displayName: string;
+    name: string;
     startDate: string;
     endDate: string;
     createdAt: string;
@@ -280,7 +285,6 @@ export type ScheduleDto = {
     dayOfWeek: DayOfWeek;
     startTime: string;
     duration: number | string;
-    durationUnit: TimeUnit;
     location: null | string;
 };
 
@@ -296,27 +300,20 @@ export type SessionResponseDto = {
 export type SimpleResponseRoutineDto = {
     id: number | string;
     name: string;
+    instructor: null | string;
     description: null | string;
-    startDate: null | string;
+    startDate: string;
     endDate: null | string;
     type: TaskType;
     courseId: null | number | string;
-    eventRequirementId: null | number | string;
+    timelineEventId: null | number | string;
     schedules: Array<ScheduleDto>;
 };
 
 export type StudentInfoDto = {
-    admissionDate: string;
-    semestersPerYear: number | string;
-    weeksPerSemester: number | string;
-    weeksOfSummerSemester: null | number | string;
-    programLength: number | string;
     university: null | string;
     major: null | string;
     cohort: null | string;
-    totalRequiredCredits: null | number | string;
-    creditsPerSemester: null | number | string;
-    creditsPerSummerSemester: null | number | string;
 };
 
 export type StudyPlanStatus = 'Planning' | 'Active' | 'Completed';
@@ -331,7 +328,25 @@ export type TaskStatusDto = {
 
 export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting';
 
-export type TimeUnit = 'Minutes' | 'Hours' | 'Periods';
+export type TodayTaskDto = {
+    id?: number | string;
+    name?: string;
+    startTime?: null | string;
+    plannedDuration?: null | number | string;
+    type?: TaskType;
+    status?: TaskStatus;
+    courseName?: null | string;
+};
+
+export type UpcomingEventDto = {
+    id?: number | string;
+    title?: string;
+    dueDate?: null | string;
+    type?: EventType;
+    priority?: PriorityLevel;
+    courseName?: string;
+    daysUntil?: number | string;
+};
 
 export type UpdateCourseStatusDto = {
     status: CourseStatus;
@@ -341,7 +356,6 @@ export type UpdateScheduleDto = {
     dayOfWeek: DayOfWeek;
     startTime: string;
     duration: number | string;
-    durationUnit: TimeUnit;
     location: null | string;
 };
 
@@ -655,6 +669,50 @@ export type UpdateCourseStatusData = {
 };
 
 export type UpdateCourseStatusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetStudentDashboardSummaryData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/students/summary';
+};
+
+export type GetStudentDashboardSummaryResponses = {
+    /**
+     * OK
+     */
+    200: DashboardSummaryDto;
+};
+
+export type GetStudentDashboardSummaryResponse = GetStudentDashboardSummaryResponses[keyof GetStudentDashboardSummaryResponses];
+
+export type PostApiDevSeedData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/dev/seed';
+};
+
+export type PostApiDevSeedResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiDevResetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/dev/reset';
+};
+
+export type PostApiDevResetResponses = {
     /**
      * OK
      */

@@ -171,236 +171,6 @@ namespace SmartStudy.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("SmartStudy.Server.Entities.AcademicTerm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<int>("TermValue")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TermValue")
-                        .IsUnique();
-
-                    b.ToTable("AcademicTerms");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Học kỳ 1",
-                            TermValue = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Học kỳ 2",
-                            TermValue = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Name = "Học kỳ Hè",
-                            TermValue = 3
-                        });
-                });
-
-            modelBuilder.Entity("SmartStudy.Server.Entities.AcademicYear", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("EndYear")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("StartYear")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("StartYear", "EndYear")
-                        .IsUnique();
-
-                    b.ToTable("AcademicYears");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 2020,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2021,
-                            StartYear = 2020
-                        },
-                        new
-                        {
-                            Id = 2021,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2022,
-                            StartYear = 2021
-                        },
-                        new
-                        {
-                            Id = 2022,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2023,
-                            StartYear = 2022
-                        },
-                        new
-                        {
-                            Id = 2023,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2024,
-                            StartYear = 2023
-                        },
-                        new
-                        {
-                            Id = 2024,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2025,
-                            StartYear = 2024
-                        },
-                        new
-                        {
-                            Id = 2025,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2026,
-                            StartYear = 2025
-                        },
-                        new
-                        {
-                            Id = 2026,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2027,
-                            StartYear = 2026
-                        },
-                        new
-                        {
-                            Id = 2027,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2028,
-                            StartYear = 2027
-                        },
-                        new
-                        {
-                            Id = 2028,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2029,
-                            StartYear = 2028
-                        },
-                        new
-                        {
-                            Id = 2029,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2030,
-                            StartYear = 2029
-                        },
-                        new
-                        {
-                            Id = 2030,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2031,
-                            StartYear = 2030
-                        },
-                        new
-                        {
-                            Id = 2031,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2032,
-                            StartYear = 2031
-                        },
-                        new
-                        {
-                            Id = 2032,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2033,
-                            StartYear = 2032
-                        },
-                        new
-                        {
-                            Id = 2033,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2034,
-                            StartYear = 2033
-                        },
-                        new
-                        {
-                            Id = 2034,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2035,
-                            StartYear = 2034
-                        },
-                        new
-                        {
-                            Id = 2035,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2036,
-                            StartYear = 2035
-                        },
-                        new
-                        {
-                            Id = 2036,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2037,
-                            StartYear = 2036
-                        },
-                        new
-                        {
-                            Id = 2037,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2038,
-                            StartYear = 2037
-                        },
-                        new
-                        {
-                            Id = 2038,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2039,
-                            StartYear = 2038
-                        },
-                        new
-                        {
-                            Id = 2039,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2040,
-                            StartYear = 2039
-                        },
-                        new
-                        {
-                            Id = 2040,
-                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            EndYear = 2041,
-                            StartYear = 2040
-                        });
-                });
-
             modelBuilder.Entity("SmartStudy.Server.Entities.Asset", b =>
                 {
                     b.Property<int>("Id")
@@ -569,14 +339,8 @@ namespace SmartStudy.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AlternativeName")
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Credits")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
@@ -584,7 +348,7 @@ namespace SmartStudy.Server.Migrations
                     b.Property<double?>("FinalScore")
                         .HasColumnType("double precision");
 
-                    b.Property<string>("Mentor")
+                    b.Property<string>("Goal")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
@@ -597,10 +361,7 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("StudyPlanId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("SubjectId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("SubjectId1")
+                    b.Property<int?>("SubjectId")
                         .HasColumnType("integer");
 
                     b.Property<double?>("TargetScore")
@@ -611,11 +372,9 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("StudyPlanId");
+
                     b.HasIndex("SubjectId");
-
-                    b.HasIndex("SubjectId1");
-
-                    b.HasIndex("StudyPlanId", "SubjectId");
 
                     b.ToTable("Courses");
                 });
@@ -669,13 +428,13 @@ namespace SmartStudy.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("ActualDurationMinutes")
+                    b.Property<int>("ActualDuration")
                         .HasColumnType("integer");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("ComrehensiveLevel")
+                    b.Property<int?>("ComprehensionLevel")
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
@@ -696,9 +455,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Note")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
-
-                    b.Property<int?>("ProductivityScore")
-                        .HasColumnType("integer");
 
                     b.Property<int>("TaskId")
                         .HasColumnType("integer");
@@ -777,8 +533,8 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("EventRequirementId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Instructor")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -794,6 +550,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("StudyPlanId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("TimelineEventId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("Type")
                         .HasColumnType("integer");
 
@@ -807,9 +566,9 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("EventRequirementId");
-
                     b.HasIndex("StudyPlanId");
+
+                    b.HasIndex("TimelineEventId");
 
                     b.HasIndex("UserId");
 
@@ -840,9 +599,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int?>("Duration")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("DurationUnit")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Location")
                         .HasColumnType("text");
 
@@ -867,41 +623,17 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime>("AdmissionDate")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Cohort")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<int?>("CreditsPerSemester")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("CreditsPerSummerSemester")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Major")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<float>("ProgramLength")
-                        .HasColumnType("real");
-
-                    b.Property<int>("SemestersPerYear")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("TotalRequiredCredits")
-                        .HasColumnType("integer");
-
                     b.Property<string>("University")
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<int?>("WeeksOfSummerSemester")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("WeeksPerSemester")
-                        .HasColumnType("integer");
 
                     b.HasKey("UserId");
 
@@ -915,12 +647,6 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AcademicTermId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("AcademicYearId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("ActualEndDate")
                         .HasColumnType("timestamp with time zone");
@@ -937,13 +663,14 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("MaxCredits")
-                        .HasColumnType("integer");
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("Order")
                         .HasColumnType("integer");
 
-                    b.Property<DateTime?>("StartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -953,10 +680,6 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AcademicTermId");
-
-                    b.HasIndex("AcademicYearId");
 
                     b.HasIndex("UserId");
 
@@ -970,6 +693,10 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -988,15 +715,10 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
                         .IsUnique();
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Subjects");
                 });
@@ -1021,9 +743,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<int?>("DurationMinutes")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("EventRequirementId")
                         .HasColumnType("integer");
 
@@ -1033,6 +752,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int?>("PlannedDuration")
+                        .HasColumnType("integer");
 
                     b.Property<int?>("RoutineId")
                         .HasColumnType("integer");
@@ -1053,6 +775,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateOnly?>("TaskDate")
                         .HasColumnType("date");
 
+                    b.Property<int?>("TimelineEventId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1069,13 +794,16 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("EventRequirementId");
 
-                    b.HasIndex("RoutineId");
-
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("StudyPlanId");
 
+                    b.HasIndex("TimelineEventId");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("RoutineId", "ScheduleId", "TaskDate")
+                        .IsUnique();
 
                     b.ToTable("Tasks", (string)null);
                 });
@@ -1299,19 +1027,11 @@ namespace SmartStudy.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartStudy.Server.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SmartStudy.Server.Entities.Subject", null)
                         .WithMany("Courses")
-                        .HasForeignKey("SubjectId1");
+                        .HasForeignKey("SubjectId");
 
                     b.Navigation("StudyPlan");
-
-                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.EventRequirement", b =>
@@ -1354,15 +1074,15 @@ namespace SmartStudy.Server.Migrations
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("SmartStudy.Server.Entities.EventRequirement", "EventRequirement")
-                        .WithMany()
-                        .HasForeignKey("EventRequirementId");
-
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
                         .WithMany()
                         .HasForeignKey("StudyPlanId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
+                        .WithMany()
+                        .HasForeignKey("TimelineEventId");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("Routines")
@@ -1372,9 +1092,9 @@ namespace SmartStudy.Server.Migrations
 
                     b.Navigation("Course");
 
-                    b.Navigation("EventRequirement");
-
                     b.Navigation("StudyPlan");
+
+                    b.Navigation("TimelineEvent");
 
                     b.Navigation("User");
                 });
@@ -1402,35 +1122,8 @@ namespace SmartStudy.Server.Migrations
 
             modelBuilder.Entity("SmartStudy.Server.Entities.StudyPlan", b =>
                 {
-                    b.HasOne("SmartStudy.Server.Entities.AcademicTerm", "AcademicTerm")
-                        .WithMany()
-                        .HasForeignKey("AcademicTermId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("SmartStudy.Server.Entities.AcademicYear", "AcademicYear")
-                        .WithMany()
-                        .HasForeignKey("AcademicYearId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("StudyPlans")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AcademicTerm");
-
-                    b.Navigation("AcademicYear");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("SmartStudy.Server.Entities.Subject", b =>
-                {
-                    b.HasOne("SmartStudy.Server.Entities.User", "User")
-                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1444,7 +1137,7 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("Tasks")
                         .HasForeignKey("CourseId");
 
-                    b.HasOne("SmartStudy.Server.Entities.EventRequirement", "EventRequirement")
+                    b.HasOne("SmartStudy.Server.Entities.EventRequirement", null)
                         .WithMany("Tasks")
                         .HasForeignKey("EventRequirementId");
 
@@ -1462,6 +1155,10 @@ namespace SmartStudy.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
+                        .WithMany()
+                        .HasForeignKey("TimelineEventId");
+
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("Tasks")
                         .HasForeignKey("UserId")
@@ -1470,13 +1167,13 @@ namespace SmartStudy.Server.Migrations
 
                     b.Navigation("Course");
 
-                    b.Navigation("EventRequirement");
-
                     b.Navigation("Routine");
 
                     b.Navigation("Schedule");
 
                     b.Navigation("StudyPlan");
+
+                    b.Navigation("TimelineEvent");
 
                     b.Navigation("User");
                 });

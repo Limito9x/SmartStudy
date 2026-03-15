@@ -6,6 +6,7 @@ namespace SmartStudy.Server.Entities
     {
         public required string Name { get; set; }
         public string? Description { get; set; }
+        public string? Instructor { get; set; }
         public TaskType Type { get; set; } = TaskType.SelfStudy;
         public DateTime StartDate { get; set; } = DateTime.UtcNow;
         public DateTime? EndDate { get; set; }
@@ -16,8 +17,8 @@ namespace SmartStudy.Server.Entities
         public StudyPlan StudyPlan { get; set; }
         public int? CourseId { get; set; }
         public Course? Course { get; set; }
-        public int? EventRequirementId { get; set; }
-        public EventRequirement? EventRequirement { get; set; }
+        public int? TimelineEventId { get; set; }
+        public TimelineEvent? TimelineEvent { get; set; }
         // Các Task do Routine tạo ra
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
         // Routine có nhiều khung giờ

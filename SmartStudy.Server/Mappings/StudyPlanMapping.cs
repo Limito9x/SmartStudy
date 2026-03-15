@@ -13,21 +13,12 @@ namespace SmartStudy.Server.Mappings
                 .IgnoreNullValues(true);
 
             config.NewConfig<StudyPlan, ResponseStudyPlanDto>()
-                .Map(dest => dest.DisplayName, src =>
-                    src.AcademicTerm != null && src.AcademicYear != null
-                        ? $"{src.AcademicTerm.Name}, năm học {src.AcademicYear.StartYear} - {src.AcademicYear.EndYear}"
-                        : $"StudyPlan {src.Id}"
-                )
                 .Map(dest => dest.Status, src =>
                     DateTime.Today >= src.StartDate && DateTime.Today <= src.EndDate ? StudyPlanStatus.Active :
                     src.EndDate < DateTime.Today ? StudyPlanStatus.Completed : StudyPlanStatus.Planning);
 
             config.NewConfig<StudyPlan, SimpleResponseStudyPlanDto>()
-                .Map(dest => dest.DisplayName, src =>
-                    src.AcademicTerm != null && src.AcademicYear != null
-                        ? $"{src.AcademicTerm.Name}, năm học {src.AcademicYear.StartYear} - {src.AcademicYear.EndYear}"
-                        : $"StudyPlan {src.Id}"
-                ).Map(dest => dest.Status, src =>
+                .Map(dest => dest.Status, src =>
                     DateTime.Today >= src.StartDate && DateTime.Today <= src.EndDate ? StudyPlanStatus.Active :
                     src.EndDate < DateTime.Today ? StudyPlanStatus.Completed : StudyPlanStatus.Planning);
         }

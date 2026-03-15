@@ -35,8 +35,7 @@ namespace SmartStudy.Server.Services
         {
             var userId = _currentUserService.UserId;
             var query = _context.Subjects.AsQueryable();
-
-            query = query.Where(s => s.UserId == userId);
+            
 
             if (!string.IsNullOrWhiteSpace(paginationParams.SearchTerm))
             {
@@ -55,8 +54,8 @@ namespace SmartStudy.Server.Services
 
         public async Task<ResponseSubjectDto> GetSubjectByIdAsync(int SubjectId)
         {
-            var userId = _currentUserService.UserId;
-            var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Id == SubjectId && s.UserId == userId) ?? throw new AppException("Không tìm thấy môn học");
+            var subject = await _context.Subjects.FindAsync(SubjectId);
+
             return _mapper.Map<ResponseSubjectDto>(subject);
         }
 
@@ -64,7 +63,6 @@ namespace SmartStudy.Server.Services
         {
             var userId = _currentUserService.UserId;
             var subject = _mapper.Map<Entities.Subject>(SubjectDto);
-            subject.UserId = userId;
             _context.Subjects.Add(subject);
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseSubjectDto>(subject);
@@ -74,7 +72,6 @@ namespace SmartStudy.Server.Services
         {
             var userId = _currentUserService.UserId;
             var subjects = _mapper.Map<List<Entities.Subject>>(subjectDtos);
-            subjects.ForEach(s => s.UserId = userId);
             _context.Subjects.AddRange(subjects);
             await _context.SaveChangesAsync();
             return _mapper.Map<List<ResponseSubjectDto>>(subjects);
@@ -83,7 +80,7 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseSubjectDto> UpdateSubjectAsync(int SubjectId, RequestSubjectDto SubjectDto)
         {
             var userId = _currentUserService.UserId;
-            var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Id == SubjectId && s.UserId == userId);
+            var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Id == SubjectId);
             if (subject == null) return null;
             _mapper.Map(SubjectDto, subject);
             await _context.SaveChangesAsync();
@@ -93,7 +90,7 @@ namespace SmartStudy.Server.Services
         public async Task<bool> DeleteSubjectAsync(int SubjectId)
         {
             var userId = _currentUserService.UserId;
-            var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Id == SubjectId && s.UserId == userId);
+            var subject = await _context.Subjects.FirstOrDefaultAsync(s => s.Id == SubjectId);
             if (subject == null) return false;
             _context.Subjects.Remove(subject);
             await _context.SaveChangesAsync();

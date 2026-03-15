@@ -1,3 +1,4 @@
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Constants;
@@ -6,6 +7,7 @@ using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
+using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Services
 {
@@ -52,12 +54,18 @@ namespace SmartStudy.Server.Services
         {
             var userId = _currentUserService.UserId;
             var courses = await _context.Courses
-                .Include(c => c.Subject)
                 .Include(c => c.StudyPlan)
                 .Where(c => c.StudyPlanId == studyPlanId && c.StudyPlan!.UserId == userId)
                 .AsNoTracking()
                 .ToListAsync();
-            return _mapper.Map<List<ResponseCourseDto>>(courses);
+            
+            
+            
+            return courses.Select(c => {
+                var dto = c.Adapt<ResponseCourseDto>();
+                dto.Progress = CalculateProgress(c);
+                return dto;
+            }).ToList();
         }
 
         public async Task<ResponseCourseDto?> GetCourseByIdAsync(int courseId)
@@ -65,17 +73,18 @@ namespace SmartStudy.Server.Services
             var userId = _currentUserService.UserId;
 
             var course = await _context.Courses
-                .Include(c => c.Subject)
                 .Include(c => c.StudyPlan)
                 .Include(c => c.Tasks)
-                .Include(c => c.Routines)
+                .ThenInclude(t => t.Logs)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == courseId);
 
             if (course == null) return null;
             if (course.StudyPlan == null || course.StudyPlan.UserId != userId) return null;
 
-            return _mapper.Map<ResponseCourseDto>(course);
+            var dto = _mapper.Map<ResponseCourseDto>(course);
+            dto.Progress = CalculateProgress(course);
+            return dto;
         }
 
         public async Task<ResponseCourseDto> CreateCourseAsync(RequestCourseDto courseDto)
@@ -86,51 +95,41 @@ namespace SmartStudy.Server.Services
             try
             {
                 var studyPlan = await _studyPlanService.GetStudyPlanByIdAsync(courseDto.StudyPlanId);
-                var subject = await _subjectService.GetSubjectByIdAsync(courseDto.SubjectId);
 
                 var course = _mapper.Map<Entities.Course>(courseDto);
                 course.StudyPlanId = courseDto.StudyPlanId;
-                course.SubjectId = courseDto.SubjectId;
-                course.Name = subject?.Name ?? "Môn học mới";
-                course.Credits = subject?.Credits ?? 1;
 
                 _context.Courses.Add(course);
                 await _context.SaveChangesAsync();
-
-                var term = studyPlan?.AcademicTermId;
-                var year = studyPlan?.AcademicYearId;
-
-                // Đơn giản hóa vấn đề
-                // Hễ 1 lớp đc tạo ra
-                // Thì sẽ tạo ra 1 routine tương ứng để chứa lịch học của lớp đó
-                var routineDto = new RequestRoutineDto(
-                    Name: $"Lịch học {course.Name}",
-                    Description: $"Lịch học cho môn {course.Name} - HK{term} ({year}-{year + 1})",
-                    StartDate: studyPlan.StartDate,
-                    EndDate: studyPlan.EndDate,
-                    Type: TaskType.ClassSession,
-                    CourseId: course.Id,
-                    EventRequirementId: null,
-                    StudyPlanId: studyPlan.Id
-                );
-
-                var routine = _mapper.Map<Routine>(routineDto);
-                routine.UserId = userId;
-
-                _context.Routines.Add(routine);
+                
+                // var routineDto = new RequestRoutineDto(
+                //     Name: $"Lịch học {course.Name}",
+                //     Description: $"Lịch học cho môn {course.Name} - HK{term} ({year}-{year + 1})",
+                //     StartDate: studyPlan.StartDate,
+                //     EndDate: studyPlan.EndDate,
+                //     Type: TaskType.ClassSession,
+                //     CourseId: course.Id,
+                //     TimelineEventId: null,
+                //     StudyPlanId: studyPlan.Id
+                // );
+                //
+                // var routine = _mapper.Map<Routine>(routineDto);
+                // routine.UserId = userId;
+                //
+                // _context.Routines.Add(routine);
 
                 await _context.SaveChangesAsync();
 
-                var autoEvents = GenerateAutoEventsForCourse(course.Id, subject.Type);
-                if (autoEvents != null && autoEvents.Count > 0)
-                {
-                    _context.TimelineEvents.AddRange(autoEvents);
-                    await _context.SaveChangesAsync();
-                }
+                // var autoEvents = GenerateAutoEventsForCourse(course.Id, subject.Type);
+                // if (autoEvents != null && autoEvents.Count > 0)
+                // {
+                //     _context.TimelineEvents.AddRange(autoEvents);
+                //     await _context.SaveChangesAsync();
+                // }
 
                 await transaction.CommitAsync();
 
-                await _context.Entry(course).Reference(c => c.Subject).LoadAsync();
+                await _context.Entry(course).Reference(c => c.StudyPlan).LoadAsync();
                 return _mapper.Map<ResponseCourseDto>(course);
             }
             catch (Exception)
@@ -147,17 +146,12 @@ namespace SmartStudy.Server.Services
 
             var existingCourse = await _context.Courses
                 .Include(c => c.StudyPlan)
-                .Include(c => c.Subject)
                 .FirstOrDefaultAsync(c => c.Id == courseId);
             if (existingCourse == null) return null;
-            var studyPlan = await _studyPlanService.GetStudyPlansByUserIdAsync();
-            var subject = await _subjectService.GetSubjectByIdAsync(courseDto.SubjectId);
-
+            
             _mapper.Map(courseDto, existingCourse);
+
             existingCourse.StudyPlanId = courseDto.StudyPlanId;
-            existingCourse.SubjectId = courseDto.SubjectId;
-            existingCourse.Name = subject?.Name ?? "Môn học mới";
-            existingCourse.Credits = subject?.Credits ?? 1;
 
             await _context.SaveChangesAsync();
 
@@ -211,25 +205,22 @@ namespace SmartStudy.Server.Services
                 var course = await _context.Courses.Include(c => c.StudyPlan).FirstOrDefaultAsync(c => c.Id == courseId)
                     ?? throw new KeyNotFoundException("Không tìm thấy khóa học");
                 var studyPlan = course.StudyPlan;
-                var term = studyPlan?.AcademicTermId;
-                var year = studyPlan?.AcademicYearId;
 
-                var routineDto = new RequestRoutineDto(
-                    Name: $"Lịch học {course.Name}",
-                    Description: $"Lịch học cho môn {course.Name} - HK{term}({year}-{year + 1})",
-                    StartDate: studyPlan.StartDate,
-                    EndDate: studyPlan.EndDate,
-                    Type: TaskType.ClassSession,
-                    CourseId: course.Id,
-                    EventRequirementId: null,
-                    StudyPlanId: studyPlan.Id
-                );
-
-                var newRoutine = _mapper.Map<Routine>(routineDto);
-                _context.Routines.Add(newRoutine);
+                // var routineDto = new RequestRoutineDto(
+                //     Name: $"Lịch học {course.Name}",
+                //     Description: $"Lịch học cho môn {course.Name} - HK{term}({year}-{year + 1})",
+                //     StartDate: studyPlan.StartDate,
+                //     EndDate: studyPlan.EndDate,
+                //     Type: TaskType.ClassSession,
+                //     CourseId: course.Id,
+                //     TimelineEventId: null,
+                //     StudyPlanId: studyPlan.Id
+                // );
+                //
+                // var newRoutine = _mapper.Map<Routine>(routineDto);
+                // _context.Routines.Add(newRoutine);
                 await _context.SaveChangesAsync();
-
-                routine = newRoutine;
+                
             }
 
             CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>(
@@ -252,25 +243,48 @@ namespace SmartStudy.Server.Services
             await _context.SaveChangesAsync();
         }
 
-        private List<TimelineEvent>? GenerateAutoEventsForCourse(int courseId, SubjectType subjectType)
+        // private List<TimelineEvent>? GenerateAutoEventsForCourse(int courseId, SubjectType subjectType)
+        // {
+        //     // Bí kíp C#: Luôn dùng TryGetValue với Dictionary để không bao giờ bị Crash app
+        //     if (SubjectEventRegistry.Templates.TryGetValue(subjectType, out var templates))
+        //     {
+        //         // Dùng LINQ Select để "đúc" từ Template thành Entity thật
+        //         var timelineEvents = templates.Select(t => new TimelineEvent
+        //         {
+        //             CourseId = courseId,
+        //             Title = t.Title,
+        //             Type = t.Type,
+        //             Priority = t.Priority,
+        //             DueDate = null
+        //         }).ToList();
+        //
+        //         return timelineEvents;
+        //     }
+        //
+        //     return null;
+        // }
+        
+        private double CalculateProgress(Course course)
         {
-            // Bí kíp C#: Luôn dùng TryGetValue với Dictionary để không bao giờ bị Crash app
-            if (SubjectEventRegistry.Templates.TryGetValue(subjectType, out var templates))
-            {
-                // Dùng LINQ Select để "đúc" từ Template thành Entity thật
-                var timelineEvents = templates.Select(t => new TimelineEvent
-                {
-                    CourseId = courseId,
-                    Title = t.Title,
-                    Type = t.Type,
-                    Priority = t.Priority,
-                    DueDate = null
-                }).ToList();
+            if (course.Tasks == null || course.Tasks.Count == 0) return 0;
 
-                return timelineEvents;
-            }
+            var totalTasks = course.Tasks.Count;
+            var completedTasks = course.Tasks.Count(t => t.Status == TaskStatus.Completed);
 
-            return null;
+            var totalPlanned = course.Tasks
+                .Where(t => t.PlannedDuration.HasValue)
+                .Sum(t => t.PlannedDuration!.Value);
+
+            var totalActual = course.Tasks
+                .SelectMany(t => t.Logs ?? [])
+                .Sum(l => l.ActualDuration);
+
+            var taskRatio     = (double)completedTasks / totalTasks;
+            var durationRatio = totalPlanned == 0 ? 0 : (double)totalActual / totalPlanned;
+
+            // Clamp về [0, 1] phòng trường hợp actual > planned
+            var raw = taskRatio * 0.4 + durationRatio * 0.6;
+            return Math.Min(Math.Round(raw * 100, 1), 100);
         }
     }
 }

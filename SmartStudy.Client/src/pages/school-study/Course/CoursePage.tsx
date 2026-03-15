@@ -115,20 +115,11 @@ export default function CoursePage() {
               <div className="flex-1 min-w-0 space-y-1">
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="text-xl font-bold tracking-tight">
-                    {course.subjectName}
+                    {course.name}
                   </h1>
-                  {status && (
+                  {/* {status && (
                     <Badge variant={status.variant}>{status.label}</Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>{course.credits} tín chỉ</span>
-                  {course.mentor && (
-                    <span className="flex items-center gap-1.5">
-                      <User size={13} />
-                      {course.mentor}
-                    </span>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>

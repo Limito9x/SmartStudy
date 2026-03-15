@@ -47,6 +47,8 @@ export default function SchoolStudyLayout() {
       }
     }, [studyPlans]);
 
+    const isScheduling = location.pathname.includes("scheduling");
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {isLoading ? (
@@ -54,6 +56,36 @@ export default function SchoolStudyLayout() {
       ) : (
         <>
           <div className="flex items-center justify-between px-4 pt-4 shrink-0">
+            {/* Tabs */}
+            <nav className="flex gap-1">
+              {[
+                { label: "Tổng quan", key: "overview" },
+                { label: "Lịch trình", key: "scheduling" },
+              ].map(({ label, key }) => {
+                const isActive =
+                  key === "scheduling" ? isScheduling : !isScheduling;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => {
+                      if (selectedStudyPlan) {
+                        navigate(
+                          `/app/study-plans/${selectedStudyPlan.id}/${key}`,
+                        );
+                      }
+                    }}
+                    className={`px-4 py-2 text-sm rounded-t-lg border-b-2 transition-colors ${
+                      isActive
+                        ? "border-foreground text-foreground font-medium"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </nav>
+
             <Select
               value={
                 selectedStudyPlan ? selectedStudyPlan.id.toString() : undefined
@@ -62,7 +94,7 @@ export default function SchoolStudyLayout() {
                 const plan = studyPlans?.find((s) => s.id.toString() === value);
                 if (plan) {
                   setSelectedStudyPlan(plan);
-                  navigate(`/app/study-plans/${plan.id}`);
+                  navigate(`/app/study-plans/${plan.id}/overview`);
                 }
               }}
             >
@@ -71,7 +103,7 @@ export default function SchoolStudyLayout() {
               </SelectTrigger>
               <SelectContent>
                 {studyPlans?.map((studyPlan) => {
-                  const title = `HK${studyPlan.academicTermId} - ${studyPlan.academicYearId}`;
+                  const title = studyPlan.name;
                   const statusInfo = semesterStatusMap[studyPlan.status];
                   return (
                     <SelectItem
@@ -90,7 +122,7 @@ export default function SchoolStudyLayout() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex-1 min-h-0 h-full overflow-hidden">
+          <div className="flex-1 min-h-0 h-full overflow-hidden p-4">
             <Outlet
               context={{
                 studyPlans,

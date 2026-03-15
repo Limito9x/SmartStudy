@@ -5,24 +5,26 @@ namespace SmartStudy.Server.Dtos
 {
     public record RequestRoutineDto(
         string Name,
+        string? Instructor,
         string? Description,
-        DateTime? StartDate,
+        DateTime StartDate,
         DateTime? EndDate,
         TaskType Type,
         int? CourseId,
-        int? EventRequirementId,
+        int? TimelineEventId,
         int StudyPlanId
     );
     
     public record SyncRoutineDto(
         int Id,
         string Name,
+        string? Instructor,
         string? Description,
-        DateTime? StartDate,
+        DateTime StartDate,
         DateTime? EndDate,
         TaskType Type,
         int? CourseId,
-        int? EventRequirementId,
+        int? TimelineEventId,
         int StudyPlanId,
         List<ScheduleDto>? Schedules
     );
@@ -30,11 +32,12 @@ namespace SmartStudy.Server.Dtos
     public record ResponseRoutineDto(
         int Id,
         string Name,
+        string? Instructor,
         string? Description,
-        DateTime? StartDate,
+        DateTime StartDate,
         DateTime? EndDate,
         int? CourseId,
-        int? EventRequirementId,
+        int? TimelineEventId,
         List<ScheduleDto> Schedules,
         List<ResponseTaskDto>? Tasks
     );
@@ -42,12 +45,13 @@ namespace SmartStudy.Server.Dtos
     public record SimpleResponseRoutineDto(
         int Id,
         string Name,
+        string? Instructor,
         string? Description,
-        DateTime? StartDate,
+        DateTime StartDate,
         DateTime? EndDate,
         TaskType Type,
         int? CourseId,
-        int? EventRequirementId,
+        int? TimelineEventId,
         List<ScheduleDto> Schedules
     );
 }

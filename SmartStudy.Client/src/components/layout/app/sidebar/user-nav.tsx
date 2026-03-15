@@ -15,10 +15,10 @@ export default function UserNav() {
   };
 
   const userMenuItems = [
-    {
-      title: "Cài đặt",
-      description: "Thiết lập thông tin cá nhân và cài đặt học tập",
-    },
+    // {
+    //   title: "Cài đặt",
+    //   description: "Thiết lập thông tin cá nhân và cài đặt học tập",
+    // },
   ];
 
   return (

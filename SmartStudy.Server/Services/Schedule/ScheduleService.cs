@@ -57,7 +57,6 @@ namespace SmartStudy.Server.Services
                 DayOfWeek = dto.DayOfWeek,
                 StartTime = dto.StartTime,
                 Duration = dto.Duration,
-                DurationUnit = dto.DurationUnit,
                 Location = dto.Location
             };
 
@@ -96,7 +95,6 @@ namespace SmartStudy.Server.Services
             schedule.DayOfWeek = dto.DayOfWeek;
             schedule.StartTime = dto.StartTime;
             schedule.Duration = dto.Duration;
-            schedule.DurationUnit = dto.DurationUnit;
             schedule.Location = dto.Location;
 
             await _context.SaveChangesAsync();
@@ -147,8 +145,7 @@ namespace SmartStudy.Server.Services
                 .Where(t =>
                     t.UserId == userId &&
                     t.TaskDate.HasValue &&
-                    t.StartTime.HasValue &&        // phải có giờ
-                    t.DurationMinutes.HasValue &&  // phải có thời lượng
+                    t.StartTime.HasValue &&
                     t.TaskDate.Value >= fromDate &&
                     t.TaskDate.Value <= toDate &&
                     t.StudyPlanId == studyPlanId)
@@ -168,7 +165,6 @@ namespace SmartStudy.Server.Services
                 DayOfWeek: schedule.DayOfWeek,
                 StartTime: schedule.StartTime,
                 Duration: schedule.Duration,
-                DurationUnit: schedule.DurationUnit,
                 Location: schedule.Location
             );
         }
@@ -197,8 +193,7 @@ namespace SmartStudy.Server.Services
             {
                 return [];
             }
-
-            var durationMinutes = CalculateDurationMinutes(schedule);
+            
             var tasks = new List<TaskItem>();
 
             for (var date = generationStartDate; date <= generationEndDate; date = date.AddDays(1))
@@ -214,35 +209,19 @@ namespace SmartStudy.Server.Services
                     Description = routine.Description,
                     TaskDate = DateOnly.FromDateTime(date),
                     StartTime = schedule.StartTime,
-                    DurationMinutes = durationMinutes,
                     Location = schedule.Location,
                     UserId = userId,
                     RoutineId = routine.Id,
                     ScheduleId = schedule.Id,
                     Status = TaskStatus.Pending,
                     Type = routine.Type,
-                    EventRequirementId = routine.EventRequirementId,
+                    TimelineEventId = routine.TimelineEventId,
                     CourseId = routine.CourseId,
                     StudyPlanId = routine.StudyPlanId
                 });
             }
 
             return tasks;
-        }
-
-        private static int? CalculateDurationMinutes(ScheduleEntity schedule)
-        {
-            if (!schedule.Duration.HasValue || schedule.Duration.Value <= 0)
-            {
-                return null;
-            }
-
-            return schedule.DurationUnit switch
-            {
-                TimeUnit.Hours => schedule.Duration.Value * 60,
-                TimeUnit.Periods => schedule.Duration.Value * 45,
-                _ => schedule.Duration.Value
-            };
         }
 
         private static DateTime GetGenerationStartDate(Routine routine)

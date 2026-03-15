@@ -3,10 +3,10 @@ import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const navigationItems = [
-  { label: "Tổng quan", path: "/" },
-  { label: "Kế hoạch học tập", path: "/study-plans" },
+  { label: "Hôm nay", path: "/" },
+  { label: "Khóa học", path: "/study-plans" },
   // { label: "Lịch trình", path: "/calendar" },
-  { label: "Quản lý môn học", path: "/subjects" },
+  // { label: "Quản lý môn học", path: "/subjects" },
 ];
 
 export default function Navigation() {

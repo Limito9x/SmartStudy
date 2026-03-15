@@ -14,9 +14,23 @@ namespace SmartStudy.Server.Entities.Enums
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum CourseStatus
     {
-        Draft, // Kế hoạch học tập mới tạo, chưa bắt đầu
-        Enrolled, // Đã đăng ký học phần, đang học
+        Enrolled,
         Completed,
         Dropped
+    }
+    
+    public enum TagType
+    {
+        Major,
+        University,
+        Cohort,
+        Semester
+    }
+    
+    public enum TagLinkedType
+    {
+        User, // Ngữ cảnh sinh viên
+        Subject, // Recommend môn học
+        StudyPlan // Ngữ cảnh kế hoạch học tập
     }
 }

@@ -8,12 +8,6 @@ export const logSchema = z.object({
     .min(1, "Thời lượng thực tế phải lớn hơn hoặc bằng 1 phút")
     .nullable()
     .optional(),
-  productivityScore: z.coerce
-    .number()
-    .min(0, "Điểm năng suất phải lớn hơn hoặc bằng 0")
-    .max(10, "Điểm năng suất không được vượt quá 10")
-    .nullable()
-    .optional(),
   comrehensiveLevel: z.coerce
     .number()
     .min(0, "Mức độ hiểu bài phải lớn hơn hoặc bằng 0")

@@ -9,9 +9,9 @@ namespace SmartStudy.Server.Entities
         //public TaskLogStatus Status { get; set; }
         public string? Note { get; set; }
         public DateTime? CompletedAt { get; set; }
-        public int ActualDurationMinutes { get; set; } // Thời lượng thực tế, để hỗ trợ đánh giá sau này
-        public int? ProductivityScore { get; set; } // Tập trung
-        public ComrehensiveLevel? ComrehensiveLevel { get; set; } // Hiểu bài
+        public int ActualDuration { get; set; } // Thời lượng thực tế, để hỗ trợ đánh giá sau này
+        // public int? ProductivityScore { get; set; }
+        public ComprehensionLevel? ComprehensionLevel { get; set; } // Hiểu bài
         public DifficultyLevel? DifficultyLevel { get; set; } // Độ khó
         // Pomodora - Hardcore mode: log thời gian bắt đầu và kết thúc thực tế, để hỗ trợ đánh giá sau này
         public DateTime? TimerStartAt { get; set; }

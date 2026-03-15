@@ -8,11 +8,10 @@ namespace SmartStudy.Server.Dtos
     (
         string Name,
         string? Description,
-        DateTime? DueDate,
-        DateTime? StartAt,
-        DateTime? EndAt,
+        DateOnly? TaskDate,
+        TimeOnly? StartTime,
+        int? PlannedDuration,
         TaskType Type,
-        List<int>? LinkedFormIds,
         int? CourseId,
         int StudyPlanId
     );

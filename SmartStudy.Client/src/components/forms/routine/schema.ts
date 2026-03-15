@@ -3,6 +3,7 @@ import { z } from "zod";
 export const routineSchema = z
   .object({
     name: z.string().min(1, "Vui lòng nhập tên lịch trình"),
+    instructor: z.string().optional(),
     description: z.string().optional(),
     type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting"]),
     courseId: z.number().optional(),

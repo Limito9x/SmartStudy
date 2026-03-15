@@ -238,16 +238,6 @@ namespace SmartStudy.Server.Services
                 {
                     continue; // Bỏ qua nếu đã tồn tại Task cho lịch trình này vào ngày này
                 }
-                var durationScale = 1;
-                if (occurence.Schedule.DurationUnit == TimeUnit.Hours)
-                {
-                    durationScale = 60;
-                }
-                else if (occurence.Schedule.DurationUnit == TimeUnit.Periods)
-                {
-                    durationScale = 45;
-                }
-                var durationMinutes = occurence.Schedule.Duration * durationScale;
                 {
                     var task = new TaskItem
                     {
@@ -255,14 +245,14 @@ namespace SmartStudy.Server.Services
                         Description = Routine.Description,
                         TaskDate = DateOnly.FromDateTime(occurence.Date),
                         StartTime = occurence.Schedule.StartTime,
-                        DurationMinutes = durationMinutes,
+                        PlannedDuration = occurence.Schedule.Duration,
                         Location = occurence.Schedule.Location,
                         UserId = userId,
                         RoutineId = RoutineId,
                         ScheduleId = occurence.Schedule.Id,
                         Status = Entities.Enums.TaskStatus.Pending,
                         Type = Routine.Type,
-                        EventRequirementId = Routine.EventRequirementId
+                        TimelineEventId = Routine.TimelineEventId
                     };
                     tasksToInsert.Add(task);
                 }

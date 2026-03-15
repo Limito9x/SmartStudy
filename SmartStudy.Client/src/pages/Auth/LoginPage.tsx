@@ -19,7 +19,7 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Left — Branding panel */}
-      <div className="hidden lg:flex flex-col justify-center bg-primary px-12 text-primary-foreground">
+      <div className="hidden lg:flex flex-col justify-center items-center bg-primary px-12 text-primary-foreground">
         <h1 className="text-4xl font-extrabold tracking-tight">SmartStudy</h1>
         <p className="mt-4 max-w-md text-lg text-primary-foreground/80">
           Quản lý kế hoạch học tập, theo dõi tiến độ và nhận trợ giúp từ AI —

@@ -31,7 +31,7 @@ function getCurrentWeekRange() {
     const toCSharpDayOfWeek = (temporalDow: number) =>
       temporalDow === 7 ? 0 : temporalDow;
 
-export default function SchedulingTab() {
+export default function PlanSchedulingTab() {
   const [selectedRoutine, setSelectedRoutine] =
     useState<SimpleResponseRoutineDto | null>(null);
   const selectedRoutineRef = useRef<SimpleResponseRoutineDto | null>(null);
@@ -114,7 +114,6 @@ export default function SchedulingTab() {
             createSchedule.mutate({
               body: {
                 routineId: Number(selectedRoutineRef.current?.id),
-                durationUnit: "Minutes",
                 ...values,
                 location: values.location || null,
               },

@@ -12,16 +12,7 @@ namespace SmartStudy.Server.Data.Configurations
                 .WithMany(u => u.StudyPlans)
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasOne(x => x.AcademicYear)
-                .WithMany()
-                .HasForeignKey(x => x.AcademicYearId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasOne(x => x.AcademicTerm)
-                .WithMany()
-                .HasForeignKey(x => x.AcademicTermId)
-                .OnDelete(DeleteBehavior.Restrict);
+            
         }
     }
 }

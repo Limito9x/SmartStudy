@@ -19,8 +19,6 @@ namespace SmartStudy.Server.Data
         }
 
         public DbSet<RefreshToken> RefreshTokens { get; set; } = null!;
-        public DbSet<AcademicYear> AcademicYears { get; set; } = null!;
-        public DbSet<AcademicTerm> AcademicTerms { get; set; } = null!;
         public DbSet<Subject> Subjects { get; set; } = null!;
         public DbSet<StudyPlan> StudyPlans { get; set; } = null!;
         public DbSet<TaskItem> Tasks { get; set; } = null!;
@@ -39,21 +37,6 @@ namespace SmartStudy.Server.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            // Seed master data
-            var seedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            builder.Entity<AcademicTerm>().HasData(
-                new AcademicTerm { Id = 1, Name = "Học kỳ 1", TermValue = 1, CreatedAt = seedDate },
-                new AcademicTerm { Id = 2, Name = "Học kỳ 2", TermValue = 2, CreatedAt = seedDate },
-                new AcademicTerm { Id = 3, Name = "Học kỳ Hè", TermValue = 3, CreatedAt = seedDate }
-            );
-
-            var academicYears = new List<AcademicYear>();
-            for(int i = 2020; i <= 2040; i++)
-            {
-                academicYears.Add(new AcademicYear { Id = i, StartYear = i, EndYear = i + 1, CreatedAt = seedDate });
-            }
-            builder.Entity<AcademicYear>().HasData(academicYears);
 
             builder.Entity<IdentityRole<int>>().HasData(
                 new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN", ConcurrencyStamp = "a1b2c3d4-0001-0000-0000-000000000000" },

@@ -12,8 +12,7 @@ namespace SmartStudy.Server.Dtos
 
     public record RequestStudyPlanDto
     (
-        int AcademicTermId,
-        int AcademicYearId,
+        string Name,
         DateTime StartDate,
         DateTime EndDate
     );
@@ -31,9 +30,7 @@ namespace SmartStudy.Server.Dtos
     public record ResponseStudyPlanDto
     (
         int Id,
-        int AcademicTermId,
-        int AcademicYearId,
-        string DisplayName,
+        string Name,
         DateTime StartDate,
         DateTime EndDate,
         DateTime CreatedAt,
@@ -44,7 +41,7 @@ namespace SmartStudy.Server.Dtos
     public record SimpleResponseStudyPlanDto
     (
         int Id,
-        string DisplayName,
+        string Name,
         DateTime StartDate,
         DateTime EndDate,
         StudyPlanStatus Status

@@ -6,10 +6,10 @@ namespace SmartStudy.Server.Dtos
     (
         int Id,
         string? Note,
-        int? ActualDurationMinutes, // Số phút dành ra
-        int? ProductivityScore,
-        ComrehensiveLevel? ComrehensiveLevel,
+        int? ActualDuration, // Số phút dành ra
+        ComprehensionLevel? ComprehensionLevel,
         DifficultyLevel? DifficultyLevel,
+        double Productivity,
         DateTime? TimerStartAt,
         DateTime? TimerEndAt,
         int? EventRequirementId,
@@ -21,8 +21,7 @@ namespace SmartStudy.Server.Dtos
     (
         string? Note,
         int? ActualDurationMinutes, // Số phút dành ra
-        int? ProductivityScore,
-        ComrehensiveLevel? ComrehensiveLevel,
+        ComprehensionLevel? ComprehensionLevel,
         DifficultyLevel? DifficultyLevel,
         DateTime? TimerStartAt,
         DateTime? TimerEndAt,

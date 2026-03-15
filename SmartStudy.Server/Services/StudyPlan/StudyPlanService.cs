@@ -57,9 +57,6 @@ namespace SmartStudy.Server.Services
                 ReorderStudyPlans(spList);
                 await _context.SaveChangesAsync();
 
-            await _context.Entry(studyPlan).Reference(x => x.AcademicTerm).LoadAsync();
-            await _context.Entry(studyPlan).Reference(x => x.AcademicYear).LoadAsync();
-
             return _mapper.Map<ResponseStudyPlanDto>(studyPlan);
         }
 
@@ -67,8 +64,6 @@ namespace SmartStudy.Server.Services
         {
             var studyPlan = await _context.StudyPlans
                 .Include(p => p.Courses)
-                .Include(p => p.AcademicTerm)
-                .Include(p => p.AcademicYear)
                 .FirstOrDefaultAsync(p => p.Id == studyPlanId);
             if (studyPlan == null) return null;
 
@@ -82,8 +77,6 @@ namespace SmartStudy.Server.Services
 
             var studyPlans = await _context.StudyPlans
                 .Include(p => p.Courses)
-                .Include(p => p.AcademicTerm)
-                .Include(p => p.AcademicYear)
                 .Where(p => p.UserId == userId)
                 .OrderBy(p => p.StartDate)
                 .ToListAsync();
@@ -97,8 +90,6 @@ namespace SmartStudy.Server.Services
 
             var studyPlan = await _context.StudyPlans
                 .Include(p => p.Courses)
-                .Include(p => p.AcademicTerm)
-                .Include(p => p.AcademicYear)
                 .FirstOrDefaultAsync(p => p.Id == studyPlanId);
             if (studyPlan == null) return null;
 
@@ -267,12 +258,12 @@ namespace SmartStudy.Server.Services
             await _context.SaveChangesAsync();
         }
 
-        private async Task PurgeDraftCoursesAsync(int planId)
-        {
-            var drafts = await _context.Courses
-                .Where(c => c.StudyPlanId == planId && c.Status == CourseStatus.Draft)
-                .ExecuteDeleteAsync();
-        }
+        // private async Task PurgeDraftCoursesAsync(int planId)
+        // {
+        //     var drafts = await _context.Courses
+        //         .Where(c => c.StudyPlanId == planId && c.Status == CourseStatus.Draft)
+        //         .ExecuteDeleteAsync();
+        // }
 
         //private List<TimelineEvent>? GenerateAutoEventsForCourseAsync(int courseId, SubjectType subjectType)
         //{

@@ -132,6 +132,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IRoutineService, RoutineService>()
                 .AddScoped<IChatService, ChatService>()
                 .AddScoped<ISubjectService, SubjectService>()
+                .AddScoped<IStudentDashboardService, StudentDashboardService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<IMapper, ServiceMapper>();
@@ -178,6 +179,11 @@ if (app.Environment.IsDevelopment())
         options.Theme = ScalarTheme.Mars;
         // Scalar sẽ tự động đọc từ /openapi/v1.json
     });
+    
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+    await DatabaseSeeder.SeedAsync(context, userManager);
 }
 
 app.UseHttpsRedirection();

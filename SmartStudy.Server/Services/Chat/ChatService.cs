@@ -93,12 +93,18 @@ namespace SmartStudy.Server.Services
             var todayTasks = await _context.Tasks
                 .Where(t => t.UserId == userId && t.TaskDate == today)
                 .Include(t => t.Course)
+                .Include(t => t.Logs)  // thêm dòng này
                 .OrderBy(t => t.StartTime)
                 .ToListAsync();
-            
+
             var taskContext = todayTasks.Any()
                 ? string.Join("\n", todayTasks.Select(t =>
-                    $"- {t.Name} | {t.StartTime?.ToString("HH:mm") ?? "chưa có giờ"} | {t.Status} | Môn: {t.Course?.Name ?? "không có"}"))
+                {
+                    var logSummary = t.Logs != null && t.Logs.Any()
+                        ? $"| Đã học {t.Logs.Sum(l => l.ActualDuration)} phút"
+                        : "| Chưa có log";
+                    return $"- {t.Name} | {t.StartTime?.ToString("HH:mm") ?? "chưa có giờ"} | {t.Status} | Môn: {t.Course?.Name ?? "không có"} {logSummary}";
+                }))
                 : "Hôm nay không có task nào.";
 
             var history = new ChatHistory();

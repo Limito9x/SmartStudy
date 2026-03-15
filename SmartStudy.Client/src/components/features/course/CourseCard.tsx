@@ -5,7 +5,6 @@ import {
   CardHeader,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,17 +55,13 @@ export default function CourseCard({ course, onEdit, onDelete, onView }: CourseC
       <CardHeader className="pb-2 pr-10">
         <div className="flex items-start gap-2 flex-wrap">
           <span className="font-semibold text-base leading-tight">
-            {course.subjectName}
+            {course.name}
           </span>
-          <Badge variant="secondary">{course.credits} tín chỉ</Badge>
         </div>
-        {course.mentor && (
-          <p className="text-sm text-muted-foreground">{course.mentor}</p>
-        )}
       </CardHeader>
 
       <CardContent className="pb-2 flex-1">
-        {/* thêm info khác ở đây sau */}
+        
       </CardContent>
 
       <CardFooter className="pt-2 border-t">

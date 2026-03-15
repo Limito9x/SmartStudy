@@ -13,11 +13,10 @@ export const courseApiMapper = {
     studyPlanId: number,
   ): RequestCourseDto => ({
     studyPlanId,
-    subjectId: courseData.subjectId,
-    mentor: courseData.mentor,
-    alternativeName: courseData.alternativeName,
+    name: courseData.name,
     targetScore: null,
     finalScore: null,
+    goal: courseData.goal || null,
   }),
 };
 
@@ -28,12 +27,13 @@ export const routineApiMapper = {
   ): RequestRoutineDto => ({
     studyPlanId,
     name: routineData.name,
+    instructor: routineData.instructor || "",
     description: routineData.description || "",
     type: routineData.type,
     courseId: Number(routineData.courseId),
-    startDate: new Date(routineData?.startDate || "").toISOString() || null,
+    startDate: new Date(routineData?.startDate || "").toISOString(),
     endDate: new Date(routineData?.endDate || "").toISOString() || null,
-    eventRequirementId: null,
+    timelineEventId: null,
   }),
 };
 

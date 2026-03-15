@@ -3,8 +3,7 @@ import type { RequestStudyPlanDto } from "@/services/api";
 
 export const studyPlanSchema = z
   .object({
-    academicTermId: z.coerce.number().min(1, "Kế hoạch học tập không được để trống"),
-    academicYearId: z.coerce.number().min(1, "Năm học không được để trống"),
+    name: z.string().min(1, "Tên kế hoạch học tập không được để trống"),
     startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
     endDate: z.string().min(1, "Ngày kết thúc không được để trống"),
   })

@@ -1,10 +1,5 @@
-import TodayTasks from "./TodayTasks";
+import TodayPage from "./TodayPage";
 
 export default function MainPage() {
-
-  return (
-    <div className="p-4">
-        <TodayTasks />
-    </div>
-  );
+  return <TodayPage />;
 }

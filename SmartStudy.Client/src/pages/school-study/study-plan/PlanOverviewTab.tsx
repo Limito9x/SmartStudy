@@ -10,15 +10,13 @@ import {
 } from "@/components/ui/sheet";
 import CourseForm from "@/components/forms/course/CourseForm";
 import type { CourseFormValues } from "@/components/forms/course/schema";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { courseApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { courseFormMapper } from "@/utils/mapper.ts/formMapper";
 import { useDialogStore } from "@/stores/useDialogStore";
 import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
-
-interface DraftStudyPlanProps {
-  studyPlanId: number;
-}
+import { useOutletContext } from "react-router-dom";
+import type { StudyPlanOutletContext } from "@/layouts/StudyPlanLayout";
 
 interface CourseSheetProps {
   courseId?: number;
@@ -28,16 +26,19 @@ interface CourseSheetProps {
 }
 
 const FORM_DEFAULT_VALUES: CourseFormValues = {
-  subjectId: undefined as unknown as number,
-  mentor: "",
-  alternativeName: "",
+  name: "",
   targetScore: undefined,
   finalScore: undefined,
+  goal: "",
 };
 
-export default function DraftStudyPlan({ studyPlanId }: DraftStudyPlanProps) {
+export default function PlanOverviewTab() {
+  const { studyPlanId } = useParams();
+  const { selectedStudyPlan } = useOutletContext<StudyPlanOutletContext>();
   const navigate = useNavigate();
-  const courseApi = useCourse({ studyPlanId });
+  const courseApi = useCourse({
+    studyPlanId: Number(studyPlanId),
+  });
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [sheetState, setSheetState] = useState<CourseSheetProps>({
     title: "Thêm lớp học phần",
@@ -56,7 +57,7 @@ export default function DraftStudyPlan({ studyPlanId }: DraftStudyPlanProps) {
     try {
       const payload = courseApiMapper.toRequestCourseDto(
         courseData,
-        studyPlanId,
+        Number(studyPlanId),
       );
 
       await createCourseMutation.mutateAsync({ body: payload });
@@ -72,7 +73,7 @@ export default function DraftStudyPlan({ studyPlanId }: DraftStudyPlanProps) {
     try {
       const payload = courseApiMapper.toRequestCourseDto(
         courseData,
-        studyPlanId,
+        Number(studyPlanId),
       );
 
       await updateCourseMutation.mutateAsync({
@@ -97,7 +98,7 @@ export default function DraftStudyPlan({ studyPlanId }: DraftStudyPlanProps) {
         title: "Xác nhận xóa",
         view: (
           <ConfirmDelete
-            message={`Bạn có chắc chắn muốn xóa lớp học phần "${course.subjectName}" không? Hành động này không thể hoàn tác.`}
+            message={`Bạn có chắc chắn muốn xóa lớp học phần "${course.name}" không? Hành động này không thể hoàn tác.`}
             onConfirm={async () => {
               await deleteCourseMutation.mutateAsync({
                 path: {
@@ -154,7 +155,11 @@ export default function DraftStudyPlan({ studyPlanId }: DraftStudyPlanProps) {
               course={course}
               onEdit={() => openEditCourseSheet(Number(course.id))}
               onDelete={() => handleDeleteCourse(Number(course.id))}
-              onView={() => navigate(`courses/${course.id}`)}
+              onView={() =>
+                navigate(
+                  `/app/study-plans/${selectedStudyPlan?.id}/courses/${course.id}`,
+                )
+              }
             />
           ))}
         </div>

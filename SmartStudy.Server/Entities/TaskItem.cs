@@ -10,7 +10,7 @@ namespace SmartStudy.Server.Entities
         public string? Description { get; set; }
         public DateOnly? TaskDate { get; set; }
         public TimeOnly? StartTime { get; set; }
-        public int? DurationMinutes { get; set; } // Thời lượng dự kiến, để hỗ trợ tính toán nhắc nhở và đánh giá sau này
+        public int? PlannedDuration { get; set; } // Thời lượng dự kiến, để hỗ trợ tính toán nhắc nhở và đánh giá sau này
         public string? Location { get; set; } // Địa điểm học, để hỗ trợ nhắc nhở và đánh giá sau này
         // --- PHÂN LOẠI & TRẠNG THÁI ---
         public Enums.TaskStatus Status { get; set; } = Enums.TaskStatus.Pending;
@@ -28,8 +28,8 @@ namespace SmartStudy.Server.Entities
         public int StudyPlanId { get; set; }
         public StudyPlan StudyPlan { get; set; }
         // Task thuộc về 1 yêu cầu
-        public int? EventRequirementId { get; set; }
-        public EventRequirement? EventRequirement { get; set; }
+        public int? TimelineEventId { get; set; }
+        public TimelineEvent? TimelineEvent { get; set; }
         public ICollection<LogItem>? Logs { get; set; } = new List<LogItem>();
         [NotMapped] // Không tạo cột này trong DB
         public bool IsOverdue

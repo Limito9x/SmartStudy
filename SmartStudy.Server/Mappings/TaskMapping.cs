@@ -12,6 +12,6 @@ public class TaskMapping: IRegister
             .Map(dest=>dest.Title, src => src.Name)
             .Map(dest=>dest.StartDate, src => src.TaskDate)    
             .Map(dest => dest.EndTime,
-                src => src.StartTime!.Value.AddMinutes(src.DurationMinutes!.Value));
+                src => src.StartTime!.Value.AddMinutes(src.PlannedDuration!.Value));
     }
 }

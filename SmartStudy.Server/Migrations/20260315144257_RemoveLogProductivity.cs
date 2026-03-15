@@ -5,22 +5,22 @@
 namespace SmartStudy.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveSemesterIdFromChatSession : Migration
+    public partial class RemoveLogProductivity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "SemesterId",
-                table: "ChatSessions");
+                name: "ProductivityScore",
+                table: "Logs");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
-                name: "SemesterId",
-                table: "ChatSessions",
+                name: "ProductivityScore",
+                table: "Logs",
                 type: "integer",
                 nullable: true);
         }

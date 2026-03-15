@@ -7,5 +7,5 @@ export default function RedirectStudyPlanPage() {
   if (!currentStudyPlan) {
     return <div>Không có kế hoạch học tập nào đang hoạt động</div>;
   }
-  return <Navigate to={`/app/study-plans/${currentStudyPlan.id}`} replace />;
+  return <Navigate to={`/app/study-plans/${currentStudyPlan.id}/overview`} replace />;
 }

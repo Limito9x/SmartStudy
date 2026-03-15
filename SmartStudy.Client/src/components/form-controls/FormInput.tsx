@@ -32,6 +32,7 @@ export function FormInput<T extends FieldValues>({
           />
         ) : (
           <Input
+          autoComplete="off"
             placeholder={placeholder}
             type={type}
             {...field}

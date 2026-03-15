@@ -1,5 +1,4 @@
 // ChatDrawer.tsx
-import { useState } from "react";
 import { MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -8,41 +7,43 @@ import { Thread } from "@/components/thread";
 import { useChatRuntime } from "@/hooks/useChatRuntime";
 import { useChatSession } from "@/hooks/entities/useChatSession";
 import { useEffect } from "react";
+import { useChatDrawerStore } from "@/stores/useChatDrawerStore";
 
 export default function ChatDrawer() {
-  const [open, setOpen] = useState(false);
+  const { isOpen, open, setOpen } = useChatDrawerStore();
 
   return (
     <>
       {/* Floating button */}
       <Button
-        onClick={() => setOpen(true)}
+        onClick={open}
         className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
         size="icon"
       >
         <MessageCircle size={20} />
       </Button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-[400px] p-0 flex flex-col">
-          <ChatPanel onClose={() => setOpen(false)} />
+      <Sheet open={isOpen} onOpenChange={setOpen}>
+        <SheetContent side="right" className="w-2xl p-0 flex flex-col">
+          <ChatPanel />
         </SheetContent>
       </Sheet>
     </>
   );
 }
 
-function ChatPanel({ onClose }: { onClose: () => void }) {
+function ChatPanel() {
   const { getAllChatSessions, createChatSession } = useChatSession();
+  const { mutate: createChatSessionMutate } = createChatSession;
   const { data: chatSessions, isFetched } = getAllChatSessions;
 
   useEffect(() => {
     if (isFetched && (!chatSessions || chatSessions.length === 0)) {
-      createChatSession.mutate({
+      createChatSessionMutate({
         body: { title: `Chat ${new Date().toLocaleDateString("vi-VN")}` },
       });
     }
-  }, [isFetched, chatSessions]);
+  }, [isFetched, chatSessions, createChatSessionMutate]);
 
   const sessionId = Number(chatSessions?.[0]?.id);
 

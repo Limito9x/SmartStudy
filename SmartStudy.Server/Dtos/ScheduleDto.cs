@@ -7,7 +7,6 @@ public record ScheduleDto(
     DayOfWeek DayOfWeek,
     TimeOnly StartTime,
     int Duration,
-    TimeUnit DurationUnit,
     string? Location
 );
 
@@ -16,7 +15,6 @@ public record RequestScheduleDto(
     DayOfWeek DayOfWeek,
     TimeOnly StartTime,
     int Duration,
-    TimeUnit DurationUnit,
     string? Location
 );
 
@@ -24,7 +22,6 @@ public record UpdateScheduleDto(
     DayOfWeek DayOfWeek,
     TimeOnly StartTime,
     int Duration,
-    TimeUnit DurationUnit,
     string? Location
 );
 
@@ -34,7 +31,6 @@ public record ResponseScheduleDto(
     DayOfWeek DayOfWeek,
     TimeOnly? StartTime,
     int? Duration,
-    TimeUnit? DurationUnit,
     string? Location
 );
 

@@ -10,13 +10,9 @@ namespace SmartStudy.Server.Mappings
         {
             config.NewConfig<RequestCourseDto, Course>()
                 .Ignore(dest => dest.Id)
-                .Ignore(dest => dest.SubjectId)
-                .Ignore(dest => dest.Subject)
                 .Ignore(dest => dest.StudyPlan)
                 .IgnoreNullValues(true);
-
-            config.NewConfig<Course, ResponseCourseDto>()
-                .Map(dest => dest.SubjectName, src => src.Subject != null ? src.Subject.Name : string.Empty);
+            
         }
     }
 }

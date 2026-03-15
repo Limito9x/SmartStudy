@@ -1,6 +1,6 @@
 ﻿namespace SmartStudy.Server.Entities.Enums
 {
-    public enum ComrehensiveLevel{
+    public enum ComprehensionLevel{
         None,
         Basic,
         Intermediate,

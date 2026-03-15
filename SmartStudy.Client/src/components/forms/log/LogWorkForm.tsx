@@ -34,20 +34,6 @@ export function LogWorkForm({ onSubmit, defaultValues }: LogWorkFormProps) {
               type="number"
             />
             <FormSelect
-              name="productivityScore"
-              control={control}
-              label="Điểm năng suất"
-              placeholder="Chọn mức năng suất"
-              valueAsNumber
-              options={[
-                { value: "10", label: "10 — Xuất sắc" },
-                { value: "8", label: "8 — Tốt" },
-                { value: "6", label: "6 — Khá" },
-                { value: "4", label: "4 — Trung bình" },
-                { value: "2", label: "2 — Kém" },
-              ]}
-            />
-            <FormSelect
               name="comrehensiveLevel"
               control={control}
               label="Mức độ hiểu bài"

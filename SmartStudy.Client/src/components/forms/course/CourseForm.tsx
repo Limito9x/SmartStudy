@@ -36,48 +36,11 @@ export default function CourseForm({
       children={(courseForm) => {
         return (
           <>
-            <FormCombobox<CourseFormValues, ResponseSubjectDto>
-              control={courseForm.control}
-              name="subjectId"
-              label="Môn học"
-              placeholder={
-                isLoading ? "Đang tải danh sách môn học..." : "Chọn môn học"
-              }
-              options={subjects}
-              getOptionLabel={(option) => option.name}
-              getOptionValue={(option) => option.id.toString()}
-              disabled={isLoading}
-              valueAsNumber
-              notFoundContent={(inputText) => (
-                <div className="p-2 text-sm text-muted-foreground">
-                  Không tìm thấy môn học nào cho "{inputText}"
-                  <Separator className="my-2" />
-                  <QuickCreateSubject name={inputText} />
-                </div>
-              )}
-              emptyText="Không tìm thấy môn học phù hợp"
-              renderOption={(option) => (
-                <div className="flex w-full items-center justify-between gap-3">
-                  <span className="truncate">{option.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {option.credits} tín chỉ
-                  </span>
-                </div>
-              )}
-              onSearchChange={(val) => setSearchTerm(val)}
-            />
-
             <FormInput
+              name="name"
               control={courseForm.control}
-              name="mentor"
-              label="Tên giảng viên"
-              placeholder="Nhập tên giảng viên"
-            />
-            <FormInput
-              control={courseForm.control}
-              name="alternativeName"
-              label="Tên lớp học phần (nếu có)"
-              placeholder="Nhập tên lớp học phần (nếu có)"
+              label="Tên lớp học phần"
+              placeholder="Nhập tên lớp học phần"
             />
             <Button variant="default" type="submit">
               Lưu thông tin lớp học phần

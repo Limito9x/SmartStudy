@@ -4,28 +4,25 @@ namespace SmartStudy.Server.Dtos
 {
     public record RequestCourseDto
     (
+        string Name,
         int StudyPlanId,
-        int SubjectId,
         double? TargetScore,
         double? FinalScore,
-        string? Mentor,
-        string? AlternativeName
+        string? Goal
     );
 
-    public record ResponseCourseDto
-    (
-        int Id,
-        int StudyPlanId,
-        int SubjectId,
-        string SubjectName,
-        string? Mentor,
-        string? AlternativeName,
-        int Credits,
-        double? TargetScore,
-        double? FinalScore,
-        CourseStatus Status,
-        List<ResponseTimelineEventDto>? TimelineEvents
-    );
+    public class ResponseCourseDto
+    {
+        public int Id { get; set; }
+        public int StudyPlanId { get; set; }
+        public string Name { get; set; } = null!;
+        public double? TargetScore { get; set; }
+        public double? FinalScore { get; set; }
+        public string? Goal { get; set; }
+        public CourseStatus Status { get; set; }
+        public double Progress { get; set; }
+        public List<ResponseTimelineEventDto>? TimelineEvents { get; set; }
+    }
 
     public record SyncDraftCoursesDto(List<int> SelectedCourseIds);
 

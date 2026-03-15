@@ -14,7 +14,12 @@ namespace SmartStudy.Server.Data.Configurations
                 .HasConversion<string>();
             builder.Property(t => t.Type)
                 .HasConversion<string>();
-
+            builder.HasIndex(t => new
+            {
+                t.RoutineId,
+                t.ScheduleId,
+                t.TaskDate
+            }).IsUnique();
         }
     }
 }
