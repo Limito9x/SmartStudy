@@ -12,7 +12,8 @@ namespace SmartStudy.Server.Dtos
         TaskType Type,
         int? CourseId,
         int? TimelineEventId,
-        int StudyPlanId
+        int StudyPlanId,
+        List<ScheduleDto>? Schedules
     );
     
     public record SyncRoutineDto(

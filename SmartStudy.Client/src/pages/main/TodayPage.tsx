@@ -240,33 +240,17 @@ function UpcomingEventsSection({
   );
 }
 
-function buildInsightText(summary: DashboardSummaryDto | undefined): string {
-  if (!summary) return "";
-
-  const completion = asNumber(summary.weeklyCompletionRate);
-  const hoursDelta = asNumber(summary.hoursDelta);
-
-  if (completion >= 80) {
-    return "Bạn đang duy trì tiến độ rất tốt. Hãy giữ nhịp học hiện tại và ưu tiên giải quyết các việc quá hạn trước.";
-  }
-
-  if (hoursDelta < 0) {
-    return "Thời lượng học tuần này đang giảm so với tuần trước. Bạn có thể phân bổ thêm một phiên ngắn mỗi ngày để cân bằng lại tiến độ.";
-  }
-
-  return "Bạn đang đi đúng hướng. Tập trung hoàn tất các việc hôm nay để cải thiện tỷ lệ hoàn thành tuần.";
-}
-
 export default function TodayPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { openDialog, closeDialog } = useDialogStore();
   const { open: openChatDrawer } = useChatDrawerStore();
-  const { getDashboardSummary } = useDashboard();
+  const { getDashboardSummary, getDashboardInsight } = useDashboard();
   const { createTaskLogWork, updateTaskStatus } = useTask();
 
   const { data: summary, isLoading } = getDashboardSummary;
-  console.log("Dashboard summary:", summary);
+  
+  const { data: insight } = getDashboardInsight;
 
   const overdueTasks = useMemo(() => summary?.overdueTasks ?? [], [summary]);
   const todayTasks = useMemo(() => summary?.todayTasks ?? [], [summary]);
@@ -346,7 +330,7 @@ export default function TodayPage() {
 
   return (
     <div className="p-4 space-y-4 h-full overflow-y-auto">
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground">
@@ -423,7 +407,7 @@ export default function TodayPage() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {buildInsightText(summary)}
+              {insight}
             </p>
           )}
           <Button size="sm" onClick={handleOpenAI}>

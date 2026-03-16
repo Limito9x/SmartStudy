@@ -21,14 +21,7 @@ type StudyPlanStatusMap = Record<
 
 export type StudyPlanOutletContext = {
   studyPlans: ResponseStudyPlanDto[] | undefined;
-  currentStudyPlan: ResponseStudyPlanDto | null; // kỳ Active
   selectedStudyPlan: ResponseStudyPlanDto | null; // kỳ đang xem
-};
-
-const semesterStatusMap: StudyPlanStatusMap = {
-  Active: { text: "Đang học", color: "bg-blue-500" },
-  Completed: { text: "Đã kết thúc", color: "bg-gray-500" },
-  Planning: { text: "Sắp tới", color: "bg-green-300" },
 };
 
 export default function SchoolStudyLayout() {
@@ -36,14 +29,12 @@ export default function SchoolStudyLayout() {
   
   const { data: studyPlans, isLoading } = useStudyPlan().getAllStudyPlans;
 
-  const currentStudyPlan =
-    studyPlans?.find((s) => s.status === "Active") ?? null;
   const [selectedStudyPlan, setSelectedStudyPlan] =
     useState<ResponseStudyPlanDto | null>(null);
 
     useEffect(() => {
       if (studyPlans && !selectedStudyPlan) {
-        setSelectedStudyPlan(currentStudyPlan ?? studyPlans[0] ?? null);
+        setSelectedStudyPlan(studyPlans[0] ?? null);
       }
     }, [studyPlans]);
 
@@ -60,7 +51,6 @@ export default function SchoolStudyLayout() {
             <nav className="flex gap-1">
               {[
                 { label: "Tổng quan", key: "overview" },
-                { label: "Lịch trình", key: "scheduling" },
               ].map(({ label, key }) => {
                 const isActive =
                   key === "scheduling" ? isScheduling : !isScheduling;
@@ -104,16 +94,12 @@ export default function SchoolStudyLayout() {
               <SelectContent>
                 {studyPlans?.map((studyPlan) => {
                   const title = studyPlan.name;
-                  const statusInfo = semesterStatusMap[studyPlan.status];
                   return (
                     <SelectItem
                       key={studyPlan.id}
                       value={studyPlan.id.toString()}
                     >
                       <div className="flex items-center">
-                        <span
-                          className={`w-3 h-3 rounded-full mr-2 ${statusInfo.color}`}
-                        ></span>
                         {title}
                       </div>
                     </SelectItem>
@@ -126,7 +112,6 @@ export default function SchoolStudyLayout() {
             <Outlet
               context={{
                 studyPlans,
-                currentStudyPlan, // kỳ Active
                 selectedStudyPlan, // kỳ đang xem
               }}
             />

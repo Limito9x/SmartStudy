@@ -1,4 +1,7 @@
+using System.Text.Json.Serialization;
 using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities.Enums;
+using TaskStatus = System.Threading.Tasks.TaskStatus;
 
 namespace SmartStudy.Server.Dtos;
 
@@ -31,15 +34,6 @@ public record ResponseScheduleDto(
     DayOfWeek DayOfWeek,
     TimeOnly? StartTime,
     int? Duration,
-    string? Location
-);
-
-public record CalendarTaskDto(
-    int Id,
-    string Title,
-    DateOnly StartDate,
-    TimeOnly StartTime,
-    TimeOnly EndTime,
     string? Location
 );
 

@@ -89,26 +89,34 @@ public class StudentDashboardService: IStudentDashboardService
     var productivityLastWeek = lastWeekLogs.Any()
         ? lastWeekLogs.Average(l => StatisticHelper.CalculateProductivity(l, l.Task))
         : 0;
+    
+    var hoursDelta = (hoursThisWeek > 0 && hoursLastWeek > 0)
+        ? Math.Round(hoursThisWeek - hoursLastWeek, 1)
+        : (double?)null;
+
+    var productivityDelta = (productivityThisWeek > 0 && productivityLastWeek > 0)
+        ? Math.Round(productivityThisWeek - productivityLastWeek, 1)
+        : (double?)null;
 
     var completionRate = weekTasks.Any()
         ? (double)weekTasks.Count(t => t.Status == Entities.Enums.TaskStatus.Completed)
           / weekTasks.Count * 100
         : 0;
     
-    var upcomingEvents = _context.TimelineEvents
+    var upcomingEvents = await _context.TimelineEvents
         .Include(e => e.Course)
         .Where(e => e.Course.StudyPlan.UserId == userId
                  && e.DueDate.HasValue
                  && e.DueDate.Value.Date > today
                  && e.DueDate.Value.Date <= today.AddDays(30))
-        .ToList();
+        .ToListAsync();
 
     return new DashboardSummaryDto
     {
         WeeklyStudyHours      = Math.Round(hoursThisWeek, 1),
         WeeklyProductivity    = Math.Round(productivityThisWeek, 1),
-        HoursDelta            = Math.Round(hoursThisWeek - hoursLastWeek, 1),
-        ProductivityDelta     = Math.Round(productivityThisWeek - productivityLastWeek, 1),
+        HoursDelta            = hoursDelta,
+        ProductivityDelta     = productivityDelta,
         WeeklyCompletionRate  = Math.Round(completionRate, 1),
         DaysLeftInPlan        = currentPlan?.EndDate.HasValue == true
                                 ? (int)(currentPlan.EndDate.Value - today).TotalDays
@@ -116,7 +124,14 @@ public class StudentDashboardService: IStudentDashboardService
         CurrentPlanName       = currentPlan?.Name,
         TodayTasks            = todayTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
         OverdueTasks          = overdueTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
-        UpcomingEvents         = upcomingEvents.Select(e => e.Adapt<UpcomingEventDto>()).ToList()
+        UpcomingEvents = upcomingEvents.Select(e => {
+            var dto = e.Adapt<UpcomingEventDto>();
+            dto.DaysUntil = e.DueDate.HasValue 
+                ? (int)(e.DueDate.Value.Date - today).TotalDays 
+                : 0;
+            dto.CourseName = e.Course?.Name ?? "";
+            return dto;
+        }).ToList()
     };
 }
 }

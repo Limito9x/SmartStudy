@@ -193,3 +193,32 @@ body {
 .sx__time-grid-event:hover {
   filter: brightness(0.9);
 }
+/* --- PHẦN REACT BIG CALENDAR --- */
+
+/* Làm đẹp cục Task và thêm hiệu ứng Hover */
+.custom-rbc-event {
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+.custom-rbc-event:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+  z-index: 50; /* Hover lên thì nổi lên trên */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+}
+
+/* Hiệu ứng hover cho lưới trống (khi chuẩn bị kéo thả chọn giờ) */
+.rbc-time-slot {
+  transition: background-color 0.1s;
+}
+.rbc-time-slot:hover {
+  background-color: #f3f4f6; /* Màu xám nhạt Tailwind (gray-100) */
+  cursor: crosshair;
+}
+
+/* Đổi màu cái cục resize nằm ở mép dưới của Task */
+.rbc-addons-dnd-resize-ns-icon {
+  border-top-color: rgba(255, 255, 255, 0.8) !important;
+}

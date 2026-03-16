@@ -1,6 +1,7 @@
 using Mapster;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Mappings
 {
@@ -12,15 +13,7 @@ namespace SmartStudy.Server.Mappings
                 .Ignore(dest => dest.Id)
                 .IgnoreNullValues(true);
 
-            config.NewConfig<StudyPlan, ResponseStudyPlanDto>()
-                .Map(dest => dest.Status, src =>
-                    DateTime.Today >= src.StartDate && DateTime.Today <= src.EndDate ? StudyPlanStatus.Active :
-                    src.EndDate < DateTime.Today ? StudyPlanStatus.Completed : StudyPlanStatus.Planning);
-
-            config.NewConfig<StudyPlan, SimpleResponseStudyPlanDto>()
-                .Map(dest => dest.Status, src =>
-                    DateTime.Today >= src.StartDate && DateTime.Today <= src.EndDate ? StudyPlanStatus.Active :
-                    src.EndDate < DateTime.Today ? StudyPlanStatus.Completed : StudyPlanStatus.Planning);
+            
         }
     }
 }

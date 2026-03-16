@@ -1,6 +1,7 @@
 using SmartStudy.Server.Dtos;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Entities
 {
@@ -9,7 +10,7 @@ namespace SmartStudy.Server.Entities
         public string Name {get; set;}
         public int Order { get; set; }
         // public bool IsCurrent { get; set; }
-        // public StudyPlanStatus Status { get; set; } = StudyPlanStatus.Planning;
+        public StudyPlanStatus Status { get; set; } = StudyPlanStatus.Active;
         public int UserId { get; set; }
         public User? User { get; set; }
 

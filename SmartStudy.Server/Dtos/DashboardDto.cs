@@ -8,8 +8,8 @@ public class DashboardSummaryDto
     // 4 KPI cards
     public double WeeklyStudyHours { get; set; }
     public double WeeklyProductivity { get; set; }
-    public double HoursDelta { get; set; }
-    public double ProductivityDelta { get; set; }
+    public double? HoursDelta { get; set; }
+    public double? ProductivityDelta { get; set; }
     public double WeeklyCompletionRate { get; set; } // % tasks completed tuần này
     public int? DaysLeftInPlan { get; set; }
     public string? CurrentPlanName { get; set; }

@@ -1,41 +1,43 @@
-import { routineSchema, type RoutineFormValues } from "./schema";
+import { taskSchema, type TaskFormValues } from "./schema";
 import { BaseForm } from "../base/BaseForm";
 import {
+  FormCombobox,
+  FormDatePicker,
   FormInput,
   FormSelect,
-  FormCombobox,
-  FormDatePicker
 } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
 import type { ResponseCourseDto } from "@/services/api";
 import { Button } from "@/components/ui/button";
 
-interface RoutineFormProps {
+interface TaskFormProps {
   studyPlanId: number;
-  defaultValues?: RoutineFormValues;
-  onSubmit: (values: RoutineFormValues) => void;
+  defaultValues?: TaskFormValues;
+  onSubmit: (values: TaskFormValues) => void;
 }
 
-export default function RoutineForm({
+export default function TaskForm({
   studyPlanId,
   defaultValues,
   onSubmit,
-}: RoutineFormProps) {
+}: TaskFormProps) {
   const { data: courses } = useCourse({ studyPlanId }).getCoursesByStudyPlan;
+
   return (
     <BaseForm
-      schema={routineSchema}
+      schema={taskSchema}
       defaultValues={defaultValues}
       onSubmit={onSubmit}
       children={(methods) => {
         const control = methods.control;
+
         return (
           <>
             <FormInput
               name="name"
               control={control}
-              label="Tên lịch trình"
-              placeholder="Nhập tên lịch trình"
+              label="Tên nhiệm vụ"
+              placeholder="Nhập tên nhiệm vụ"
             />
             <FormInput
               name="description"
@@ -43,10 +45,25 @@ export default function RoutineForm({
               label="Mô tả"
               placeholder="Nhập mô tả (tùy chọn)"
             />
+            <FormDatePicker name="dueDate" control={control} label="Ngày học" />
+            <div className="grid grid-cols-2 gap-3">
+              <FormInput
+                name="startAt"
+                control={control}
+                label="Bắt đầu"
+                type="time"
+              />
+              <FormInput
+                name="endAt"
+                control={control}
+                label="Kết thúc"
+                type="time"
+              />
+            </div>
             <FormSelect
               name="type"
               control={control}
-              label="Loại lịch trình"
+              label="Loại nhiệm vụ"
               options={[
                 { label: "Học lớp", value: "ClassSession" },
                 { label: "Tự học", value: "SelfStudy" },
@@ -54,33 +71,19 @@ export default function RoutineForm({
                 { label: "Họp nhóm", value: "Meeting" },
               ]}
             />
-            <FormCombobox<RoutineFormValues, ResponseCourseDto>
+            <FormCombobox<TaskFormValues, ResponseCourseDto>
               name="courseId"
               control={control}
               label="Thuộc khóa học"
               placeholder="Chọn khóa học (nếu có)"
               options={courses || []}
-              getOptionLabel={(option) =>
-                `${option.name}`
-              }
+              getOptionLabel={(option) => `${option.name}`}
               getOptionValue={(option) => option.id.toString()}
               valueAsNumber
               emptyText="Không tìm thấy khóa học"
             />
-            <FormDatePicker
-              name="startDate"
-              control={control}
-              label="Ngày bắt đầu"
-              minDate={new Date()}
-            />
-            <FormDatePicker
-              name="endDate"
-              control={control}
-              label="Ngày kết thúc"
-              minDate={new Date()}
-            />
             <Button type="submit" className="mt-4">
-              Lưu
+              Tạo nhiệm vụ
             </Button>
           </>
         );

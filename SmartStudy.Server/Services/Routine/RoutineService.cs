@@ -21,7 +21,6 @@ namespace SmartStudy.Server.Services
         Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto);
         Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
-        Task BulkSaveRoutineAsync(List<SyncRoutineDto> RoutineDtos);
         Task<bool> DeleteRoutineAsync(int RoutineId);
     }
     public class RoutineService : IRoutineService
@@ -46,17 +45,17 @@ namespace SmartStudy.Server.Services
 
                 _context.Routines.Add(Routine);
 
-            //     var schedules = RoutineDto.
-            //     Schedules?.Select(s => {
-            //         var schedule = _mapper.Map<Schedule>(s);
-            //         schedule.RoutineId = Routine.Id;
-            //         return schedule;
-            //     }).ToList();
-            //
-            //     if (schedules != null && schedules.Any())
-            //     {
-            //         _context.Schedules.AddRange(schedules);
-            // }
+                var schedules = RoutineDto.
+                Schedules?.Select(s => {
+                    var schedule = _mapper.Map<Schedule>(s);
+                    schedule.RoutineId = Routine.Id;
+                    return schedule;
+                }).ToList();
+            
+                if (schedules != null && schedules.Any())
+                {
+                    _context.Schedules.AddRange(schedules);
+            }
 
             await _context.SaveChangesAsync();
 
@@ -93,127 +92,76 @@ namespace SmartStudy.Server.Services
         }
 
         public async Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto)
-        {
-            var existingRoutine = await _context.Routines
-                .Include(r => r.Schedules)
-                .FirstOrDefaultAsync(r => r.Id == RoutineId);
-            if (existingRoutine == null) return null;
-            _mapper.Map(RoutineDto, existingRoutine);
+{
+    var existingRoutine = await _context.Routines
+        .Include(r => r.Schedules)
+        .FirstOrDefaultAsync(r => r.Id == RoutineId && r.UserId == _currentUserService.UserId);
+        
+    if (existingRoutine == null) return null;
 
-            // Tạm ẩn Collection
-            
-            // CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>
-            // (
-            //     existingEntities: existingRoutine.Schedules,
-            //     incomingDtos: RoutineDto.Schedules ?? new List<ScheduleDto>(),
-            //     entityKeySelector: s => s.Id,
-            //     dtoKeySelector: s => s.Id,
-            //     updateAction: (existingSchedule, dtoSchedule) =>
-            //     {
-            //         _mapper.Map(dtoSchedule, existingSchedule);
-            //     },
-            //     createFunc: dtoSchedule =>
-            //     {
-            //         var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
-            //         newSchedule.RoutineId = existingRoutine.Id;
-            //         return newSchedule;
-            //     }
-            // );
+    using var transaction = await _context.Database.BeginTransactionAsync();
+    try
+    {
+        // 1. Cập nhật thông tin cơ bản của Routine
+        var config = new TypeAdapterConfig();
+        config.NewConfig<RequestRoutineDto, Routine>().Ignore(r => r.Schedules);
+        RoutineDto.Adapt(existingRoutine, config);
 
-            await _context.SaveChangesAsync();
-            return _mapper.Map<ResponseRoutineDto>(existingRoutine);
-        }
+        // 2. Đồng bộ danh sách Schedule con (Thêm/Sửa/Xóa lịch học)
+        CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>(
+            existingEntities: existingRoutine.Schedules,
+            incomingDtos: RoutineDto.Schedules ?? new List<ScheduleDto>(),
+            entityKeySelector: s => s.Id,
+            dtoKeySelector: s => s.Id,
+            updateAction: (existingSchedule, dtoSchedule) =>
+            {
+                _mapper.Map(dtoSchedule, existingSchedule);
+            },
+            createFunc: dtoSchedule =>
+            {
+                var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
+                newSchedule.RoutineId = existingRoutine.Id;
+                return newSchedule;
+            }
+        );
 
+        // 3. Dọn rác: Xóa các Pending Task KHÔNG có log trong tương lai
+        await _context.Tasks
+            .Where(t => t.RoutineId == RoutineId 
+                     && t.UserId == _currentUserService.UserId 
+                     && t.Status == Entities.Enums.TaskStatus.Pending
+                     && t.Logs == null
+                     && t.TaskDate >= DateOnly.FromDateTime(DateTime.UtcNow.Date))
+            .ExecuteDeleteAsync();
+
+        await _context.SaveChangesAsync();
+
+        // 4. Sinh lại Task mới cho 30 ngày
+        await GenerateTasksAsync(existingRoutine.Id, DateTime.UtcNow.AddDays(14));
+
+        await transaction.CommitAsync();
+        return _mapper.Map<ResponseRoutineDto>(existingRoutine);
+    }
+    catch (Exception)
+    {
+        await transaction.RollbackAsync();
+        throw;
+    }
+}
         public async Task<bool> DeleteRoutineAsync(int RoutineId)
         {
             var existingRoutine = await _context.Routines.FindAsync(RoutineId);
             if (existingRoutine == null) return false;
+            await _context.Tasks
+                .Where(t => t.RoutineId == RoutineId 
+                            && t.UserId == _currentUserService.UserId 
+                            && t.Status == Entities.Enums.TaskStatus.Pending
+                            && t.Logs == null
+                            && t.TaskDate >= DateOnly.FromDateTime(DateTime.UtcNow.Date))
+                .ExecuteDeleteAsync();
             _context.Routines.Remove(existingRoutine);
             await _context.SaveChangesAsync();
             return true;
-        }
-
-        public async Task BulkSaveRoutineAsync(List<SyncRoutineDto> RoutineDtos)
-        {
-            int userId = _currentUserService.UserId;
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            
-            var config = new TypeAdapterConfig();
-            config.NewConfig<RequestRoutineDto, Routine>()
-                .Ignore(r=>r.Schedules);
-
-            try
-            {
-                var existingRoutines = await _context.Routines
-                    .Include(r => r.Schedules)
-                    .Where(r => r.UserId == userId)
-                    .ToListAsync();
-
-                // Đồng bộ tầng 1: Routine
-                CollectionHelper.SyncCollection<Routine, SyncRoutineDto, int>
-                    (
-                        existingEntities: existingRoutines,
-                        incomingDtos: RoutineDtos,
-                        entityKeySelector: r => r.Id,
-                        dtoKeySelector: r => r.Id,
-                        updateAction: (existingRoutine, dtoRoutine) =>
-                        {
-                            dtoRoutine.Adapt(existingRoutine, config);
-
-                            // Đồng bộ tầng 2: Schedule
-                            CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>
-                            (
-                                existingEntities: existingRoutine.Schedules,
-                                incomingDtos: dtoRoutine.Schedules ?? new List<ScheduleDto>(),
-                                entityKeySelector: s => s.Id,
-                                dtoKeySelector: s => s.Id,
-                                updateAction: (existingSchedule, dtoSchedule) =>
-                                {
-                                    _mapper.Map(dtoSchedule, existingSchedule);
-                                },
-                                createFunc: dtoSchedule =>
-                                {
-                                    var newSchedule = _mapper.Map<Schedule>(dtoSchedule);
-                                    return newSchedule;
-                                }
-                            );
-                        },
-                        createFunc: dtoRoutine =>
-                        {
-                            var newRoutine = _mapper.Map<Routine>(dtoRoutine);
-                            return newRoutine;
-                        }
-                    );
-
-                var activeRoutineIds = RoutineDtos.Select(r => r.Id).ToList();
-
-                // Dọn rác, xóa cứng các task
-                if(activeRoutineIds.Any() )
-                {
-                    await _context.Tasks
-                        .Where(t => t.UserId == userId && t.RoutineId.HasValue && !activeRoutineIds.Contains((int)t.RoutineId)
-                        && t.Status == Entities.Enums.TaskStatus.Pending
-                        && t.Logs == null
-                        )
-                        .ExecuteDeleteAsync();
-                }
-
-                await _context.SaveChangesAsync();
-
-                var taskList = new List<Task>();
-                foreach (var routine in existingRoutines)
-                {
-                    var pendingTask = GenerateTasksAsync(routine.Id, DateTime.UtcNow.AddDays(30));
-                    taskList.Add(pendingTask);
-                }
-
-                await Task.WhenAll(taskList);
-            }
-            catch (Exception)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
         }
 
         public async Task GenerateTasksAsync(int RoutineId, DateTime Until)
@@ -252,13 +200,18 @@ namespace SmartStudy.Server.Services
                         ScheduleId = occurence.Schedule.Id,
                         Status = Entities.Enums.TaskStatus.Pending,
                         Type = Routine.Type,
-                        TimelineEventId = Routine.TimelineEventId
+                        TimelineEventId = Routine.TimelineEventId,
+                        StudyPlanId = Routine.StudyPlanId
                     };
                     tasksToInsert.Add(task);
                 }
-
+                
+            }
+            
+            // Chạy xong vòng lặp mới AddRange và Save 1 LẦN DUY NHẤT
+            if (tasksToInsert.Any())
+            {
                 _context.Tasks.AddRange(tasksToInsert);
-
                 await _context.SaveChangesAsync();
             }
         }

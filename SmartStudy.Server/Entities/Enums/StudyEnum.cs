@@ -3,6 +3,14 @@
 namespace SmartStudy.Server.Entities.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum StudyPlanStatus
+    {
+        Active,
+        Completed,
+        Archived
+    }
+    
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SubjectType
     {
         Theory,

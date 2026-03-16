@@ -32,9 +32,10 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpGet(Name = "GetStudyPlans")]
-        public async Task<ActionResult<List<ResponseStudyPlanDto>>> GetStudyPlans()
+        public async Task<ActionResult<List<ResponseStudyPlanDto>>> GetStudyPlans(
+            [FromQuery] bool isActive = true)
         {
-            var studyPlans = await _studyPlanService.GetStudyPlansByUserIdAsync();
+            var studyPlans = await _studyPlanService.GetStudyPlansByUserIdAsync(isActive);
             return Ok(studyPlans);
         }
 

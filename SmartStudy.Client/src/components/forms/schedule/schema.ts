@@ -59,6 +59,7 @@ export type RoutineFormInput = z.input<typeof routineSchema>;
 export type RoutineFormValues = z.output<typeof routineSchema>;
 
 export const scheduleSchema = z.object({
+  id: z.number(),
   dayOfWeek: z.number().min(0).max(6),
   startTime: z.string().min(1,"Giờ bắt đầu không được để trống"), // "08:00"
   duration: z.number().min(1),

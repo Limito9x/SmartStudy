@@ -14,7 +14,6 @@ namespace SmartStudy.Server.Services
         Task<ResponseScheduleDto> CreateAsync(RequestScheduleDto dto);
         Task<ResponseScheduleDto?> UpdateAsync(int scheduleId, UpdateScheduleDto dto);
         Task<bool> DeleteAsync(int scheduleId);
-        Task<List<CalendarTaskDto>> GetCalendarAsync(int studyPlanId, DateOnly fromDate, DateOnly toDate);
     }
 
     public class ScheduleService : IScheduleService
@@ -22,15 +21,18 @@ namespace SmartStudy.Server.Services
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
+        private readonly IRoutineService _routineService;
 
         public ScheduleService(ApplicationDbContext context,
             ICurrentUserService currentUserService,
-            IMapper mapper
+            IMapper mapper,
+            IRoutineService routineService
             )
         {
             _context = context;
             _currentUserService = currentUserService;
             _mapper = mapper;
+            _routineService = routineService;
         }
 
         public async Task<ResponseScheduleDto> CreateAsync(RequestScheduleDto dto)
@@ -63,15 +65,16 @@ namespace SmartStudy.Server.Services
             _context.Schedules.Add(schedule);
             await _context.SaveChangesAsync();
 
-            var generationStartDate = GetGenerationStartDate(routine);
-            var generationEndDate = GetGenerationEndDate(routine, generationStartDate);
-
-            var tasks = BuildTasksForNewSchedule(schedule, routine, userId, generationStartDate, generationEndDate);
-            if (tasks.Count > 0)
-            {
-                _context.Tasks.AddRange(tasks);
-                await _context.SaveChangesAsync();
-            }
+            // var generationStartDate = GetGenerationStartDate(routine);
+            // var generationEndDate = GetGenerationEndDate(routine, generationStartDate);
+            //
+            // var tasks = BuildTasksForNewSchedule(schedule, routine, userId, generationStartDate, generationEndDate);
+            // if (tasks.Count > 0)
+            // {
+            //     _context.Tasks.AddRange(tasks);
+            //     await _context.SaveChangesAsync();
+            // }
+            await _routineService.GenerateTasksAsync(routine.Id,DateTime.UtcNow.AddDays(14));
 
             await transaction.CommitAsync();
 
@@ -122,39 +125,6 @@ namespace SmartStudy.Server.Services
             _context.Schedules.Remove(schedule);
             await _context.SaveChangesAsync();
             return true;
-        }
-
-        public async Task<List<CalendarTaskDto>> GetCalendarAsync(int studyPlanId, DateOnly fromDate, DateOnly toDate)
-        {
-            if (fromDate > toDate)
-            {
-                throw new AppException("fromDate không được lớn hơn toDate.");
-            }
-
-            var userId = _currentUserService.UserId;
-            var isAuthorized = await _context.StudyPlans
-                .AnyAsync(sp => sp.Id == studyPlanId && sp.UserId == userId);
-
-            if (!isAuthorized)
-            {
-                throw new KeyNotFoundException("Không tìm thấy study plan");
-            }
-
-            var tasks = await _context.Tasks
-                .AsNoTracking()
-                .Where(t =>
-                    t.UserId == userId &&
-                    t.TaskDate.HasValue &&
-                    t.StartTime.HasValue &&
-                    t.TaskDate.Value >= fromDate &&
-                    t.TaskDate.Value <= toDate &&
-                    t.StudyPlanId == studyPlanId)
-                .OrderBy(t => t.TaskDate)
-                .ThenBy(t => t.StartTime)
-                .ToListAsync();
-            
-
-            return _mapper.Map<List<CalendarTaskDto>>(tasks);
         }
 
         private static ResponseScheduleDto MapSchedule(ScheduleEntity schedule)

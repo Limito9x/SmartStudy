@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { scheduleSchema } from "../schedule/schema";
 
 export const routineSchema = z
   .object({
@@ -9,6 +10,7 @@ export const routineSchema = z
     courseId: z.number().optional(),
     startDate: z.string().optional(), // ISO date string
     endDate: z.string().optional(),
+    schedules: z.array(scheduleSchema).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.startDate && data.endDate && data.startDate > data.endDate) {

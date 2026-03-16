@@ -1,15 +1,8 @@
 using System.Text.Json.Serialization;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum StudyPlanStatus
-    {
-        Planning,
-        Active,
-        Completed
-    }
-
     public record RequestStudyPlanDto
     (
         string Name,

@@ -5,7 +5,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 const navigationItems = [
   { label: "Hôm nay", path: "/" },
   { label: "Khóa học", path: "/study-plans" },
-  // { label: "Lịch trình", path: "/calendar" },
+  { label: "Lịch trình", path: "/calendar" },
   // { label: "Quản lý môn học", path: "/subjects" },
 ];
 

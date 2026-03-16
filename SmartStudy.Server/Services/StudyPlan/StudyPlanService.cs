@@ -11,7 +11,7 @@ namespace SmartStudy.Server.Services
     public interface IStudyPlanService
     {
         Task<ResponseStudyPlanDto> CreateStudyPlanAsync(RequestStudyPlanDto studyPlanDto);
-        Task<List<ResponseStudyPlanDto>> GetStudyPlansByUserIdAsync();
+        Task<List<ResponseStudyPlanDto>> GetStudyPlansByUserIdAsync(bool isActive);
         Task<ResponseStudyPlanDto?> GetStudyPlanByIdAsync(int studyPlanId);
         Task<ResponseStudyPlanDto?> UpdateStudyPlanAsync(int studyPlanId, RequestStudyPlanDto studyPlanDto);
         Task<bool> DeleteStudyPlanAsync(int studyPlanId);
@@ -71,13 +71,29 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseStudyPlanDto>(studyPlan);
         }
 
-        public async Task<List<ResponseStudyPlanDto>> GetStudyPlansByUserIdAsync()
+        public async Task<List<ResponseStudyPlanDto>> GetStudyPlansByUserIdAsync(bool isActive=true)
         {
             var userId = _currentUserService.UserId;
 
-            var studyPlans = await _context.StudyPlans
+            // Bước 1: Khởi tạo Query gốc (Lúc này EF Core CHƯA thọc xuống Database)
+            var query = _context.StudyPlans
                 .Include(p => p.Courses)
-                .Where(p => p.UserId == userId)
+                .Where(p => p.UserId == userId);
+
+            // Bước 2: Nối thêm ống nước (Thêm điều kiện Where dựa vào tham số)
+            if (isActive)
+            {
+                // Chỉ lấy những thằng đang chạy (Để hiện lên Dropdown)
+                query = query.Where(p => p.Status == StudyPlanStatus.Active); 
+            }
+            else
+            {
+                // Lấy những thằng đã bị cất vào kho (Để hiện ở trang Lịch sử)
+                query = query.Where(p => p.Status != StudyPlanStatus.Active); 
+            }
+
+            // Bước 3: Chốt hạ (Kéo data từ DB lên RAM bằng ToListAsync)
+            var studyPlans = await query
                 .OrderBy(p => p.StartDate)
                 .ToListAsync();
 

@@ -10,7 +10,7 @@ export const taskSchema = z.object({
   dueDate: z.string().nullable().optional(),
   startAt: z.string().nullable().optional(),
   endAt: z.string().nullable().optional(),
-  type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "LifeHabit"], {
+  type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting"], {
     message: "Loại nhiệm vụ không được để trống",
   }),
   linkedFormIds: z.array(z.coerce.number()).nullable().optional(),

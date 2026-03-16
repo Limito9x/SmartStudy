@@ -18,6 +18,7 @@ namespace SmartStudy.Server.Services
         public IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message);
         public System.Threading.Tasks.Task CreateSession(SessionDto sessionDto);
         public Task<List<SessionResponseDto>> GetSessions();
+        public Task<string> GetInsight(DashboardSummaryDto summaryDto);
     }
     
     public class ChatService: IChatService
@@ -201,6 +202,27 @@ namespace SmartStudy.Server.Services
 
             _context.ChatMessages.Add(aiMessageEntity);
             await _context.SaveChangesAsync();
+        }
+        
+        public async Task<string> GetInsight(DashboardSummaryDto summary)
+        {
+            var prompt = $"""
+                          Bạn là trợ lý học tập. Phân tích dữ liệu và đưa ra 1-2 câu gợi ý ngắn gọn bằng tiếng Việt.
+                          Không dùng bullet points. Tối đa 2 câu.
+
+                          Dữ liệu tuần này:
+                          - Giờ học: {summary.WeeklyStudyHours}h
+                          - Năng suất: {summary.WeeklyProductivity}%
+                          - Hoàn thành: {summary.WeeklyCompletionRate}% tasks
+                          - Việc quá hạn: {summary.OverdueTasks.Count}
+                          - Sự kiện sắp tới: {string.Join(", ", summary.UpcomingEvents
+                              .Take(2)
+                              .Select(e => $"{e.Title} còn {e.DaysUntil} ngày"))}
+                          """;
+
+            var chatCompletion = _kernel.GetRequiredService<IChatCompletionService>();
+            var result = await chatCompletion.GetChatMessageContentAsync(prompt);
+            return result.Content ?? "";
         }
     }
 }

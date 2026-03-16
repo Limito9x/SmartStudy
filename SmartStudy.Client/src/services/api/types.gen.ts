@@ -26,13 +26,22 @@ export type BulkCreateStudyPlanDto = {
     studyPlans: Array<RequestStudyPlanDto>;
 };
 
-export type CalendarTaskDto = {
-    id: number | string;
-    title: string;
-    startDate: string;
-    startTime: string;
-    endTime: string;
-    location: null | string;
+export type CalendarEntityType = 'Task' | 'Routine' | 'TimelineEvent' | 'Schedule';
+
+export type CalendarEventDto = {
+    calendarId?: string;
+    entityId?: number | string;
+    routineId?: null | number | string;
+    entityType?: CalendarEntityType;
+    title?: string;
+    date?: string;
+    startTime?: null | string;
+    duration?: null | number | string;
+    courseName?: null | string;
+    taskType?: null | TaskType;
+    status?: null | TaskStatus;
+    priority?: null | PriorityLevel;
+    isVirtual?: boolean;
 };
 
 export type ChatDto = {
@@ -54,8 +63,8 @@ export type CourseStatus = 'Enrolled' | 'Completed' | 'Dropped';
 export type DashboardSummaryDto = {
     weeklyStudyHours?: number | string;
     weeklyProductivity?: number | string;
-    hoursDelta?: number | string;
-    productivityDelta?: number | string;
+    hoursDelta?: null | number | string;
+    productivityDelta?: null | number | string;
     weeklyCompletionRate?: number | string;
     daysLeftInPlan?: null | number | string;
     currentPlanName?: null | string;
@@ -157,6 +166,7 @@ export type RequestRoutineDto = {
     courseId: null | number | string;
     timelineEventId: null | number | string;
     studyPlanId: number | string;
+    schedules: null | Array<ScheduleDto>;
 };
 
 export type RequestScheduleDto = {
@@ -316,7 +326,7 @@ export type StudentInfoDto = {
     cohort: null | string;
 };
 
-export type StudyPlanStatus = 'Planning' | 'Active' | 'Completed';
+export type StudyPlanStatus = 'Active' | 'Completed' | 'Archived';
 
 export type SubjectType = 'Theory' | 'Practice' | 'Project' | 'Thesis';
 
@@ -336,6 +346,12 @@ export type TodayTaskDto = {
     type?: TaskType;
     status?: TaskStatus;
     courseName?: null | string;
+};
+
+export type UnscheduledItemDto = {
+    id?: number | string;
+    title?: string;
+    entityType?: CalendarEntityType;
 };
 
 export type UpcomingEventDto = {
@@ -493,7 +509,6 @@ export type GetCalendarData = {
     body?: never;
     path?: never;
     query?: {
-        studyPlanId?: number | string;
         fromDate?: string;
         toDate?: string;
     };
@@ -504,10 +519,26 @@ export type GetCalendarResponses = {
     /**
      * OK
      */
-    200: Array<CalendarTaskDto>;
+    200: Array<CalendarEventDto>;
 };
 
 export type GetCalendarResponse = GetCalendarResponses[keyof GetCalendarResponses];
+
+export type GetUnscheduledItemsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/calendar/Unscheduled';
+};
+
+export type GetUnscheduledItemsResponses = {
+    /**
+     * OK
+     */
+    200: Array<UnscheduledItemDto>;
+};
+
+export type GetUnscheduledItemsResponse = GetUnscheduledItemsResponses[keyof GetUnscheduledItemsResponses];
 
 export type GetChatSessionByIdData = {
     body?: never;
@@ -690,6 +721,22 @@ export type GetStudentDashboardSummaryResponses = {
 };
 
 export type GetStudentDashboardSummaryResponse = GetStudentDashboardSummaryResponses[keyof GetStudentDashboardSummaryResponses];
+
+export type GetStudentDashboardInsightData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/students/insight';
+};
+
+export type GetStudentDashboardInsightResponses = {
+    /**
+     * OK
+     */
+    200: string;
+};
+
+export type GetStudentDashboardInsightResponse = GetStudentDashboardInsightResponses[keyof GetStudentDashboardInsightResponses];
 
 export type PostApiDevSeedData = {
     body?: never;
@@ -950,7 +997,9 @@ export type UpdateScheduleResponse = UpdateScheduleResponses[keyof UpdateSchedul
 export type GetStudyPlansData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        isActive?: boolean;
+    };
     url: '/api/study-plans';
 };
 

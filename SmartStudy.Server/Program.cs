@@ -133,6 +133,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IChatService, ChatService>()
                 .AddScoped<ISubjectService, SubjectService>()
                 .AddScoped<IStudentDashboardService, StudentDashboardService>()
+                .AddScoped<ICalendarService, CalendarService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<IMapper, ServiceMapper>();
@@ -143,6 +144,7 @@ builder.Services.AddScoped<CloudinaryDeleteInterceptor>();
 // Enable dynamic JSON serialization cho Npgsql
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 dataSourceBuilder.EnableDynamicJson();
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var dataSource = dataSourceBuilder.Build();
 
 // Cấu hình DbContext với PostgreSQL
