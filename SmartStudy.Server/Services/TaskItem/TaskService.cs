@@ -49,14 +49,13 @@ namespace SmartStudy.Server.Services
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseTaskDto>(Task);
         }
-        public async Task<ResponseTaskDto?> GetTaskByIdAsync(int taskItemId)
+        public async Task<ResponseTaskDto> GetTaskByIdAsync(int taskItemId)
         {
             var userId = _currentUserService.UserId;
             var taskItem = await _context.Tasks.FindAsync(taskItemId);
-            if (taskItem == null)
-            {
-                return null;
-            }
+            if (taskItem == null || taskItem.UserId != userId)            
+                throw new KeyNotFoundException("Không tìm thấy công việc");
+                
             return _mapper.Map<ResponseTaskDto>(taskItem);
         }
 

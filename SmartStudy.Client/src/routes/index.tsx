@@ -2,9 +2,6 @@ import { type RouteObject, useRoutes } from "react-router-dom";
 import LandingPage from "@/pages/landing/LandingPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/auth/LoginPage";
-import SchoolStudyLayout from "@/layouts/StudyPlanLayout";
-import SemesterSchedulePage from "@/pages/school-study/schedule/SemesterSchedulePage";
-import RedirectSemesterPage from "@/pages/school-study/study-plan/RedirectStudyPlanPage";
 import CoursePage from "@/pages/school-study/course/CoursePage";
 import CalendarPage from "@/pages/calendar/CalendarPage";
 import SubjectPage from "@/pages/subject/SubjectPage";
@@ -13,7 +10,6 @@ import MainPage from "@/pages/main/MainPage";
 import { AuthGuard } from "@/components/guard/AuthGuard";
 import { OnboardingGuard } from "@/components/guard/OnboardingGuard";
 import PlanOverviewTab from "@/pages/school-study/study-plan/PlanOverviewTab";
-import PlanSchedulingTab from "@/pages/school-study/study-plan/PlanSchedulingTab";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -53,35 +49,18 @@ export default function AppRoutes() {
                   element: <SubjectPage />,
                 },
                 {
-                  path: "study-plans",
-                  element: <SchoolStudyLayout />,
+                  path: "study-plans/:studyPlanId",
                   children: [
                     {
-                      path: ":studyPlanId",
-                      children: [
-                        {
-                          path: "overview",
-                          element: <PlanOverviewTab />,
-                          index: true,
-                        },
-                        { path: "scheduling", element: <PlanSchedulingTab /> },
-                        {
-                          path: "courses/:courseId",
-                          element: <CoursePage />,
-                        },
-                      ],
-                    },
-
-                    {
                       path: "",
-                      element: <RedirectSemesterPage />,
+                      element: <PlanOverviewTab />,
                       index: true,
                     },
-                    {
-                      path: ":studyPlanId/schedule",
-                      element: <SemesterSchedulePage />,
-                    },
                   ],
+                },
+                {
+                  path: "courses/:courseId",
+                  element: <CoursePage />,
                 },
                 {
                   path: "calendar",

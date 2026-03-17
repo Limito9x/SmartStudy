@@ -5,6 +5,7 @@ namespace SmartStudy.Server.Entities
     public class Course: BaseEntity
     {
         public string Name { get; set; } = null!;
+        public string? Color { get; set; }
         public CourseStatus Status { get; set; } = CourseStatus.Enrolled;
         public double? TargetScore { get; set; }
         public double? FinalScore { get; set; }

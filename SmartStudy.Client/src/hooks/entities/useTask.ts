@@ -8,6 +8,7 @@ import {
   updateTaskInfoMutation,
   updateTaskStatusMutation,
   deleteTaskByIdMutation,
+  getCalendarQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 
 export const useTask = () => {
@@ -31,6 +32,7 @@ export const useTask = () => {
           taskId: id,
         },
       }),
+      enabled: !!id,
     });
 
   const createTask = useMutation({
@@ -38,6 +40,9 @@ export const useTask = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
       });
     },
   });
@@ -56,6 +61,9 @@ export const useTask = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
       });
     },
   });

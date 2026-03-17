@@ -26,16 +26,17 @@ namespace SmartStudy.Server.Dtos
         int Id,
         string Name,
         string? Description,
-        DateTime? DueDate,
-        DateTime? CompletedAt,
-        DateTime? StartAt,
-        DateTime? EndAt,
+        DateOnly? TaskDate,
+        TimeOnly? StartTime,
+        int? PlannedDuration,
         TaskType Type,
+        string? Location,
         Entities.Enums.TaskStatus Status,
         List<LogDto>? Logs,
         int? RoutineId,
         int? ScheduleId,
-        int CourseId
+        int? CourseId,
+        int StudyPlanId
     );
 
     public record SimpleResponseTaskDto
@@ -43,11 +44,14 @@ namespace SmartStudy.Server.Dtos
         int Id,
         string Name,
         string? Description,
-        DateTime? DueDate,
-        DateTime? CompletedAt,
+        DateOnly? TaskDate,
+        TimeOnly? StartTime,
+        int? PlannedDuration,
+        TaskType Type,
         Entities.Enums.TaskStatus Status,
         int? RoutineId,
         int? ScheduleId,
-        int CourseId
+        int? CourseId,
+        int StudyPlanId
     );
 }

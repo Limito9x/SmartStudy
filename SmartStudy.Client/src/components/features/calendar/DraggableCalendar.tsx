@@ -27,6 +27,15 @@ interface DraggableCalendarProps {
     start: Date | string;
     end: Date | string;
   }) => void; // Hàm gọi khi thả item từ ngoài vào
+  onEventChange?: ({
+    event,
+    start,
+    end
+  }: {
+    event: MyTask;
+    start: Date;
+    end: Date;
+  }) => void; // Hàm gọi khi có sự thay đổi về event (di chuyển, resize)
 }
 
 // Cấu hình tiếng Việt và format ngày tháng cho Calendar
@@ -43,7 +52,7 @@ const localizer = dateFnsLocalizer({
 const DnDCalendar = withDragAndDrop(Calendar);
 
 // Mở rộng interface Event của RBC để chứa thêm data tùy chuẩn (Ví dụ: isRoutine)
-interface MyTask extends Event {
+export interface MyTask extends Event {
   id: number | string;
   title: string;
   start: Date;
@@ -63,6 +72,7 @@ export default function DraggableCalendar({
   onSelectSlot,
   draggedItem,
   onDropFromOutside,
+  onEventChange,
 }: DraggableCalendarProps) {
   const events: MyTask[] = calendarEvents.map((e) => {
     const [year, month, day] = e.date!.split("-").map(Number);
@@ -99,15 +109,34 @@ export default function DraggableCalendar({
   });
 
   // 1. KÉO ĐỔI THỜI GIAN TASK (RESIZE)
-  const onEventResize: withDragAndDropProps["onEventResize"] =
-    useCallback(() => {
-      // GỌI API UPDATE THỜI GIAN Ở ĐÂY
-    }, []);
+  const onEventResize: withDragAndDropProps["onEventResize"] = useCallback(
+    ({ event, start, end }) => {
+      // Chỉ cần "báo cáo" lên trên
+      if (onEventChange) {
+        onEventChange({
+          event: event as MyTask,
+          start: new Date(start),
+          end: new Date(end),
+        });
+      }
+    },
+    [onEventChange],
+  );
 
   // 2. KÉO THẢ DI CHUYỂN TASK SANG Ô KHÁC (DROP)
-  const onEventDrop: withDragAndDropProps["onEventDrop"] = useCallback(() => {
-    // GỌI API UPDATE THỜI GIAN Ở ĐÂY
-  }, []);
+  const onEventDrop: withDragAndDropProps["onEventDrop"] = useCallback(
+    ({ event, start, end }) => {
+      // Y chang ở trên, chỉ báo cáo lên trên
+      if (onEventChange) {
+        onEventChange({
+          event: event as MyTask,
+          start: new Date(start),
+          end: new Date(end),
+        });
+      }
+    },
+    [onEventChange],
+  );
 
   // 3. KÉO CHUỘT TRÊN LƯỚI TRỐNG ĐỂ TẠO TASK MỚI (SELECT SLOT)
   const handleSelectSlot = useCallback(

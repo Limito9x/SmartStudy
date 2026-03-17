@@ -8,7 +8,8 @@ namespace SmartStudy.Server.Dtos
         int StudyPlanId,
         double? TargetScore,
         double? FinalScore,
-        string? Goal
+        string? Goal,
+        string? Color
     );
 
     public class ResponseCourseDto
@@ -20,6 +21,7 @@ namespace SmartStudy.Server.Dtos
         public double? FinalScore { get; set; }
         public string? Goal { get; set; }
         public CourseStatus Status { get; set; }
+        public string? Color { get; set; }
         public double Progress { get; set; }
         public List<ResponseTimelineEventDto>? TimelineEvents { get; set; }
     }

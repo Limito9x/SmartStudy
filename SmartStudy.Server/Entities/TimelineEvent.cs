@@ -23,7 +23,7 @@ namespace SmartStudy.Server.Entities
         [Required]
         public int CourseId { get; set; }
         public Course? Course { get; set; }
-
+        public bool IsCompleted { get; set; } = false;
         [Required]
         public required string Title { get; set; }
         public DateTime? DueDate { get; set; }

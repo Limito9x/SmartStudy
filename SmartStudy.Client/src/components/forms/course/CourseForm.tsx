@@ -1,32 +1,20 @@
 import { courseSchema, type CourseFormValues } from "./schema";
 import { BaseForm } from "../base/BaseForm";
-import { FormCombobox, FormInput } from "@/components/form-controls";
-import { useSubject } from "@/hooks/entities/useSubject";
-import type { ResponseSubjectDto } from "@/services/api";
+import { FormInput } from "@/components/form-controls";
+import { FormColorPicker } from "@/components/form-controls/FormColorPicket";
 import { Button } from "@/components/ui/button";
-import { useDebounce } from "@/hooks/useDebounce";
-import QuickCreateSubject from "@/components/features/subject/QuickCreateSubject";
-import { useId, useState } from "react";
-import { Separator } from "@/components/ui/separator";
 
 interface CourseFormProps {
   defaultValues?: Partial<CourseFormValues>;
+  isEditMode?: boolean;
   onSubmit: (values: CourseFormValues) => void;
 }
 
 export default function CourseForm({
   defaultValues,
+  isEditMode = false,
   onSubmit,
 }: CourseFormProps) {
-  const subjectApi = useSubject();
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearchTerm = useDebounce(searchTerm, 300);
-  const { data, isLoading } = subjectApi.getSubjects(
-    1,
-    10,
-    debouncedSearchTerm,
-  );
-  const subjects = data?.items || [];
 
   return (
     <BaseForm
@@ -39,11 +27,16 @@ export default function CourseForm({
             <FormInput
               name="name"
               control={courseForm.control}
-              label="Tên lớp học phần"
-              placeholder="Nhập tên lớp học phần"
+              label="Tên khóa học"
+              placeholder="Nhập tên khóa học"
+            />
+            <FormColorPicker
+              name="color"
+              control={courseForm.control}
+              label="Chọn màu đại diện"
             />
             <Button variant="default" type="submit">
-              Lưu thông tin lớp học phần
+              {isEditMode ? "Cập nhật" : "Tạo khóa học"}
             </Button>
           </>
         );

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getCourseByIdOptions,
-  getCoursesByStudyPlanQueryKey,
-  getCoursesByStudyPlanOptions,
+  getCoursesQueryKey,
+  getCoursesOptions,
   updateCourseMutation,
   createCourseMutation,
   deleteCourseMutation
@@ -16,8 +16,8 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
   const queryClient = useQueryClient();
 
   const getCoursesByStudyPlan = useQuery({
-    ...getCoursesByStudyPlanOptions({
-      path: { studyPlanId: studyPlanId! },
+    ...getCoursesOptions({
+      query: { studyPlanId: studyPlanId },
     }),
     enabled: !!studyPlanId,
   });
@@ -33,11 +33,10 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
     ...createCourseMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: getCoursesByStudyPlanQueryKey({
-          path: { studyPlanId: studyPlanId! },
+        queryKey: getCoursesQueryKey({
+          query: { studyPlanId: studyPlanId },
         }),
       });
-      alert("Tạo khóa học thành công");
     },
   });
 
@@ -45,11 +44,10 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
     ...updateCourseMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: getCoursesByStudyPlanQueryKey({
-          path: { studyPlanId: studyPlanId! },
+        queryKey: getCoursesQueryKey({
+          query: { studyPlanId: studyPlanId },
         }),
       });
-      alert("Cập nhật khóa học thành công");
     },
   });
 
@@ -57,11 +55,10 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
     ...deleteCourseMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: getCoursesByStudyPlanQueryKey({
-          path: { studyPlanId: studyPlanId! },
+        queryKey: getCoursesQueryKey({
+          query: { studyPlanId: studyPlanId },
         }),
       });
-      alert("Xóa khóa học thành công");
     },
   });
 

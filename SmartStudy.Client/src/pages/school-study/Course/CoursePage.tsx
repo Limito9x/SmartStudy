@@ -9,6 +9,7 @@ import { ArrowLeft, BookOpen, User } from "lucide-react";
 import CourseOverview from "./tabs/CourseOverviewTab";
 import AssetsTab from "./tabs/AssetsTab";
 import EventsTab from "./tabs/EventsTab";
+import { useStudyPlanStore } from "@/stores/studyPlanStore";
 
 interface TabItem {
   label: string;
@@ -30,6 +31,7 @@ const statusMap: Record<
 };
 
 export default function CoursePage() {
+  const { activePlanId } = useStudyPlanStore();
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const {
@@ -97,7 +99,7 @@ export default function CoursePage() {
           variant="ghost"
           size="sm"
           className="-ml-3 gap-1.5 text-muted-foreground hover:text-foreground"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(`/app/study-plans/${activePlanId}`)}
         >
           <ArrowLeft size={16} />
           Quay lại

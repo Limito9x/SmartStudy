@@ -14,6 +14,7 @@ export const courseSchema = z.object({
     .max(10, "Điểm tổng kết không được vượt quá 10")
     .nullish(),
   goal: z.string().nullable(),
+  color: z.string().nullable(),
 }) satisfies z.ZodType<Partial<RequestCourseDto>, any, any>;
 
 export type CourseFormValues = z.infer<typeof courseSchema>;

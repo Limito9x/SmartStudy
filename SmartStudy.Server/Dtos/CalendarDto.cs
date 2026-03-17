@@ -7,8 +7,13 @@ namespace SmartStudy.Server.Dtos;
 public class UnscheduledItemDto
 {
     public int Id { get; set; }
-    public string Title { get; set; } = null!;
     public CalendarEntityType EntityType { get; set; }
+    public string Name { get; set; }
+    public string? Description  { get; set; } 
+    public TaskType Type  { get; set; }
+    public int? CourseId  { get; set; }
+    public int StudyPlanId  { get; set; }
+    public int PlannedDuration { get; set; }
 }
 
 public class CalendarEventDto
@@ -36,6 +41,7 @@ public class CalendarEventDto
     
     // Virtual = routine chưa được gen task thật
     public bool IsVirtual { get; set; }
+    public string? Color { get; set; }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

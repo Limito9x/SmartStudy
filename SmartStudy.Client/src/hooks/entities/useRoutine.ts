@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getRoutinesOptions,
+  getRoutineByIdOptions,
   getRoutinesQueryKey,
   createRoutineMutation,
   updateRoutineMutation,
@@ -29,6 +30,16 @@ export const useRoutine = () => {
       }),
     });
 
+  const getRoutineById = (id: number) =>
+    useQuery({
+      ...getRoutineByIdOptions({
+        path: {
+          id: id,
+        },
+      }),
+      enabled: !!id,
+     });
+
   const createRoutine = useMutation({
     ...createRoutineMutation(),
     onSuccess: () => {
@@ -51,6 +62,7 @@ export const useRoutine = () => {
 
   return {
     getAllRoutines,
+    getRoutineById,
     createRoutine,
     updateRoutine,
   };

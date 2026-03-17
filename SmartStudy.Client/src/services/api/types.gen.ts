@@ -42,6 +42,7 @@ export type CalendarEventDto = {
     status?: null | TaskStatus;
     priority?: null | PriorityLevel;
     isVirtual?: boolean;
+    color?: null | string;
 };
 
 export type ChatDto = {
@@ -154,14 +155,13 @@ export type RequestCourseDto = {
     targetScore: null | number | string;
     finalScore: null | number | string;
     goal: null | string;
+    color: null | string;
 };
 
 export type RequestRoutineDto = {
     name: string;
     instructor: null | string;
     description: null | string;
-    startDate: string;
-    endDate: null | string;
     type: TaskType;
     courseId: null | number | string;
     timelineEventId: null | number | string;
@@ -220,6 +220,7 @@ export type ResponseCourseDto = {
     finalScore?: null | number | string;
     goal?: null | string;
     status?: CourseStatus;
+    color?: null | string;
     progress?: number | string;
     timelineEvents?: null | Array<ResponseTimelineEventDto>;
 };
@@ -229,6 +230,7 @@ export type ResponseRoutineDto = {
     name: string;
     instructor: null | string;
     description: null | string;
+    type: TaskType;
     startDate: string;
     endDate: null | string;
     courseId: null | number | string;
@@ -267,16 +269,17 @@ export type ResponseTaskDto = {
     id: number | string;
     name: string;
     description: null | string;
-    dueDate: null | string;
-    completedAt: null | string;
-    startAt: null | string;
-    endAt: null | string;
+    taskDate: null | string;
+    startTime: null | string;
+    plannedDuration: null | number | string;
     type: TaskType;
+    location: null | string;
     status: TaskStatus;
     logs: null | Array<LogDto>;
     routineId: null | number | string;
     scheduleId: null | number | string;
-    courseId: number | string;
+    courseId: null | number | string;
+    studyPlanId: number | string;
 };
 
 export type ResponseTimelineEventDto = {
@@ -350,8 +353,13 @@ export type TodayTaskDto = {
 
 export type UnscheduledItemDto = {
     id?: number | string;
-    title?: string;
     entityType?: CalendarEntityType;
+    name?: string;
+    description?: null | string;
+    type?: TaskType;
+    courseId?: null | number | string;
+    studyPlanId?: number | string;
+    plannedDuration?: number | string;
 };
 
 export type UpcomingEventDto = {
@@ -604,23 +612,39 @@ export type PostApiChatSessionsBySessionIdStreamResponses = {
     200: unknown;
 };
 
-export type GetCoursesByStudyPlanData = {
+export type GetCoursesData = {
     body?: never;
-    path: {
-        studyPlanId: number;
+    path?: never;
+    query?: {
+        studyPlanId?: number | string;
     };
-    query?: never;
-    url: '/api/courses/study-plan/{studyPlanId}';
+    url: '/api/courses';
 };
 
-export type GetCoursesByStudyPlanResponses = {
+export type GetCoursesResponses = {
     /**
      * OK
      */
     200: Array<ResponseCourseDto>;
 };
 
-export type GetCoursesByStudyPlanResponse = GetCoursesByStudyPlanResponses[keyof GetCoursesByStudyPlanResponses];
+export type GetCoursesResponse = GetCoursesResponses[keyof GetCoursesResponses];
+
+export type CreateCourseData = {
+    body: RequestCourseDto;
+    path?: never;
+    query?: never;
+    url: '/api/courses';
+};
+
+export type CreateCourseResponses = {
+    /**
+     * OK
+     */
+    200: ResponseCourseDto;
+};
+
+export type CreateCourseResponse = CreateCourseResponses[keyof CreateCourseResponses];
 
 export type DeleteCourseData = {
     body?: never;
@@ -673,22 +697,6 @@ export type UpdateCourseResponses = {
 };
 
 export type UpdateCourseResponse = UpdateCourseResponses[keyof UpdateCourseResponses];
-
-export type CreateCourseData = {
-    body: RequestCourseDto;
-    path?: never;
-    query?: never;
-    url: '/api/courses';
-};
-
-export type CreateCourseResponses = {
-    /**
-     * OK
-     */
-    200: ResponseCourseDto;
-};
-
-export type CreateCourseResponse = CreateCourseResponses[keyof CreateCourseResponses];
 
 export type UpdateCourseStatusData = {
     body: UpdateCourseStatusDto;

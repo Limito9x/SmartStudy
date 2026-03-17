@@ -21,9 +21,26 @@ interface CourseCardProps {
   onView: (course: ResponseCourseDto) => void;
 }
 
-export default function CourseCard({ course, onEdit, onDelete, onView }: CourseCardProps) {
+export default function CourseCard({
+  course,
+  onEdit,
+  onDelete,
+  onView,
+}: CourseCardProps) {
+  // Đảm bảo không bị lỗi nếu DB đang thiếu màu
+  const courseColor = course.color || "#9ca3af";
+
   return (
-    <Card className="group relative flex flex-col hover:shadow-md transition-shadow">
+    <Card
+      // 1. Thêm overflow-hidden để vạch màu kẹp gọn bên trong viền bo tròn
+      className="group relative flex flex-col hover:shadow-md transition-shadow overflow-hidden"
+    >
+      {/* 2. KHÚC ĂN TIỀN: VẠCH KẺ MÀU ĐỘNG */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1.5"
+        style={{ backgroundColor: courseColor }}
+      />
+
       {/* More menu — góc trên phải */}
       <div className="absolute top-3 right-3">
         <DropdownMenu>
@@ -52,7 +69,8 @@ export default function CourseCard({ course, onEdit, onDelete, onView }: CourseC
         </DropdownMenu>
       </div>
 
-      <CardHeader className="pb-2 pr-10">
+      {/* 3. Thêm pl-5 để lùi chữ vào, tránh đè lên vạch màu */}
+      <CardHeader className="pb-2 pr-10 pl-5">
         <div className="flex items-start gap-2 flex-wrap">
           <span className="font-semibold text-base leading-tight">
             {course.name}
@@ -60,15 +78,25 @@ export default function CourseCard({ course, onEdit, onDelete, onView }: CourseC
         </div>
       </CardHeader>
 
-      <CardContent className="pb-2 flex-1">
-        
+      {/* Có thể để trống, hoặc nhét thêm Tín chỉ / Tên giảng viên vào đây */}
+      <CardContent className="pb-2 flex-1 pl-5">
+        {/* Khuyến mãi thêm cái Tag nếu DB bác có trường Description/Tín chỉ */}
+        <span
+          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1"
+          style={{
+            backgroundColor: `${courseColor}15`, // Thêm 15 (hex alpha) để lấy 8% opacity làm nền
+            color: courseColor,
+          }}
+        >
+          Khóa học
+        </span>
       </CardContent>
 
-      <CardFooter className="pt-2 border-t">
+      <CardFooter className="pt-2 border-t pl-5">
         <Button
           variant="ghost"
           size="sm"
-          className="ml-auto text-muted-foreground hover:text-foreground gap-1"
+          className="ml-auto text-muted-foreground hover:text-primary gap-1"
           onClick={() => onView(course)}
         >
           Xem chi tiết

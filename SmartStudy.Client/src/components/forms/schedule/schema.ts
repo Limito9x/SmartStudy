@@ -37,31 +37,10 @@ export const defaultScheduleItemValues: ScheduleItemFormInput = {
   location: "",
 };
 
-// --- Routine ---
-
-export const routineSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Tên hoạt động không được để trống")
-    .max(200, "Tên hoạt động không được vượt quá 200 ký tự"),
-  description: z.string().nullable().optional(),
-  startDate: z.string().nullable().optional(),
-  endDate: z.string().nullable().optional(),
-  type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "LifeHabit"], {
-    message: "Loại hoạt động không được để trống",
-  }),
-  courseId: z.coerce.number().nullable().optional(),
-  eventRequirementId: z.coerce.number().nullable().optional(),
-  schedules: z.array(scheduleItemSchema).nullable().optional(),
-}) satisfies z.ZodType<Partial<Record<keyof RequestRoutineDto, any>>, any, any>;
-
-export type RoutineFormInput = z.input<typeof routineSchema>;
-export type RoutineFormValues = z.output<typeof routineSchema>;
-
 export const scheduleSchema = z.object({
   id: z.number(),
   dayOfWeek: z.number().min(0).max(6),
-  startTime: z.string().min(1,"Giờ bắt đầu không được để trống"), // "08:00"
+  startTime: z.string().min(1, "Giờ bắt đầu không được để trống"), // "08:00"
   duration: z.number().min(1),
   location: z.string().optional(),
 });

@@ -100,6 +100,14 @@ namespace SmartStudy.Server.Services
             schedule.Duration = dto.Duration;
             schedule.Location = dto.Location;
 
+            await _context.Tasks
+                .Where(t => t.ScheduleId == scheduleId
+                            && t.Status == TaskStatus.Pending
+                            && (t.Logs == null || !t.Logs.Any()))
+                .ExecuteDeleteAsync();
+            
+            await _routineService.GenerateTasksAsync(schedule.RoutineId.Value,DateTime.UtcNow.AddDays(14));
+
             await _context.SaveChangesAsync();
             return MapSchedule(schedule);
         }

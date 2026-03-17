@@ -1,3 +1,4 @@
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
@@ -15,11 +16,13 @@ public class CalendarService: ICalendarService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IMapper _mapper;
     
-    public CalendarService(ApplicationDbContext context,  ICurrentUserService currentUserService)
+    public CalendarService(ApplicationDbContext context,  ICurrentUserService currentUserService,  IMapper mapper)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _mapper = mapper;
     }
     
             public async Task<List<CalendarEventDto>> GetCalendarAsync(
@@ -62,7 +65,8 @@ public class CalendarService: ICalendarService
             CourseName = task.Course?.Name,
             TaskType = task.Type,
             Status = task.Status,
-            IsVirtual = false
+            IsVirtual = false,
+            Color = task.Course?.Color ?? "#7F77DD"
         });
     }
 
@@ -98,7 +102,8 @@ public class CalendarService: ICalendarService
                     StartTime = schedule.StartTime,
                     Duration = schedule.Duration,
                     CourseName = routine.Course?.Name,
-                    IsVirtual = true  // chưa có task thật
+                    IsVirtual = true,  // chưa có task thật
+                    Color = routine.Course?.Color ?? "#7F77DD"
                 });
             }
         }
@@ -124,7 +129,8 @@ public class CalendarService: ICalendarService
             Date = DateOnly.FromDateTime(ev.DueDate!.Value),
             CourseName = ev.Course?.Name,
             Priority = ev.Priority,
-            IsVirtual = false
+            IsVirtual = false,
+            Color = ev.Course?.Color ?? "#7F77DD"
         });
     }
 
@@ -133,29 +139,22 @@ public class CalendarService: ICalendarService
                  .ToList();
 }
 
-public Task<List<UnscheduledItemDto>> GetUnscheduledItemsAsync()
+public async Task<List<UnscheduledItemDto>> GetUnscheduledItemsAsync()
 {
     var userId = _currentUserService.UserId;
-    var unscheduledTasks = _context.Tasks
+    var unscheduledList = new List<UnscheduledItemDto>();
+    var unscheduledTasks = await _context.Tasks
         .Where(t => t.UserId == userId
-                 && !t.TaskDate.HasValue)
-        .Select(t => new UnscheduledItemDto
-        {
-            Id = t.Id,
-            Title = t.Name,
-            EntityType = CalendarEntityType.Task
-        });
+                    && !t.TaskDate.HasValue).ToListAsync();
+    
+    unscheduledList.AddRange(_mapper.Map<List<UnscheduledItemDto>>(unscheduledTasks));
 
-    var unscheduledRoutines = _context.Routines
+    var unscheduledRoutines = await _context.Routines
         .Where(r => r.UserId == userId
-                 && !r.Schedules.Any())
-        .Select(r => new UnscheduledItemDto
-        {
-            Id = r.Id,
-            Title = r.Name,
-            EntityType = CalendarEntityType.Routine
-        });
+                 && !r.Schedules.Any()).ToListAsync();
+    
+    unscheduledList.AddRange(_mapper.Map<List<UnscheduledItemDto>>(unscheduledRoutines));
 
-    return Task.FromResult(unscheduledTasks.Concat(unscheduledRoutines).ToList());
+    return unscheduledList;
 }
 }

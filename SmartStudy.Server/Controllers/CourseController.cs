@@ -16,10 +16,11 @@ namespace SmartStudy.Server.Controllers
             _CourseService = CourseService;
         }
 
-        [HttpGet("study-plan/{studyPlanId:int}", Name = "GetCoursesByStudyPlan")]
-        public async Task<ActionResult<List<ResponseCourseDto>>> GetCoursesByStudyPlan(int studyPlanId)
+        [HttpGet(Name = "GetCourses")]
+        public async Task<ActionResult<List<ResponseCourseDto>>> GetCoursesByStudyPlan(
+            [FromQuery] int? studyPlanId)
         {
-            List<ResponseCourseDto> courses = await _CourseService.GetCoursesByStudyPlanIdAsync(studyPlanId);
+            List<ResponseCourseDto> courses = await _CourseService.GetCoursesAsync(studyPlanId);
             return Ok(courses);
         }
 

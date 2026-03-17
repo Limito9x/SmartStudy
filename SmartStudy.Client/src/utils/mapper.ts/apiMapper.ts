@@ -4,10 +4,12 @@ import type {
   RequestTaskDto,
   RequestRoutineDto,
   RequestTimelineEventDto,
+  RequestScheduleDto,
 } from "@/services/api/types.gen";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
+import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
 
 export const courseApiMapper = {
   toRequestCourseDto: (
@@ -19,6 +21,7 @@ export const courseApiMapper = {
     targetScore: null,
     finalScore: null,
     goal: courseData.goal || null,
+    color: courseData.color || null,
   }),
 };
 
@@ -34,20 +37,15 @@ export const routineApiMapper = {
     type: routineData.type,
     courseId:
       typeof routineData.courseId === "number" ? routineData.courseId : null,
-    startDate: routineData.startDate
-      ? new Date(routineData.startDate).toISOString()
-      : new Date().toISOString(),
-    endDate: routineData.endDate
-      ? new Date(routineData.endDate).toISOString()
-      : null,
     timelineEventId: null,
-    schedules: routineData.schedules?.map((s) => ({
-      id: s.id,
-      dayOfWeek: s.dayOfWeek,
-      startTime: s.startTime,
-      duration: s.duration,
-      location: s.location || null,
-    })) || null,
+    schedules:
+      routineData.schedules?.map((s) => ({
+        id: s.id,
+        dayOfWeek: s.dayOfWeek,
+        startTime: s.startTime,
+        duration: s.duration,
+        location: s.location || null,
+      })) || null,
   }),
 };
 
@@ -126,9 +124,9 @@ export const taskApiMapper = {
     studyPlanId,
     name: taskData.name,
     description: taskData.description || null,
-    taskDate: parseDateToYyyyMmDd(taskData.dueDate),
-    startTime: parseTimeToHHmmss(taskData.startAt),
-    plannedDuration: calculateDurationMinutes(taskData.startAt, taskData.endAt),
+    taskDate: parseDateToYyyyMmDd(taskData.taskDate),
+    startTime: parseTimeToHHmmss(taskData.startTime),
+    plannedDuration: taskData.plannedDuration || 60,
     type: taskData.type,
     courseId: typeof taskData.courseId === "number" ? taskData.courseId : null,
   }),
@@ -148,5 +146,18 @@ export const timelineEventApiMapper = {
     type: eventData.type,
     priority: eventData.priority,
     location: eventData?.location || "",
+  }),
+};
+
+export const scheduleApiMapper = {
+  toRequestScheduleDto: (
+    scheduleData: ScheduleFormValues,
+    routineId: number,
+  ): RequestScheduleDto => ({
+    routineId,
+    dayOfWeek: scheduleData.dayOfWeek,
+    startTime: parseTimeToHHmmss(scheduleData.startTime) || "07:00:00",
+    duration: scheduleData.duration,
+    location: scheduleData.location || null,
   }),
 };

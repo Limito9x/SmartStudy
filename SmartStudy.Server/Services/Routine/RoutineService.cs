@@ -40,10 +40,17 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto)
         {
                 var userId = _currentUserService.UserId;
+                var studyPlan = _context.StudyPlans.FirstOrDefault(sp => sp.Id == RoutineDto.StudyPlanId && sp.UserId == userId);
+                if (studyPlan == null) throw new KeyNotFoundException("Không tìm thấy kế hoạc học tập");
                 var Routine = _mapper.Map<Entities.Routine>(RoutineDto);
                 Routine.UserId = userId;
+                var now = DateTime.UtcNow;
+                Routine.StartDate=studyPlan.StartDate>now?studyPlan.StartDate:now;
+                Routine.EndDate=studyPlan.EndDate;
 
                 _context.Routines.Add(Routine);
+                
+                await _context.SaveChangesAsync();
 
                 var schedules = RoutineDto.
                 Schedules?.Select(s => {
@@ -55,11 +62,12 @@ namespace SmartStudy.Server.Services
                 if (schedules != null && schedules.Any())
                 {
                     _context.Schedules.AddRange(schedules);
-            }
+                    await GenerateTasksAsync(Routine.Id, DateTime.UtcNow.AddDays(14));
+                    await _context.SaveChangesAsync();
+                }
+                
 
-            await _context.SaveChangesAsync();
-
-            return _mapper.Map<ResponseRoutineDto>(Routine);       
+                return _mapper.Map<ResponseRoutineDto>(Routine);       
         }
 
         public async Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId)

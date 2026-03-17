@@ -14,26 +14,10 @@ export default function UserNav() {
     navigate("/login");
   };
 
-  const userMenuItems = [
-    // {
-    //   title: "Cài đặt",
-    //   description: "Thiết lập thông tin cá nhân và cài đặt học tập",
-    // },
-  ];
-
   return (
     <div className="p-2">
-      {userMenuItems.map((item) => (
-        <Button
-          key={item.title}
-          variant="ghost"
-          className="w-full justify-start"
 
-        >
-          {item.title}
-        </Button>
-      ))}
-      <Button variant="outline" className="ml-auto" onClick={handleLogout}>
+      <Button variant="outline" onClick={handleLogout}>
         Đăng xuất
       </Button>
     </div>

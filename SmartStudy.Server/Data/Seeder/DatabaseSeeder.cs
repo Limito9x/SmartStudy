@@ -107,6 +107,7 @@ namespace SmartStudy.Server.Data
                 new Course
                 {
                     Name = "Cấu trúc dữ liệu & Giải thuật",
+                    Color = "#7F77DD",
                     Status = CourseStatus.Enrolled,
                     TargetScore = 8.5,
                     Goal = "Hiểu sâu các cấu trúc dữ liệu cơ bản, nắm vững Big-O",
@@ -116,6 +117,7 @@ namespace SmartStudy.Server.Data
                 new Course
                 {
                     Name = "Mạng máy tính",
+                    Color = "#1D9E75",
                     Status = CourseStatus.Enrolled,
                     TargetScore = 7.5,
                     Goal = "Hiểu mô hình OSI và TCP/IP, cấu hình được mạng cơ bản",
@@ -125,6 +127,7 @@ namespace SmartStudy.Server.Data
                 new Course
                 {
                     Name = "IELTS",
+                    Color = "#BA7517",
                     Status = CourseStatus.Enrolled,
                     TargetScore = 6.5,
                     Goal = "Đạt 6.5 overall trước tháng 6, tập trung Writing và Listening",
@@ -136,6 +139,7 @@ namespace SmartStudy.Server.Data
                 {
                     Name = "Lập trình hướng đối tượng",
                     Status = CourseStatus.Completed,
+                    Color = "#BA7517",
                     TargetScore = 8.0,
                     FinalScore = 8.5,
                     Goal = "Nắm vững OOP, SOLID principles",
@@ -145,6 +149,7 @@ namespace SmartStudy.Server.Data
                 new Course
                 {
                     Name = "Cơ sở dữ liệu",
+                    Color = "#1D9E75",
                     Status = CourseStatus.Completed,
                     TargetScore = 8.0,
                     FinalScore = 7.8,

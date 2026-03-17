@@ -11,17 +11,19 @@ import type { ResponseCourseDto } from "@/services/api";
 import { Button } from "@/components/ui/button";
 
 interface TaskFormProps {
-  studyPlanId: number;
+  studyPlanId?: number;
+  isEditMode?: boolean;
   defaultValues?: TaskFormValues;
   onSubmit: (values: TaskFormValues) => void;
 }
 
 export default function TaskForm({
   studyPlanId,
+  isEditMode = false,
   defaultValues,
   onSubmit,
 }: TaskFormProps) {
-  const { data: courses } = useCourse({ studyPlanId }).getCoursesByStudyPlan;
+  const { data: courses } = useCourse({studyPlanId}).getCoursesByStudyPlan;
 
   return (
     <BaseForm
@@ -45,19 +47,20 @@ export default function TaskForm({
               label="Mô tả"
               placeholder="Nhập mô tả (tùy chọn)"
             />
-            <FormDatePicker name="dueDate" control={control} label="Ngày học" />
+            <FormDatePicker name="taskDate" control={control} label="Ngày học" />
             <div className="grid grid-cols-2 gap-3">
               <FormInput
-                name="startAt"
+                name="startTime"
                 control={control}
-                label="Bắt đầu"
+                label="Khung giờ bắt đầu"
                 type="time"
               />
               <FormInput
-                name="endAt"
+                name="plannedDuration"
                 control={control}
-                label="Kết thúc"
-                type="time"
+                label="Thời lượng dự kiến (phút)"
+                type="number"
+                placeholder="Thời lượng dự kiến (phút)"
               />
             </div>
             <FormSelect
@@ -71,6 +74,7 @@ export default function TaskForm({
                 { label: "Họp nhóm", value: "Meeting" },
               ]}
             />
+            
             <FormCombobox<TaskFormValues, ResponseCourseDto>
               name="courseId"
               control={control}
@@ -78,12 +82,12 @@ export default function TaskForm({
               placeholder="Chọn khóa học (nếu có)"
               options={courses || []}
               getOptionLabel={(option) => `${option.name}`}
-              getOptionValue={(option) => option.id.toString()}
+              getOptionValue={(option) => option.id!.toString()}
               valueAsNumber
               emptyText="Không tìm thấy khóa học"
             />
             <Button type="submit" className="mt-4">
-              Tạo nhiệm vụ
+              {isEditMode ? "Lưu thay đổi" : "Tạo nhiệm vụ"}
             </Button>
           </>
         );

@@ -13,7 +13,7 @@ namespace SmartStudy.Server.Services
 {
     public interface ICourseService
     {
-        Task<List<ResponseCourseDto>> GetCoursesByStudyPlanIdAsync(int studyPlanId);
+        Task<List<ResponseCourseDto>> GetCoursesAsync(int? studyPlanId);
         Task<ResponseCourseDto?> GetCourseByIdAsync(int courseId);
         Task<ResponseCourseDto> CreateCourseAsync(RequestCourseDto courseDto);
         Task<ResponseCourseDto?> UpdateCourseAsync(int courseId, RequestCourseDto courseDto);
@@ -50,16 +50,20 @@ namespace SmartStudy.Server.Services
             _mapper = mapper;
         }
 
-        public async Task<List<ResponseCourseDto>> GetCoursesByStudyPlanIdAsync(int studyPlanId)
+        public async Task<List<ResponseCourseDto>> GetCoursesAsync(int? studyPlanId)
         {
             var userId = _currentUserService.UserId;
-            var courses = await _context.Courses
+            var query = _context.Courses
                 .Include(c => c.StudyPlan)
-                .Where(c => c.StudyPlanId == studyPlanId && c.StudyPlan!.UserId == userId)
-                .AsNoTracking()
-                .ToListAsync();
+                .Where(c => c.StudyPlan!.UserId == userId && c.StudyPlan.Status==StudyPlanStatus.Active)
+                .AsNoTracking();
             
+            if(studyPlanId.HasValue)
+            {
+                query = query.Where(c => c.StudyPlanId == studyPlanId.Value);
+            }
             
+            var courses = await query.ToListAsync();
             
             return courses.Select(c => {
                 var dto = c.Adapt<ResponseCourseDto>();
