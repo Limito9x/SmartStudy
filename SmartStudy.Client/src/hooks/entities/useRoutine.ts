@@ -5,6 +5,9 @@ import {
   getRoutinesQueryKey,
   createRoutineMutation,
   updateRoutineMutation,
+  getCalendarQueryKey,
+  getUnscheduledItemsQueryKey,
+  deleteRoutineMutation
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
 
@@ -38,13 +41,19 @@ export const useRoutine = () => {
         },
       }),
       enabled: !!id,
-     });
+    });
 
   const createRoutine = useMutation({
     ...createRoutineMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getUnscheduledItemsQueryKey(),
       });
       alert("Tạo thói quen thành công");
     },
@@ -56,7 +65,26 @@ export const useRoutine = () => {
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
+      });
       alert("Cập nhật thói quen thành công");
+    },
+  });
+
+  const deleteRoutine = useMutation({
+    ...deleteRoutineMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: getRoutinesQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getUnscheduledItemsQueryKey(),
+      });
+      alert("Xóa thói quen thành công");
     },
   });
 
@@ -65,5 +93,6 @@ export const useRoutine = () => {
     getRoutineById,
     createRoutine,
     updateRoutine,
+    deleteRoutine,
   };
 };

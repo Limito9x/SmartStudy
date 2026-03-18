@@ -8,6 +8,7 @@ public class TaskMapping: IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-
+        config.NewConfig<LogWorkDto, LogItem>()
+            .Map(dest => dest.ActualDuration, src => src.ActualDuration);
     }
 }

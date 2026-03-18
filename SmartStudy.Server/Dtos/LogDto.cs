@@ -11,22 +11,18 @@ namespace SmartStudy.Server.Dtos
         DifficultyLevel? DifficultyLevel,
         double Productivity,
         DateTime? TimerStartAt,
-        DateTime? TimerEndAt,
-        int? EventRequirementId,
-        float? EarnedValue
+        DateTime? TimerEndAt
     );
 
     // Task generate log
     public record LogWorkDto
     (
         string? Note,
-        int? ActualDurationMinutes, // Số phút dành ra
+        int? ActualDuration, // Số phút dành ra
         ComprehensionLevel? ComprehensionLevel,
         DifficultyLevel? DifficultyLevel,
         DateTime? TimerStartAt,
         DateTime? TimerEndAt,
-        int? EventRequirementId,
-        float? EarnedValue,
         List<int>? AssetIds,
         bool markAsCompleted
     );

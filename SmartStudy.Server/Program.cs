@@ -133,6 +133,8 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IChatService, ChatService>()
                 .AddScoped<ISubjectService, SubjectService>()
                 .AddScoped<IStudentDashboardService, StudentDashboardService>()
+                .AddScoped<IAdminDashboardService, AdminDashboardService>()
+                .AddScoped<IDatabaseSeeder, DatabaseSeeder>()
                 .AddScoped<ICalendarService, CalendarService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
@@ -183,9 +185,8 @@ if (app.Environment.IsDevelopment())
     });
     
     using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
-    await DatabaseSeeder.SeedAsync(context, userManager);
+    var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
+    await seeder.SeedAsync();
 }
 
 app.UseHttpsRedirection();

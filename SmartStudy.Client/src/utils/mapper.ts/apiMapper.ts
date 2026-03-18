@@ -5,11 +5,14 @@ import type {
   RequestRoutineDto,
   RequestTimelineEventDto,
   RequestScheduleDto,
+  LogWorkDto,
+  LogDto
 } from "@/services/api/types.gen";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
 import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
+import type { LogFormValues } from "@/components/forms/log/schema";
 
 export const courseApiMapper = {
   toRequestCourseDto: (
@@ -160,4 +163,17 @@ export const scheduleApiMapper = {
     duration: scheduleData.duration,
     location: scheduleData.location || null,
   }),
+};
+
+export const logApiMapper = {
+  toLogWorkDto: (logData: LogFormValues): LogWorkDto => ({
+    note: logData.note || null,
+    actualDuration: logData.actualDuration || 0,
+    timerStartAt: parseTimeToHHmmss(logData.timerStartAt) || null,
+    timerEndAt: parseTimeToHHmmss(logData.timerEndAt) || null,
+    difficultyLevel: logData.difficultyLevel || null,
+    comprehensionLevel: logData.comprehensionLevel || null,
+    assetIds: logData.assetIds || null,
+    markAsCompleted: logData.markAsCompleted,
+  })
 };

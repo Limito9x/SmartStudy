@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { bulkCreateStudyPlans, bulkCreateSubjects, createChatSession, createCourse, createEvenetRequirement, createEvent, createRoutine, createSchedule, createStudyPlan, createSubject, createTask, createTaskLogWork, deleteAsset, deleteCourse, deleteEvent, deleteEventRequirement, deleteLog, deleteRoutine, deleteSchedule, deleteStudyPlan, deleteSubject, deleteTaskById, generateTasks, getAllChatSessions, getAssets, getCalendar, getChatSessionById, getCourseById, getCourses, getEventRequirements, getEventsByCourse, getLog, getProfile, getRoutineById, getRoutines, getStudentDashboardInsight, getStudentDashboardSummary, getStudyPlanById, getStudyPlans, getSubjects, getTaskById, getTasks, getUnscheduledItems, getUpcomingRoutineTasks, login, type Options, patchApiUsersSettingStudentInfo, postApiChatSessionsBySessionIdStream, postApiDevReset, postApiDevSeed, register, updateCourse, updateCourseStatus, updateEvent, updateEventRequirement, updateLog, updateRoutine, updateSchedule, updateStudyPlan, updateStudyPlanStatus, updateSubject, updateTaskInfo, updateTaskStatus, uploadAssets } from '../sdk.gen';
-import type { BulkCreateStudyPlansData, BulkCreateSubjectsData, BulkCreateSubjectsResponse, CreateChatSessionData, CreateCourseData, CreateCourseResponse, CreateEvenetRequirementData, CreateEvenetRequirementResponse, CreateEventData, CreateEventResponse, CreateRoutineData, CreateRoutineResponse, CreateScheduleData, CreateScheduleResponse, CreateStudyPlanData, CreateStudyPlanResponse, CreateSubjectData, CreateSubjectResponse, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponse, CreateTaskResponse, DeleteAssetData, DeleteCourseData, DeleteEventData, DeleteEventRequirementData, DeleteLogData, DeleteRoutineData, DeleteScheduleData, DeleteStudyPlanData, DeleteSubjectData, DeleteTaskByIdData, GenerateTasksData, GetAllChatSessionsData, GetAllChatSessionsResponse, GetAssetsData, GetAssetsResponse, GetCalendarData, GetCalendarResponse, GetChatSessionByIdData, GetChatSessionByIdResponse, GetCourseByIdData, GetCourseByIdResponse, GetCoursesData, GetCoursesResponse, GetEventRequirementsData, GetEventRequirementsResponse, GetEventsByCourseData, GetEventsByCourseResponse, GetLogData, GetLogResponse, GetProfileData, GetProfileResponse, GetRoutineByIdData, GetRoutineByIdResponse, GetRoutinesData, GetRoutinesResponse, GetStudentDashboardInsightData, GetStudentDashboardInsightResponse, GetStudentDashboardSummaryData, GetStudentDashboardSummaryResponse, GetStudyPlanByIdData, GetStudyPlanByIdResponse, GetStudyPlansData, GetStudyPlansResponse, GetSubjectsData, GetSubjectsResponse, GetTaskByIdData, GetTaskByIdResponse, GetTasksData, GetTasksResponse, GetUnscheduledItemsData, GetUnscheduledItemsResponse, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponse, LoginData, LoginResponse, PatchApiUsersSettingStudentInfoData, PostApiChatSessionsBySessionIdStreamData, PostApiDevResetData, PostApiDevSeedData, RegisterData, RegisterResponse, UpdateCourseData, UpdateCourseResponse, UpdateCourseStatusData, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponse, UpdateEventResponse, UpdateLogData, UpdateLogResponse, UpdateRoutineData, UpdateRoutineResponse, UpdateScheduleData, UpdateScheduleResponse, UpdateStudyPlanData, UpdateStudyPlanResponse, UpdateStudyPlanStatusData, UpdateSubjectData, UpdateSubjectResponse, UpdateTaskInfoData, UpdateTaskInfoResponse, UpdateTaskStatusData, UpdateTaskStatusResponse, UploadAssetsData, UploadAssetsResponse } from '../types.gen';
+import { bulkCreateStudyPlans, bulkCreateSubjects, confirmTaskOnOccurrence, createChatSession, createCourse, createEvenetRequirement, createEvent, createRoutine, createSchedule, createStudyPlan, createSubject, createTask, createTaskLogWork, deleteAsset, deleteCourse, deleteEvent, deleteEventRequirement, deleteLog, deleteRoutine, deleteSchedule, deleteStudyPlan, deleteSubject, deleteTaskById, generateTasks, getAllChatSessions, getAssets, getBehavior, getCalendar, getChatSessionById, getCourseById, getCourses, getEventRequirements, getEventsByCourse, getKpi, getLog, getProfile, getRoutineById, getRoutines, getStudentDashboardInsight, getStudentDashboardSummary, getStudyPlanById, getStudyPlans, getSubjects, getTaskById, getTasks, getUnscheduledItems, getUpcomingRoutineTasks, getUserGrowth, getUsers, login, type Options, patchApiUsersSettingStudentInfo, postApiChatSessionsBySessionIdStream, postApiDevReset, postApiDevSeed, register, toggleUserStatus, updateCourse, updateCourseStatus, updateEvent, updateEventRequirement, updateLog, updateRoutine, updateSchedule, updateStudyPlan, updateStudyPlanStatus, updateSubject, updateTaskInfo, updateTaskStatus, uploadAssets } from '../sdk.gen';
+import type { BulkCreateStudyPlansData, BulkCreateSubjectsData, BulkCreateSubjectsResponse, ConfirmTaskOnOccurrenceData, CreateChatSessionData, CreateCourseData, CreateCourseResponse, CreateEvenetRequirementData, CreateEvenetRequirementResponse, CreateEventData, CreateEventResponse, CreateRoutineData, CreateRoutineResponse, CreateScheduleData, CreateScheduleResponse, CreateStudyPlanData, CreateStudyPlanResponse, CreateSubjectData, CreateSubjectResponse, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponse, CreateTaskResponse, DeleteAssetData, DeleteCourseData, DeleteEventData, DeleteEventRequirementData, DeleteLogData, DeleteRoutineData, DeleteScheduleData, DeleteStudyPlanData, DeleteSubjectData, DeleteTaskByIdData, GenerateTasksData, GetAllChatSessionsData, GetAllChatSessionsResponse, GetAssetsData, GetAssetsResponse, GetBehaviorData, GetBehaviorResponse, GetCalendarData, GetCalendarResponse, GetChatSessionByIdData, GetChatSessionByIdResponse, GetCourseByIdData, GetCourseByIdResponse, GetCoursesData, GetCoursesResponse, GetEventRequirementsData, GetEventRequirementsResponse, GetEventsByCourseData, GetEventsByCourseResponse, GetKpiData, GetKpiResponse, GetLogData, GetLogResponse, GetProfileData, GetProfileResponse, GetRoutineByIdData, GetRoutineByIdResponse, GetRoutinesData, GetRoutinesResponse, GetStudentDashboardInsightData, GetStudentDashboardInsightResponse, GetStudentDashboardSummaryData, GetStudentDashboardSummaryResponse, GetStudyPlanByIdData, GetStudyPlanByIdResponse, GetStudyPlansData, GetStudyPlansResponse, GetSubjectsData, GetSubjectsResponse, GetTaskByIdData, GetTaskByIdResponse, GetTasksData, GetTasksResponse, GetUnscheduledItemsData, GetUnscheduledItemsResponse, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponse, GetUserGrowthData, GetUserGrowthResponse, GetUsersData, GetUsersResponse, LoginData, LoginResponse, PatchApiUsersSettingStudentInfoData, PostApiChatSessionsBySessionIdStreamData, PostApiDevResetData, PostApiDevSeedData, RegisterData, RegisterResponse, ToggleUserStatusData, UpdateCourseData, UpdateCourseResponse, UpdateCourseStatusData, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponse, UpdateEventResponse, UpdateLogData, UpdateLogResponse, UpdateRoutineData, UpdateRoutineResponse, UpdateScheduleData, UpdateScheduleResponse, UpdateStudyPlanData, UpdateStudyPlanResponse, UpdateStudyPlanStatusData, UpdateSubjectData, UpdateSubjectResponse, UpdateTaskInfoData, UpdateTaskInfoResponse, UpdateTaskStatusData, UpdateTaskStatusResponse, UploadAssetsData, UploadAssetsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -38,6 +38,80 @@ const createQueryKey = <TOptions extends Options>(id: string, options?: TOptions
         params.query = options.query;
     }
     return [params];
+};
+
+export const getKpiQueryKey = (options?: Options<GetKpiData>) => createQueryKey('getKpi', options);
+
+export const getKpiOptions = (options?: Options<GetKpiData>) => queryOptions<GetKpiResponse, AxiosError<DefaultError>, GetKpiResponse, ReturnType<typeof getKpiQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getKpi({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getKpiQueryKey(options)
+});
+
+export const getUserGrowthQueryKey = (options?: Options<GetUserGrowthData>) => createQueryKey('getUserGrowth', options);
+
+export const getUserGrowthOptions = (options?: Options<GetUserGrowthData>) => queryOptions<GetUserGrowthResponse, AxiosError<DefaultError>, GetUserGrowthResponse, ReturnType<typeof getUserGrowthQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getUserGrowth({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getUserGrowthQueryKey(options)
+});
+
+export const getBehaviorQueryKey = (options?: Options<GetBehaviorData>) => createQueryKey('getBehavior', options);
+
+export const getBehaviorOptions = (options?: Options<GetBehaviorData>) => queryOptions<GetBehaviorResponse, AxiosError<DefaultError>, GetBehaviorResponse, ReturnType<typeof getBehaviorQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getBehavior({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getBehaviorQueryKey(options)
+});
+
+export const getUsersQueryKey = (options?: Options<GetUsersData>) => createQueryKey('getUsers', options);
+
+export const getUsersOptions = (options?: Options<GetUsersData>) => queryOptions<GetUsersResponse, AxiosError<DefaultError>, GetUsersResponse, ReturnType<typeof getUsersQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getUsers({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getUsersQueryKey(options)
+});
+
+export const toggleUserStatusMutation = (options?: Partial<Options<ToggleUserStatusData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<ToggleUserStatusData>> => {
+    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<ToggleUserStatusData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await toggleUserStatus({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
 };
 
 export const getAssetsQueryKey = (options?: Options<GetAssetsData>) => createQueryKey('getAssets', options);
@@ -534,6 +608,20 @@ export const updateScheduleMutation = (options?: Partial<Options<UpdateScheduleD
     const mutationOptions: UseMutationOptions<UpdateScheduleResponse, AxiosError<DefaultError>, Options<UpdateScheduleData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await updateSchedule({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const confirmTaskOnOccurrenceMutation = (options?: Partial<Options<ConfirmTaskOnOccurrenceData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<ConfirmTaskOnOccurrenceData>> => {
+    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<ConfirmTaskOnOccurrenceData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await confirmTaskOnOccurrence({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

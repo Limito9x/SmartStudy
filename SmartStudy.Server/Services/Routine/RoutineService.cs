@@ -73,6 +73,7 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId)
         {
             var Routine = await _context.Routines
+                .Include(r => r.Schedules)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Id == RoutineId);
             if (Routine == null) return null;

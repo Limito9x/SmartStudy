@@ -31,6 +31,7 @@ public class CalendarEventDto
     public TimeOnly? StartTime { get; set; }
     public int? Duration { get; set; }
     public string? CourseName { get; set; }
+    public int? CourseId { get; set; }
     
     // Task specific
     public TaskType? TaskType { get; set; }

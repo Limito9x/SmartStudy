@@ -14,6 +14,7 @@ namespace SmartStudy.Server.Services
         Task<ResponseScheduleDto> CreateAsync(RequestScheduleDto dto);
         Task<ResponseScheduleDto?> UpdateAsync(int scheduleId, UpdateScheduleDto dto);
         Task<bool> DeleteAsync(int scheduleId);
+        Task ConfirmTaskOnOccurrence (int ScheduleId, DateOnly taskDate);
     }
 
     public class ScheduleService : IScheduleService
@@ -133,6 +134,40 @@ namespace SmartStudy.Server.Services
             _context.Schedules.Remove(schedule);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task ConfirmTaskOnOccurrence(int scheduleId, DateOnly taskDate)
+        {
+            var userId = _currentUserService.UserId;
+            var schedule = await _context.Schedules.Include(s => s.Routine)
+                .FirstOrDefaultAsync(s => s.Id == scheduleId && s.Routine != null && s.Routine.UserId == userId)
+                ?? throw new KeyNotFoundException("Không tìm thấy schedule");
+            
+            var weekDay = taskDate.DayOfWeek;
+            if (schedule.DayOfWeek != weekDay)
+            {                
+                throw new AppException("Ngày không khớp với lịch trình");
+            }
+            
+            var task = new TaskItem()
+            {
+                Name = schedule.Routine!.Name,
+                Description = schedule.Routine.Description,
+                TaskDate = taskDate,
+                StartTime = schedule.StartTime,
+                Location = schedule.Location,
+                UserId = userId,
+                RoutineId = schedule.RoutineId,
+                ScheduleId = schedule.Id,
+                Status = TaskStatus.Pending,
+                Type = schedule.Routine.Type,
+                TimelineEventId = schedule.Routine.TimelineEventId,
+                CourseId = schedule.Routine.CourseId,
+                StudyPlanId = schedule.Routine.StudyPlanId
+            };
+            
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync();
         }
 
         private static ResponseScheduleDto MapSchedule(ScheduleEntity schedule)

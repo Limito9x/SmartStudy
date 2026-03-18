@@ -14,15 +14,18 @@ public class DevController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly IWebHostEnvironment _env;
+    private readonly IDatabaseSeeder _seeder;
 
     public DevController(
         ApplicationDbContext context,
         UserManager<User> userManager,
-        IWebHostEnvironment env)
+        IWebHostEnvironment env,
+        IDatabaseSeeder seeder)
     {
         _context = context;
         _userManager = userManager;
         _env = env;
+        _seeder = seeder;
     }
 
     // POST /api/dev/seed — chạy seeder nếu chưa có data
@@ -32,7 +35,7 @@ public class DevController : ControllerBase
         if (!_env.IsDevelopment())
             return Forbid(); // Chặn tuyệt đối trên Production
 
-        await DatabaseSeeder.SeedAsync(_context, _userManager);
+        await _seeder.SeedAsync();
         return Ok(new { message = "Seeded successfully" });
     }
 
@@ -44,7 +47,7 @@ public class DevController : ControllerBase
             return Forbid();
 
         await HardResetAsync();
-        await DatabaseSeeder.SeedAsync(_context, _userManager);
+        await _seeder.SeedAsync();
         return Ok(new { message = "Reset and reseeded successfully" });
     }
 

@@ -2,6 +2,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import TaskFormContainer from "../forms/containers/TaskFormContainer";
 import RoutineFormContainer from "../forms/containers/RoutineFormContainer";
 import CourseFormContainer from "../forms/containers/CourseFormContainer";
+import ScheduleFormContainer from "../forms/containers/ScheduleFormContainer";
+import LogFormContainer from "../forms/containers/LogFormContainer";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +22,9 @@ const DIALOG_TITLES: {
     data.routineId ? "Cập nhật lịch trình" : "Tạo lịch trình mới",
   COURSE_FORM: (data) =>
     data.courseId ? "Cập nhật khóa học" : "Tạo khóa học mới",
+  SCHEDULE_FORM: () => "Tạo lịch học mới",
+  LOG_WORK_FORM: (data) =>
+    data.logId ? "Cập nhật nhật ký làm việc" : "Tạo nhật ký làm việc mới",
   CONFIRM_DELETE: (data) => `Xác nhận xóa ${data.itemType}`,
 };
 
@@ -29,6 +34,8 @@ const DIALOG_COMPONENTS: {
   TASK_FORM: TaskFormContainer,
   ROUTINE_FORM: RoutineFormContainer,
   COURSE_FORM: CourseFormContainer,
+  SCHEDULE_FORM: ScheduleFormContainer,
+  LOG_WORK_FORM: LogFormContainer,
   CONFIRM_DELETE: () => {
     const { data, closeDialog } = useDialogStore();
     const { itemType, itemName, onConfirm } =
@@ -44,14 +51,15 @@ const DIALOG_COMPONENTS: {
         onCancel={closeDialog}
       />
     );
-  }
+  },
 };
 
 const DIALOG_SIZES: { [K in DialogType]: string } = {
   CONFIRM_DELETE: "sm:max-w-sm", // Hộp thoại xác nhận
   TASK_FORM: "sm:max-w-lg", // Form tạo Task vừa vừa (512px)
   COURSE_FORM: "sm:max-w-md", // Form tạo môn học (448px)
-//   SCHEDULE_FORM: "sm:max-w-md", // Form xếp lịch lẻ
+  SCHEDULE_FORM: "sm:max-w-md", // Form xếp lịch lẻ
+  LOG_WORK_FORM: "sm:max-w-lg", // Form log work (512px)
 
   // KHÚC ĂN TIỀN LÀ ĐÂY: Form Routine cho to chà bá lên (768px hoặc 896px)
   ROUTINE_FORM: "sm:max-w-3xl lg:max-w-4xl",

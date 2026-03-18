@@ -48,7 +48,7 @@ public class CalendarService: ICalendarService
     // Task IDs đã có thật — để lọc trùng với occurrence
     var materializedRoutineOccurrences = tasks
         .Where(t => t.RoutineId.HasValue && t.ScheduleId.HasValue)
-        .Select(t => (t.RoutineId!.Value, t.TaskDate!.Value))
+        .Select(t => (t.RoutineId!.Value, t.ScheduleId!.Value))
         .ToHashSet();
 
     foreach (var task in tasks)
@@ -63,6 +63,7 @@ public class CalendarService: ICalendarService
             StartTime = task.StartTime,
             Duration = task.PlannedDuration,
             CourseName = task.Course?.Name,
+            CourseId = task.CourseId,
             TaskType = task.Type,
             Status = task.Status,
             IsVirtual = false,
@@ -89,7 +90,7 @@ public class CalendarService: ICalendarService
 
                 // Đã có task thật cho occurrence này → bỏ qua
                 if (materializedRoutineOccurrences
-                    .Contains((routine.Id, date))) continue;
+                    .Contains((routine.Id, schedule.Id))) continue;
 
                 result.Add(new CalendarEventDto
                 {
@@ -102,6 +103,7 @@ public class CalendarService: ICalendarService
                     StartTime = schedule.StartTime,
                     Duration = schedule.Duration,
                     CourseName = routine.Course?.Name,
+                    CourseId = routine.CourseId,
                     IsVirtual = true,  // chưa có task thật
                     Color = routine.Course?.Color ?? "#7F77DD"
                 });
@@ -128,6 +130,7 @@ public class CalendarService: ICalendarService
             Title = ev.Title,
             Date = DateOnly.FromDateTime(ev.DueDate!.Value),
             CourseName = ev.Course?.Name,
+            CourseId = ev.CourseId,
             Priority = ev.Priority,
             IsVirtual = false,
             Color = ev.Course?.Color ?? "#7F77DD"

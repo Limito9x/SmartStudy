@@ -1,11 +1,14 @@
 import type { CourseFormValues } from "@/components/forms/course/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
+import type { LogFormValues } from "@/components/forms/log/schema";
 import type {
   ResponseCourseDto,
   ResponseTimelineEventDto,
   ResponseTaskDto,
   ResponseRoutineDto,
+  LogDto,
+  TaskStatus,
 } from "@/services/api/types.gen";
 
 const formatDueDate = (dueDate: string | null | undefined) => {
@@ -68,4 +71,28 @@ export const routineFormMapper = {
         location: s.location || "",
       })) || [],
   }),
+};
+
+export const logFormMapper = {
+  toFormValues: (logDto: LogDto, taskStatus: TaskStatus): LogFormValues => {
+    let completed = false;
+    if (taskStatus === "Completed") completed = true;
+
+    return {
+      markAsCompleted: completed,
+      note: logDto.note || "",
+      actualDuration: logDto.actualDuration
+        ? Number(logDto.actualDuration)
+        : undefined,
+      comprehensionLevel: logDto.comprehensionLevel
+        ? Number(logDto.comprehensionLevel)
+        : undefined,
+      difficultyLevel: logDto.difficultyLevel
+        ? Number(logDto.difficultyLevel)
+        : undefined,
+      timerStartAt: logDto.timerStartAt || "",
+      timerEndAt: logDto.timerEndAt || "",
+      assetIds: [],
+    };
+  },
 };

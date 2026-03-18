@@ -2,6 +2,8 @@ import { create } from "zustand";
 import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { CourseFormValues } from "@/components/forms/course/schema";
+import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
+import type { LogFormValues } from "@/components/forms/log/schema";
 
 export interface DialogDataMap {
   TASK_FORM: {
@@ -18,6 +20,15 @@ export interface DialogDataMap {
     studyPlanId: number;
     courseId?: number;
     defaultValues?: Partial<CourseFormValues>;
+  };
+    SCHEDULE_FORM: {
+    routineId?: number;
+    defaultValues: ScheduleFormValues;
+  };
+  LOG_WORK_FORM: {
+    taskId: number;
+    logId?: number;
+    defaultValues?: LogFormValues;
   };
   CONFIRM_DELETE: {
     itemType: string;

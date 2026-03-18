@@ -39,6 +39,13 @@ namespace SmartStudy.Server.Controllers
             if (!deleted) return NotFound();
             return NoContent();
         }
+
+        [HttpPost("{id:int}/confirm", Name = "ConfirmTaskOnOccurrence")]
+        public async Task<IActionResult> ConfirmTaskOnOccurrence(int id, [FromQuery] DateOnly taskDate)
+        {
+            await _scheduleService.ConfirmTaskOnOccurrence(id, taskDate);
+            return NoContent();
+        }
     }
 }
 

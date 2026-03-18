@@ -80,24 +80,13 @@ export default function TodayTasks() {
   };
 
   const handleLogWork = (task: ResponseTaskDto) => {
-    openDialog({
-      title: `Log công việc: ${task.name}`,
-      view: (
-        <LogWorkForm
-          onSubmit={(data) => {
-            createTaskLogWork.mutate(
-              {
-                path: { taskId: task.id },
-                body: {
-                  ...data,
-                  markAsCompleted: data.markAsCompleted ?? false,
-                },
-              },
-              { onSuccess: closeDialog },
-            );
-          }}
-        />
-      ),
+    openDialog("LOG_WORK_FORM", {
+      taskId: Number(task.id),
+      defaultValues: {
+        actualDuration: Number(task.plannedDuration) || 60,
+        note: "",
+        markAsCompleted: false,
+      },
     });
   };
 
@@ -124,8 +113,15 @@ export default function TodayTasks() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {activeTasks.map((task) => {
-            const start = formatTime(task.startAt);
-            const end = formatTime(task.endAt);
+            const start = formatTime(task.startTime);
+            const end = formatTime(
+              task.startTime
+                ? new Date(
+                    new Date(task.startTime).getTime() +
+                      (Number(task.plannedDuration) || 60) * 60 * 1000,
+                  ).toISOString()
+                : null,
+            );
             return (
               <div
                 key={task.id}

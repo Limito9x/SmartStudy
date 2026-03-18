@@ -10,6 +10,9 @@ import MainPage from "@/pages/main/MainPage";
 import { AuthGuard } from "@/components/guard/AuthGuard";
 import { OnboardingGuard } from "@/components/guard/OnboardingGuard";
 import PlanOverviewTab from "@/pages/school-study/study-plan/PlanOverviewTab";
+import AdminLayout from "@/layouts/AdminLayout";
+import UserManagementPage from "@/pages/admin/users/UserManagementPage";
+import AdminOverviewPage from "@/pages/admin/AdminOverviewPage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -67,6 +70,21 @@ export default function AppRoutes() {
                   element: <CalendarPage />,
                 },
               ],
+            },
+          ],
+        },
+        {
+          path: "/admin",
+          element: <AdminLayout />,
+          children: [
+            {
+              path: "",
+              element: <AdminOverviewPage />,
+              index: true,
+            },
+            {
+              path: "users",
+              element: <UserManagementPage />,
             },
           ],
         },

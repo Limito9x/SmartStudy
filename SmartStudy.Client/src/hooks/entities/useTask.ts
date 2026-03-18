@@ -9,6 +9,8 @@ import {
   updateTaskStatusMutation,
   deleteTaskByIdMutation,
   getCalendarQueryKey,
+  getUnscheduledItemsQueryKey,
+  getStudentDashboardSummaryQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 
 export const useTask = () => {
@@ -44,6 +46,9 @@ export const useTask = () => {
       queryClient.invalidateQueries({
         queryKey: getCalendarQueryKey(),
       });
+      queryClient.invalidateQueries({
+        queryKey: getUnscheduledItemsQueryKey(),
+      });
     },
   });
 
@@ -52,6 +57,12 @@ export const useTask = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getStudentDashboardSummaryQueryKey(),
       });
     },
   });
@@ -74,6 +85,12 @@ export const useTask = () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getStudentDashboardSummaryQueryKey(),
+      });
     },
   });
 
@@ -82,6 +99,15 @@ export const useTask = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getCalendarQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getStudentDashboardSummaryQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getUnscheduledItemsQueryKey(),
       });
     },
   });

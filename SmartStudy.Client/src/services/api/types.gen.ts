@@ -22,6 +22,11 @@ export type AssetResponseDto = {
     formFieldKey: null | string;
 };
 
+export type BehaviorChartDto = {
+    taskType?: string;
+    totalHours?: number | string;
+};
+
 export type BulkCreateStudyPlanDto = {
     studyPlans: Array<RequestStudyPlanDto>;
 };
@@ -38,6 +43,7 @@ export type CalendarEventDto = {
     startTime?: null | string;
     duration?: null | number | string;
     courseName?: null | string;
+    courseId?: null | number | string;
     taskType?: null | TaskType;
     status?: null | TaskStatus;
     priority?: null | PriorityLevel;
@@ -103,6 +109,13 @@ export type IFormFile = Blob | File;
 
 export type IFormFileCollection = Array<IFormFile>;
 
+export type KpiSummaryDto = {
+    totalUsers?: number | string;
+    activeUsersThisWeek?: number | string;
+    totalSystemHours?: number | string;
+    totalCompletedTasks?: number | string;
+};
+
 export type LogDto = {
     id: number | string;
     note: null | string;
@@ -112,8 +125,6 @@ export type LogDto = {
     productivity: number | string;
     timerStartAt: null | string;
     timerEndAt: null | string;
-    eventRequirementId: null | number | string;
-    earnedValue: null | number | string;
 };
 
 export type LoginResponseDto = {
@@ -126,19 +137,27 @@ export type LoginResponseDto = {
 
 export type LogWorkDto = {
     note: null | string;
-    actualDurationMinutes: null | number | string;
+    actualDuration: null | number | string;
     comprehensionLevel: null | ComprehensionLevel;
     difficultyLevel: null | DifficultyLevel;
     timerStartAt: null | string;
     timerEndAt: null | string;
-    eventRequirementId: null | number | string;
-    earnedValue: null | number | string;
     assetIds: null | Array<number | string>;
     markAsCompleted: boolean;
 };
 
 export type PagedResultOfResponseSubjectDto = {
     items?: Array<ResponseSubjectDto>;
+    totalCount?: number | string;
+    pageIndex?: number | string;
+    pageSize?: number | string;
+    totalPages?: number | string;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+};
+
+export type PagedResultOfUserAdminDto = {
+    items?: Array<UserAdminDto>;
     totalCount?: number | string;
     pageIndex?: number | string;
     pageSize?: number | string;
@@ -387,6 +406,20 @@ export type UpdateStudyPlanStatusDto = {
     status: StudyPlanStatus;
 };
 
+export type UserAdminDto = {
+    id?: number | string;
+    fullName?: string;
+    email?: string;
+    createdAt?: string;
+    isActive?: boolean;
+    totalStudyHours?: number | string;
+};
+
+export type UserGrowthChartDto = {
+    date?: string;
+    newUsers?: number | string;
+};
+
 export type UserLoginDto = {
     userName: string;
     password: string;
@@ -404,6 +437,91 @@ export type UserResponseDto = {
     email?: string;
     userName?: string;
     fullName?: string;
+};
+
+export type GetKpiData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/dashboard/kpi';
+};
+
+export type GetKpiResponses = {
+    /**
+     * OK
+     */
+    200: KpiSummaryDto;
+};
+
+export type GetKpiResponse = GetKpiResponses[keyof GetKpiResponses];
+
+export type GetUserGrowthData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number | string;
+    };
+    url: '/api/admin/dashboard/charts/user-growth';
+};
+
+export type GetUserGrowthResponses = {
+    /**
+     * OK
+     */
+    200: Array<UserGrowthChartDto>;
+};
+
+export type GetUserGrowthResponse = GetUserGrowthResponses[keyof GetUserGrowthResponses];
+
+export type GetBehaviorData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/admin/dashboard/charts/behavior';
+};
+
+export type GetBehaviorResponses = {
+    /**
+     * OK
+     */
+    200: Array<BehaviorChartDto>;
+};
+
+export type GetBehaviorResponse = GetBehaviorResponses[keyof GetBehaviorResponses];
+
+export type GetUsersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        pageIndex?: number | string;
+        pageSize?: number | string;
+    };
+    url: '/api/admin/dashboard/users';
+};
+
+export type GetUsersResponses = {
+    /**
+     * OK
+     */
+    200: PagedResultOfUserAdminDto;
+};
+
+export type GetUsersResponse = GetUsersResponses[keyof GetUsersResponses];
+
+export type ToggleUserStatusData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: never;
+    url: '/api/admin/dashboard/users/{id}/toggle-status';
+};
+
+export type ToggleUserStatusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
 };
 
 export type GetAssetsData = {
@@ -809,7 +927,7 @@ export type GetLogResponses = {
 export type GetLogResponse = GetLogResponses[keyof GetLogResponses];
 
 export type UpdateLogData = {
-    body: LogDto;
+    body: LogWorkDto;
     path: {
         taskLogId: number | string;
     };
@@ -1001,6 +1119,24 @@ export type UpdateScheduleResponses = {
 };
 
 export type UpdateScheduleResponse = UpdateScheduleResponses[keyof UpdateScheduleResponses];
+
+export type ConfirmTaskOnOccurrenceData = {
+    body?: never;
+    path: {
+        id: number;
+    };
+    query?: {
+        taskDate?: string;
+    };
+    url: '/api/schedules/{id}/confirm';
+};
+
+export type ConfirmTaskOnOccurrenceResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetStudyPlansData = {
     body?: never;

@@ -25,10 +25,9 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpPut("{taskLogId}",Name ="UpdateLog")]
-        public async Task<ActionResult<LogDto>> UpdateTaskLog(int taskLogId, [FromBody] LogDto LogDto)
+        public async Task<ActionResult<LogDto>> UpdateTaskLog(int taskLogId, [FromBody] LogWorkDto LogDto)
         {
             var updatedTaskLog = await _taskLogService.UpdateTaskLogAsync(taskLogId, LogDto);
-            if (updatedTaskLog == null) return NotFound();
             return Ok(updatedTaskLog);
         }
 

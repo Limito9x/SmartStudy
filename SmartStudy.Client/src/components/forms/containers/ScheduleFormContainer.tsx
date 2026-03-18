@@ -1,74 +1,64 @@
-import { useTask } from "@/hooks/entities/useTask"; // File useTask.ts của bác
-import TaskForm from "../task/TaskForm";
+import { useSchedule } from "@/hooks/entities/useSchedule"; // File useschedule.ts của bác
+import ScheduleForm from "../schedule/ScheduleForm";
 import { useDialogStore } from "@/stores/useDialogStore";
-import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { TaskFormValues } from "../task/schema";
-import { taskApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { taskFormMapper } from "@/utils/mapper.ts/formMapper";
+import type { ScheduleFormValues } from "../schedule/schema";
+import { scheduleApiMapper } from "@/utils/mapper.ts/apiMapper";
 
 export default function ScheduleFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { studyPlanId, taskId, defaultValues } =
-    data as DialogDataMap["TASK_FORM"];
+  const { routineId, defaultValues } = data as DialogDataMap["SCHEDULE_FORM"];
 
-  const isEditMode = !!taskId;
-  const { getTaskById, createTask, updateTaskInfo } = useTask();
+  const { createSchedule, updateSchedule } = useSchedule();
 
-  // NẾU LÀ EDIT: Fetch data ngầm.
-  const { data: taskData, isLoading } = getTaskById(taskId!);
-
-  // NẾU LÀ EDIT MÀ DATA CHƯA VỀ -> HIỆN KHUNG XƯƠNG LOADING
-  if (isEditMode && isLoading) {
-    return (
-      <div className="space-y-4 p-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-    );
-  }
+  const isEditMode = Number(defaultValues?.id) > 0;
 
   // Chập data mồi (Create) hoặc data fetch được (Edit) vào form
-  const finalDefaultValues =
-    isEditMode && taskData
-      ? taskFormMapper.toFormValues(taskData) // Map lại chuẩn form nếu cần
-      : {
-        ...defaultValues,
-        name: defaultValues?.name || "",
-        type: defaultValues?.type || "SelfStudy",
-      };
+  const finalDefaultValues = {
+    ...defaultValues,
+    location: defaultValues?.location || "",
+  };
 
-      
+  const handleSubmit = (values: ScheduleFormValues) => {
+    const payload = {
+      dayOfWeek: Number(values.dayOfWeek ?? defaultValues?.dayOfWeek ?? 0),
+      startTime: values.startTime,
+      duration: Number(values.duration),
+      location: values.location || null,
+    };
 
-  const handleSubmit = (values: TaskFormValues) => {
     if (isEditMode) {
-      updateTaskInfo.mutate(
+      updateSchedule.mutate(
         {
-          path: { taskId: taskId! },
-          body: taskApiMapper.toRequestTaskDto(values, studyPlanId),
+          path: {
+            id: Number(defaultValues?.id),
+          },
+          body: payload,
         },
         {
           onSuccess: () => closeDialog(),
         },
       );
-    } else {
-      createTask.mutate(
-        {
-          body: taskApiMapper.toRequestTaskDto(values, studyPlanId),
-        },
-        {
-          onSuccess: () => closeDialog(),
-        },
-      );
+      return;
     }
+
+    createSchedule.mutate(
+      {
+        body: scheduleApiMapper.toRequestScheduleDto(
+          {
+            ...values,
+            dayOfWeek: payload.dayOfWeek,
+          },
+          Number(routineId),
+        ),
+      },
+      {
+        onSuccess: () => closeDialog(),
+      },
+    );
   };
 
   return (
-    <TaskForm
-      studyPlanId={studyPlanId}
-      isEditMode={isEditMode}
-      defaultValues={finalDefaultValues}
-      onSubmit={handleSubmit}
-    />
+    <ScheduleForm defaultValues={finalDefaultValues} onSubmit={handleSubmit} />
   );
 }

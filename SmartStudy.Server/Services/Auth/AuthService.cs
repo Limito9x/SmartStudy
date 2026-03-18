@@ -98,7 +98,7 @@ namespace SmartStudy.Server.Services
                 UserName = user.UserName,
                 FullName = user.FullName,
                 Token = tokenString,
-                HasCompletedOnboarding = user.StudentInfo.University != null // Giả sử onboarding hoàn thành khi đã có ngày nhập học
+                HasCompletedOnboarding = user.StudentInfo?.University != null // Giả sử onboarding hoàn thành khi đã có ngày nhập học
             };
 
         }
