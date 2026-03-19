@@ -9,7 +9,8 @@ namespace SmartStudy.Server.Services
     public interface ITimelineEventService
     {
         Task<ResponseTimelineEventDto> CreateAsync(RequestTimelineEventDto dto);
-        Task<List<ResponseTimelineEventDto>> GetByCourseIdAsync(int courseId);
+        Task<List<ResponseTimelineEventDto>> GetEventsAsync(int? studyPlanId, int? courseId);
+        Task<ResponseTimelineEventDto> GetByIdAsync(int timelineEventId);
         Task<ResponseTimelineEventDto?> UpdateAsync(int timelineEventId, RequestTimelineEventDto dto);
         Task<bool> DeleteAsync(int timelineEventId);
         Task BulkCreateAsync(List<RequestTimelineEventDto> dtos);
@@ -51,7 +52,7 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseTimelineEventDto>(entity);
         }
 
-        public async Task<List<ResponseTimelineEventDto>> GetByCourseIdAsync(int courseId)
+        public async Task<List<ResponseTimelineEventDto>> GetEventsAsync(int? studyPlanId, int? courseId)
         {
             var userId = _currentUserService.UserId;
 
@@ -61,13 +62,38 @@ namespace SmartStudy.Server.Services
 
             if (!isAuthorized) return [];
 
-            var events = await _context.TimelineEvents
-                .Where(e => e.CourseId == courseId)
-                .OrderBy(e => e.DueDate)
-                .AsNoTracking()
-                .ToListAsync();
+            var query = _context.TimelineEvents
+                .Include(e => e.Course)
+                .ThenInclude(c => c.StudyPlan)
+                .AsNoTracking();
+            
+            if(studyPlanId.HasValue)
+            {
+                query = query.Where(e => e.Course.StudyPlanId == studyPlanId.Value);
+            }
+            else if (courseId.HasValue)
+            {
+                query = query.Where(e => e.CourseId == courseId.Value);
+            }
+            
+            var events = await query.ToListAsync();
 
             return _mapper.Map<List<ResponseTimelineEventDto>>(events);
+        }
+        
+        public async Task<ResponseTimelineEventDto> GetByIdAsync(int timelineEventId)
+        {
+            var userId = _currentUserService.UserId;
+
+            var entity = await _context.TimelineEvents
+                .Include(e => e.Course)
+                    .ThenInclude(c => c.StudyPlan)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == timelineEventId);
+
+            if (entity?.Course?.StudyPlan == null || entity.Course.StudyPlan.UserId != userId) return null;
+
+            return _mapper.Map<ResponseTimelineEventDto>(entity);
         }
 
         public async Task<ResponseTimelineEventDto?> UpdateAsync(int timelineEventId, RequestTimelineEventDto dto)

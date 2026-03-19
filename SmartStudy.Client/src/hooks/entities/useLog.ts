@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getLogOptions,
-  getLogQueryKey,
+  getLogByIdOptions,
+  getLogByIdQueryKey,
   updateLogMutation,
   deleteLogMutation,
   getCalendarQueryKey,
@@ -13,7 +13,7 @@ export const useLog = () => {
 
   const getLogById = (id: number) =>
     useQuery({
-      ...getLogOptions({
+      ...getLogByIdOptions({
         path: {
           taskLogId: id,
         },
@@ -26,7 +26,7 @@ export const useLog = () => {
       ...updateLogMutation(),
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: getLogQueryKey({
+          queryKey: getLogByIdQueryKey({
             path: {
               taskLogId: id!,
             },
@@ -47,7 +47,7 @@ export const useLog = () => {
       ...deleteLogMutation(),
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: getLogQueryKey({
+          queryKey: getLogByIdQueryKey({
             path: {
               taskLogId: id!,
             },

@@ -24,11 +24,20 @@ namespace SmartStudy.Server.Controllers
             return Ok(created);
         }
 
-        [HttpGet("course/{courseId:int}", Name = "GetEventsByCourse")]
-        public async Task<ActionResult<List<ResponseTimelineEventDto>>> GetByCourse(int courseId)
+        [HttpGet(Name = "GetEvents")]
+        public async Task<ActionResult<List<ResponseTimelineEventDto>>> GetByCourse(
+            [FromQuery] int? studyPlanId, int? courseId)
         {
-            var events = await _timelineEventService.GetByCourseIdAsync(courseId);
+            var events = await _timelineEventService.GetEventsAsync(studyPlanId, courseId);
             return Ok(events);
+        }
+        
+        [HttpGet("{eventId:int}", Name = "GetEventById")]
+        public async Task<ActionResult<ResponseTimelineEventDto>> GetById(int eventId)
+        {
+            var timelineEvent = await _timelineEventService.GetByIdAsync(eventId);
+            if (timelineEvent == null) return NotFound();
+            return Ok(timelineEvent);
         }
 
         [HttpPatch("{timelineEventId:int}", Name = "UpdateEvent")]

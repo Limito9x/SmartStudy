@@ -1,18 +1,23 @@
 import { timelineEventSchema, type TimelineEventFormValues } from "./schema";
+import { type ResponseCourseDto } from "@/services/api";
 import { BaseForm } from "../base/BaseForm";
 import {
   FormInput,
   FormSelect,
   FormDatePicker,
+  FormCombobox,
 } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
+import { useCourse } from "@/hooks/entities/useCourse";
 
 interface EventFormProps {
+  courseId?: number;
   defaultValues?: TimelineEventFormValues;
   onSubmit: (data: TimelineEventFormValues) => void;
 }
 
-export const EventForm = ({ defaultValues, onSubmit }: EventFormProps) => {
+export const EventForm = ({ defaultValues, onSubmit, courseId }: EventFormProps) => {
+  const { data: courses } = useCourse({}).getCourses;
   return (
     <BaseForm
       schema={timelineEventSchema}
@@ -40,6 +45,20 @@ export const EventForm = ({ defaultValues, onSubmit }: EventFormProps) => {
                 { label: "Khác", value: "Other" },
               ]}
             />
+            {courseId === undefined && (
+              <FormCombobox<TimelineEventFormValues, ResponseCourseDto>
+                name="courseId"
+                control={control}
+                label="Thuộc khóa học"
+                placeholder="Chọn khóa học (nếu có)"
+                options={courses || []}
+                getOptionLabel={(option) => `${option.name}`}
+                getOptionValue={(option) => option.id!.toString()}
+                valueAsNumber
+                emptyText="Không tìm thấy khóa học"
+              />
+            )}
+
             <FormSelect
               name="priority"
               control={control}

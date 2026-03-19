@@ -3,6 +3,7 @@ using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Dtos;
 using MapsterMapper;
+using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Services
 {
@@ -10,7 +11,7 @@ namespace SmartStudy.Server.Services
     {
         Task<ResponseTaskDto> CreateTaskAsync(RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> GetTaskByIdAsync(int taskId);
-        Task<List<ResponseTaskDto>> GetTasksAsync(DateTime? fromDate, DateTime? toDate);
+        Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status);
         Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
         Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto Dto);
@@ -59,32 +60,21 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseTaskDto>(taskItem);
         }
 
-        public async Task<List<ResponseTaskDto>> GetTasksAsync(DateTime? from, DateTime? to)
+        public async Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status)
         {
             var userId = _currentUserService.UserId;
             var query = _context.Tasks
                 .AsNoTracking()
                 .Where(t => t.UserId == userId);
-            if (from.HasValue)
-            {
-                var fromDate = DateOnly.FromDateTime(from.Value);
-                var fromTime = TimeOnly.FromDateTime(from.Value);
-                Console.WriteLine($"Filtering tasks from {fromDate} {fromTime}");
-                query = query.Where(t =>
-                    t.TaskDate > fromDate ||
-                    (t.TaskDate == fromDate && t.StartTime >= fromTime)
-                );
-            }
             
-            if (to.HasValue)
+            if(courseId.HasValue)
             {
-                var toDate = DateOnly.FromDateTime(to.Value);
-                var toTime = TimeOnly.FromDateTime(to.Value);
-                Console.WriteLine($"Filtering tasks to {toDate} {toTime}");
-                query = query.Where(t => 
-                    t.TaskDate < toDate || 
-                    (t.TaskDate == toDate && t.StartTime <= toTime)
-                );
+                query = query.Where(t => t.CourseId == courseId.Value);
+            }
+
+            if (status.HasValue)
+            {
+                query = query.Where(t => t.Status == status.Value);
             }
 
             var tasks = await query

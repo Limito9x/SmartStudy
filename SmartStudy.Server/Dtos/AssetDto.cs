@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using CloudinaryDotNet.Actions;
+using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
@@ -26,6 +27,17 @@ namespace SmartStudy.Server.Dtos
         AssetLinkCategory Category,
         string? FormFieldKey
     );
+    
+    public class CourseAssetResponseDto 
+    {
+    public int Id { get; set; }
+    public string FileName { get; set; }
+    public string Url { get; set; }
+    public FileType Type { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public AssetLinkType LinkedType { get; set; }
+    public string SourceName { get; set; }
+    }
 
     public record RequestQueryAssetDto
     (

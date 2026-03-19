@@ -6,13 +6,24 @@ import type {
   RequestTimelineEventDto,
   RequestScheduleDto,
   LogWorkDto,
-  LogDto
+  RequestStudyPlanDto,
 } from "@/services/api/types.gen";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
 import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
 import type { LogFormValues } from "@/components/forms/log/schema";
+import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
+
+export const studyPlanApiMapper = {
+  toRequeststudyPlanDto: (
+    studyPlanData: StudyPlanFormValues,
+  ): RequestStudyPlanDto => ({
+    name: studyPlanData.name,
+    startDate: studyPlanData.startDate,
+    endDate: studyPlanData.endDate,
+  }),
+};
 
 export const courseApiMapper = {
   toRequestCourseDto: (
@@ -41,6 +52,8 @@ export const routineApiMapper = {
     courseId:
       typeof routineData.courseId === "number" ? routineData.courseId : null,
     timelineEventId: null,
+    startDate: routineData.startDate || null,
+    endDate: routineData.endDate || null,
     schedules:
       routineData.schedules?.map((s) => ({
         id: s.id,
@@ -138,9 +151,8 @@ export const taskApiMapper = {
 export const timelineEventApiMapper = {
   toRequestTimelineEventDto: (
     eventData: TimelineEventFormValues,
-    courseId: number,
   ): RequestTimelineEventDto => ({
-    courseId,
+    courseId: eventData.courseId,
     title: eventData.title,
     notes: eventData.notes || "",
     dueDate: eventData?.dueDate
@@ -175,5 +187,5 @@ export const logApiMapper = {
     comprehensionLevel: logData.comprehensionLevel || null,
     assetIds: logData.assetIds || null,
     markAsCompleted: logData.markAsCompleted,
-  })
+  }),
 };

@@ -11,19 +11,17 @@ import type { ResponseCourseDto } from "@/services/api";
 import { Button } from "@/components/ui/button";
 
 interface TaskFormProps {
-  studyPlanId?: number;
   isEditMode?: boolean;
   defaultValues?: TaskFormValues;
   onSubmit: (values: TaskFormValues) => void;
 }
 
 export default function TaskForm({
-  studyPlanId,
   isEditMode = false,
   defaultValues,
   onSubmit,
 }: TaskFormProps) {
-  const { data: courses } = useCourse({studyPlanId}).getCoursesByStudyPlan;
+  const { data: courses } = useCourse({}).getCourses;
 
   return (
     <BaseForm

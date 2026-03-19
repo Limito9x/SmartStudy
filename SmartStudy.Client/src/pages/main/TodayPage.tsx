@@ -245,12 +245,12 @@ export default function TodayPage() {
   const queryClient = useQueryClient();
   const { openDialog, closeDialog } = useDialogStore();
   const { open: openChatDrawer } = useChatDrawerStore();
-  const { getDashboardSummary, getDashboardInsight } = useDashboard();
+  const { getDashboardSummary } = useDashboard();
   const { createTaskLogWork, updateTaskStatus } = useTask();
 
   const { data: summary, isLoading } = getDashboardSummary;
   
-  const { data: insight } = getDashboardInsight;
+  // const { data: insight } = getDashboardInsight;
 
   const overdueTasks = useMemo(() => summary?.overdueTasks ?? [], [summary]);
   const todayTasks = useMemo(() => summary?.todayTasks ?? [], [summary]);
@@ -407,7 +407,8 @@ export default function TodayPage() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              {insight}
+              {/* {insight} */}
+              Hỏi AI để có những gợi ý giúp bạn cải thiện hiệu quả học tập nhé!
             </p>
           )}
           <Button size="sm" onClick={handleOpenAI}>

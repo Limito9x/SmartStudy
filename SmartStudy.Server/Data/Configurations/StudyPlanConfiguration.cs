@@ -13,6 +13,10 @@ namespace SmartStudy.Server.Data.Configurations
                 .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             
+            builder.HasOne(p => p.Template)
+                .WithMany()
+                .HasForeignKey(p => p.TemplateId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

@@ -12,10 +12,15 @@ namespace SmartStudy.Server.Helpers
         {
             // 1. Đếm tổng số record (để Frontend biết có bao nhiêu trang)
             var totalCount = await query.CountAsync();
+            
+            var normalizedIndex = Math.Max(0, pageIndex);
+            var skip = normalizedIndex > 0 
+                ? (normalizedIndex - 1) * pageSize  // 1-based
+                : 0;                                 // 0-based fallback
 
             // 2. Cắt lấy đúng phần data của trang hiện tại
             var items = await query
-                .Skip((pageIndex - 1) * pageSize)
+                .Skip(skip)
                 .Take(pageSize)
                 .ToListAsync();
 

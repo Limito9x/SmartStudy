@@ -1,72 +1,98 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { getCourseById } from "@/services/api";
-import { useQuery } from "@tanstack/react-query";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BookOpen, User } from "lucide-react";
-import CourseOverview from "./tabs/CourseOverviewTab";
-import AssetsTab from "./tabs/AssetsTab";
-import EventsTab from "./tabs/EventsTab";
+import { ArrowLeft } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getCourseAssetOptions,
+  getCourseByIdOptions,
+  getEventsOptions,
+  getRoutinesOptions,
+  getTasksOptions,
+} from "@/services/api/@tanstack/react-query.gen";
+import type { SimpleResponseRoutineDto } from "@/services/api";
+import CourseDetailTabs from "@/components/features/course/CourseDetailTabs";
 import { useStudyPlanStore } from "@/stores/studyPlanStore";
-
-interface TabItem {
-  label: string;
-  value: string;
-  content: () => React.ReactNode;
-}
-
-const statusMap: Record<
-  string,
-  {
-    label: string;
-    variant: "default" | "secondary" | "outline" | "destructive";
-  }
-> = {
-  Draft: { label: "Nháp", variant: "secondary" },
-  Enrolled: { label: "Đang học", variant: "default" },
-  Completed: { label: "Hoàn thành", variant: "outline" },
-  Dropped: { label: "Đã huỷ", variant: "destructive" },
-};
 
 export default function CoursePage() {
   const { activePlanId } = useStudyPlanStore();
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const {
-    data: course,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["course", courseId],
-    queryFn: async () => {
-      if (!courseId) return null;
-      const response = await getCourseById({ path: { courseId: courseId } });
-      return response.data;
-    },
-    enabled: !!courseId,
-  });
-
   const courseIdNum = Number(courseId);
 
-  const TabItems: TabItem[] = [
-    {
-      label: "Tổng quan",
-      value: "overview",
-      content: () => <CourseOverview course={course} />,
-    },
-    {
-      label: "Tài liệu",
-      value: "assets",
-      content: () => <AssetsTab courseId={courseIdNum} />,
-    },
-    {
-      label: "Sự kiện",
-      value: "events",
-      content: () => <EventsTab courseId={courseIdNum} />,
-    },
-  ];
+  const courseQuery = useQuery({
+    ...getCourseByIdOptions({
+      path: {
+        courseId: courseIdNum,
+      },
+    }),
+    enabled: !!courseIdNum,
+  });
+
+  const routinesQuery = useQuery({
+    ...getRoutinesOptions({
+      query: {
+        CourseId: courseIdNum,
+      },
+    }),
+    enabled: !!courseIdNum,
+  });
+
+  const pendingTasksQuery = useQuery({
+    ...getTasksOptions({
+      query: {
+        courseId: courseIdNum,
+        status: "Pending",
+      },
+    }),
+    enabled: !!courseIdNum,
+  });
+
+  const completedTasksQuery = useQuery({
+    ...getTasksOptions({
+      query: {
+        courseId: courseIdNum,
+        status: "Completed",
+      },
+    }),
+    enabled: !!courseIdNum,
+  });
+
+  const eventsQuery = useQuery({
+    ...getEventsOptions({
+      query: {
+        courseId: courseIdNum,
+      },
+    }),
+    enabled: !!courseIdNum,
+  });
+
+  const assetsQuery = useQuery({
+    ...getCourseAssetOptions({
+      path: {
+        courseId: courseIdNum,
+      },
+    }),
+    enabled: !!courseIdNum,
+  });
+
+  const isLoading =
+    courseQuery.isLoading ||
+    routinesQuery.isLoading ||
+    pendingTasksQuery.isLoading ||
+    completedTasksQuery.isLoading ||
+    eventsQuery.isLoading ||
+    assetsQuery.isLoading;
+
+  const error =
+    courseQuery.error ||
+    routinesQuery.error ||
+    pendingTasksQuery.error ||
+    completedTasksQuery.error ||
+    eventsQuery.error ||
+    assetsQuery.error;
+
+  const course = courseQuery.data;
 
   if (isLoading) {
     return (
@@ -80,20 +106,16 @@ export default function CoursePage() {
   }
 
   if (error) {
+    const message = error instanceof Error ? error.message : "Không xác định";
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <p className="text-sm text-destructive">
-          Lỗi tải dữ liệu: {error.message}
-        </p>
+        <p className="text-sm text-destructive">Lỗi tải dữ liệu: {message}</p>
       </div>
     );
   }
 
-  const status = statusMap[course?.status ?? ""];
-
   return (
     <div className="max-w-8xl mx-auto p-6 space-y-6">
-      {/* Back button */}
       <div className="flex">
         <Button
           variant="ghost"
@@ -106,48 +128,16 @@ export default function CoursePage() {
         </Button>
       </div>
 
-      {course && (
-        <>
-          {/* Header card */}
-          <div className="rounded-xl border bg-card p-6">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-primary/10 shrink-0">
-                <BookOpen size={24} className="text-primary" />
-              </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-xl font-bold tracking-tight">
-                    {course.name}
-                  </h1>
-                  {/* {status && (
-                    <Badge variant={status.variant}>{status.label}</Badge>
-                  )} */}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tabs */}
-          <Tabs defaultValue="overview">
-            <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-0">
-              {TabItems.map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-4 pb-2.5 pt-2 text-sm"
-                >
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            {TabItems.map((tab) => (
-              <TabsContent key={tab.value} value={tab.value} className="mt-6">
-                {tab.content()}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </>
-      )}
+      {course ? (
+        <CourseDetailTabs
+          course={course}
+          routines={(routinesQuery.data ?? []) as SimpleResponseRoutineDto[]}
+          pendingTasks={pendingTasksQuery.data ?? []}
+          completedTasks={completedTasksQuery.data ?? []}
+          timelineEvents={eventsQuery.data ?? []}
+          assets={assetsQuery.data ?? []}
+        />
+      ) : null}
     </div>
   );
 }

@@ -39,35 +39,57 @@ namespace SmartStudy.Server.Services
         // Routine thường tạo ra trước nhưng chưa gán lịch
         public async Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto)
         {
-                var userId = _currentUserService.UserId;
-                var studyPlan = _context.StudyPlans.FirstOrDefault(sp => sp.Id == RoutineDto.StudyPlanId && sp.UserId == userId);
-                if (studyPlan == null) throw new KeyNotFoundException("Không tìm thấy kế hoạc học tập");
-                var Routine = _mapper.Map<Entities.Routine>(RoutineDto);
-                Routine.UserId = userId;
-                var now = DateTime.UtcNow;
-                Routine.StartDate=studyPlan.StartDate>now?studyPlan.StartDate:now;
-                Routine.EndDate=studyPlan.EndDate;
+            var userId = _currentUserService.UserId;
+            var studyPlan = _context.StudyPlans.FirstOrDefault(sp => sp.Id == RoutineDto.StudyPlanId && sp.UserId == userId);
+            if (studyPlan == null) throw new KeyNotFoundException("Không tìm thấy kế hoạch học tập");
 
-                _context.Routines.Add(Routine);
-                
-                await _context.SaveChangesAsync();
+            // 1. Mapster tự động map luôn cả Routine VÀ danh sách Schedules bên trong
+            var Routine = _mapper.Map<Entities.Routine>(RoutineDto);
+            Routine.UserId = userId;
+            var now = DateTime.UtcNow;
+            // 1. LOGIC TÍNH START DATE: 
+// Nếu UI có gửi lên -> Dùng của UI. 
+// Nếu UI gửi rỗng -> Dùng ngày của Plan (nhưng lấy >= hiện tại để không gen Task trong quá khứ)
+            if (RoutineDto.StartDate.HasValue)
+            {
+                // Đảm bảo lưu UTC để không lệch múi giờ
+                Routine.StartDate = RoutineDto.StartDate.Value.ToUniversalTime(); 
+            }
+            else
+            {
+                Routine.StartDate = studyPlan.StartDate > now ? studyPlan.StartDate : now;
+            }
 
-                var schedules = RoutineDto.
-                Schedules?.Select(s => {
-                    var schedule = _mapper.Map<Schedule>(s);
-                    schedule.RoutineId = Routine.Id;
-                    return schedule;
-                }).ToList();
-            
-                if (schedules != null && schedules.Any())
-                {
-                    _context.Schedules.AddRange(schedules);
-                    await GenerateTasksAsync(Routine.Id, DateTime.UtcNow.AddDays(14));
-                    await _context.SaveChangesAsync();
-                }
-                
+// 2. LOGIC TÍNH END DATE:
+// Nếu UI có gửi lên -> Dùng của UI. 
+// Nếu UI gửi rỗng -> Kế thừa ngày kết thúc của Plan
+            if (RoutineDto.EndDate.HasValue)
+            {
+                Routine.EndDate = RoutineDto.EndDate.Value.ToUniversalTime();
+            }
+            else
+            {
+                Routine.EndDate = studyPlan.EndDate;
+            }
 
-                return _mapper.Map<ResponseRoutineDto>(Routine);       
+// 3. (Tùy chọn nhưng RẤT NÊN CÓ) Validate chống ngáo: 
+// StartDate không được lớn hơn EndDate
+            if (Routine.EndDate.HasValue && Routine.StartDate > Routine.EndDate.Value)
+            {
+                throw new ArgumentException("Ngày bắt đầu lịch trình không được lớn hơn ngày kết thúc!");
+            }
+
+            // 2. EF Core tự động lưu Routine VÀ toàn bộ Schedules con, tự gắn khóa ngoại cực chuẩn
+            _context.Routines.Add(Routine);
+            await _context.SaveChangesAsync(); 
+
+            // 3. Lúc này Routine và Schedules đã yên vị trong DB, chỉ việc đẻ Task
+            if (Routine.Schedules != null && Routine.Schedules.Any())
+            {
+                await GenerateTasksAsync(Routine.Id, DateTime.UtcNow.AddDays(14));
+            }
+
+            return _mapper.Map<ResponseRoutineDto>(Routine);    
         }
 
         public async Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId)
@@ -184,12 +206,31 @@ namespace SmartStudy.Server.Services
             var existingTasks = await _context.Tasks
                 .Where(t => t.RoutineId == RoutineId && t.UserId == userId && t.TaskDate <= DateOnly.FromDateTime(Until))
                 .ToListAsync();
+            
+            // ---------------------------------------------------------
+            // 1. XÁC ĐỊNH NGÀY BẮT ĐẦU (startAnchor)
+            // Ưu tiên lấy ngày lớn hơn giữa "Hôm nay" và "Ngày bắt đầu Routine"
+            // (Để tuyệt đối không gen Task trong quá khứ)
+            // ---------------------------------------------------------
+            var today = DateTime.UtcNow.Date;
+            var startAnchor = Routine.StartDate.Date > today ? Routine.StartDate.Date : today;
 
-            var startDate = DateTime.UtcNow.Date;
-            var endDate = Until.Date.AddDays(1).AddSeconds(-1);
+            // ---------------------------------------------------------
+            // 2. XÁC ĐỊNH NGÀY KẾT THÚC (endAnchor)
+            // Ưu tiên lấy ngày nhỏ hơn giữa "Ngày Until (VD: 14 ngày tới)" và "Ngày kết thúc Routine"
+            // (Để Routine có hạn 1 tuần thì không bị đẻ Task lố sang tuần 2)
+            // ---------------------------------------------------------
+            var targetUntil = Until.Date;
+            var endAnchor = targetUntil;
+    
+            if (Routine.EndDate.HasValue && Routine.EndDate.Value.Date < targetUntil)
+            {
+                endAnchor = Routine.EndDate.Value.Date;
+            }
+            
             var tasksToInsert = new List<TaskItem>();
 
-            foreach (var occurence in GetOccurences(startDate, endDate, Routine))
+            foreach (var occurence in GetOccurences(startAnchor, endAnchor, Routine))
             {
                 if(existingTasks.Any(t => t.ScheduleId == occurence.Schedule.Id && t.TaskDate == DateOnly.FromDateTime(occurence.Date)))
                 {

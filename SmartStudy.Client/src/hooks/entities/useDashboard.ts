@@ -6,15 +6,14 @@ export const useDashboard = () => {
     ...getStudentDashboardSummaryOptions(),
   });
 
-  const getDashboardInsight = useQuery({
-    ...getStudentDashboardInsightOptions(),
-    enabled: !!getDashboardSummary.data,
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60,
-  });
+  // const getDashboardInsight = useQuery({
+  //   ...getStudentDashboardInsightOptions(),
+  //   enabled: !!getDashboardSummary.data,
+  //   staleTime: 1000 * 60 * 30, // 30 minutes
+  //   gcTime: 1000 * 60 * 60,
+  // });
 
   return {
     getDashboardSummary,
-    getDashboardInsight,
   };
 };

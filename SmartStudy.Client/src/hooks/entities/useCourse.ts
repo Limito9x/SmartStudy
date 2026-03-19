@@ -15,11 +15,10 @@ interface UseCourseOptions {
 export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
   const queryClient = useQueryClient();
 
-  const getCoursesByStudyPlan = useQuery({
+  const getCourses = useQuery({
     ...getCoursesOptions({
       query: { studyPlanId: studyPlanId },
     }),
-    enabled: !!studyPlanId,
   });
 
   const getCourseById = (courseId: number) => useQuery({
@@ -64,7 +63,7 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
 
 
   return {
-    getCoursesByStudyPlan,
+    getCourses,
     getCourseById,
     createCourse,
     updateCourse,

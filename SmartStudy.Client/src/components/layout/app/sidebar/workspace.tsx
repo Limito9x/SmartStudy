@@ -25,9 +25,21 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { useNavigate, useLocation } from "react-router-dom";
-import { BookOpen, Presentation, Plus, CheckSquare, PlusCircle, Repeat } from "lucide-react";
+import {
+  BookOpen,
+  Presentation,
+  Plus,
+  CheckSquare,
+  PlusCircle,
+  Repeat,
+} from "lucide-react";
 import { useDialogStore } from "@/stores/useDialogStore";
 
 export default function Workspace() {
@@ -44,7 +56,7 @@ export default function Workspace() {
   // (Đảm bảo hook của bác chỉ gọi API khi activePlanId có giá trị)
   const { data: courses, isLoading: isLoadingCourses } = useCourse({
     studyPlanId: Number(activePlanId),
-  }).getCoursesByStudyPlan;
+  }).getCourses;
 
   // 3. ZERO-CLICK AUTO SELECT
   useEffect(() => {
@@ -64,7 +76,19 @@ export default function Workspace() {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>KẾ HOẠCH HỌC TẬP</SidebarGroupLabel>
+      <div className="flex justify-between items-center p-2">
+        <SidebarGroupLabel>KẾ HOẠCH HỌC TẬP</SidebarGroupLabel>
+        <Button
+          size={"icon-sm"}
+          onClick={() => {
+            openDialog("STUDY_PLAN_FORM", {
+              studyPlanId: undefined,
+            });
+          }}
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
       <SidebarMenu>
         {/* Nút chọn Học kỳ */}
         <SidebarMenuItem>

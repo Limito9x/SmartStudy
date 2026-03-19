@@ -92,9 +92,11 @@ namespace SmartStudy.Server.Services
 
             // Tạo Access Token (JWT), vì Refresh Token tương đối phức tạp nên sẽ triển khai sau
             var tokenString = await GenerateJwtToken(user);
+            var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Student";
             return new LoginResponseDto
             {
                 Email = user.Email,
+                Role = role,
                 UserName = user.UserName,
                 FullName = user.FullName,
                 Token = tokenString,

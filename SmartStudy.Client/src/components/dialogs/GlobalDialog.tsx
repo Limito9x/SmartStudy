@@ -4,6 +4,7 @@ import RoutineFormContainer from "../forms/containers/RoutineFormContainer";
 import CourseFormContainer from "../forms/containers/CourseFormContainer";
 import ScheduleFormContainer from "../forms/containers/ScheduleFormContainer";
 import LogFormContainer from "../forms/containers/LogFormContainer";
+import StudyPlanFormContainer from "../forms/containers/StudyPlanFormContainer";
 import {
   Dialog,
   DialogContent,
@@ -13,10 +14,15 @@ import {
 import type { DialogDataMap, DialogType } from "@/stores/useDialogStore";
 import { cn } from "@/lib/utils";
 import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
+import PlanTemplateEditDialog from "@/components/dialogs/template/PlanTemplateEditDialog";
+import PlanTemplateSelectPlanDialog from "@/components/dialogs/template/PlanTemplateSelectPlanDialog";
+import EventFormContainer from "../forms/containers/EventFormContainer";
 
 const DIALOG_TITLES: {
   [K in DialogType]: (data: DialogDataMap[K]) => string;
 } = {
+  STUDY_PLAN_FORM: (data) =>
+    data.studyPlanId ? "Cập nhật kế hoạch học tập" : "Tạo kế hoạch học tập mới",
   TASK_FORM: (data) => (data.taskId ? "Cập nhật nhiệm vụ" : "Tạo nhiệm vụ mới"),
   ROUTINE_FORM: (data) =>
     data.routineId ? "Cập nhật lịch trình" : "Tạo lịch trình mới",
@@ -26,16 +32,23 @@ const DIALOG_TITLES: {
   LOG_WORK_FORM: (data) =>
     data.logId ? "Cập nhật nhật ký làm việc" : "Tạo nhật ký làm việc mới",
   CONFIRM_DELETE: (data) => `Xác nhận xóa ${data.itemType}`,
+  PLAN_TEMPLATE_EDIT: () => "Chỉnh sửa template",
+  PLAN_TEMPLATE_SELECT_PLAN: () => "Tạo template từ kế hoạch",
+  EVENT_FORM: (data) => (data.eventId ? "Cập nhật sự kiện" : "Tạo sự kiện mới"),
 };
 
 const DIALOG_COMPONENTS: {
   [K in DialogType]: React.FC;
 } = {
+  STUDY_PLAN_FORM: StudyPlanFormContainer,
   TASK_FORM: TaskFormContainer,
   ROUTINE_FORM: RoutineFormContainer,
   COURSE_FORM: CourseFormContainer,
+  EVENT_FORM: EventFormContainer,
   SCHEDULE_FORM: ScheduleFormContainer,
   LOG_WORK_FORM: LogFormContainer,
+  PLAN_TEMPLATE_EDIT: PlanTemplateEditDialog,
+  PLAN_TEMPLATE_SELECT_PLAN: PlanTemplateSelectPlanDialog,
   CONFIRM_DELETE: () => {
     const { data, closeDialog } = useDialogStore();
     const { itemType, itemName, onConfirm } =
@@ -56,10 +69,14 @@ const DIALOG_COMPONENTS: {
 
 const DIALOG_SIZES: { [K in DialogType]: string } = {
   CONFIRM_DELETE: "sm:max-w-sm", // Hộp thoại xác nhận
+  STUDY_PLAN_FORM: "sm:max-w-lg", // Form tạo Study Plan vừa vừa (512px)
   TASK_FORM: "sm:max-w-lg", // Form tạo Task vừa vừa (512px)
   COURSE_FORM: "sm:max-w-md", // Form tạo môn học (448px)
   SCHEDULE_FORM: "sm:max-w-md", // Form xếp lịch lẻ
   LOG_WORK_FORM: "sm:max-w-lg", // Form log work (512px)
+  PLAN_TEMPLATE_EDIT: "sm:max-w-lg",
+  PLAN_TEMPLATE_SELECT_PLAN: "sm:max-w-lg",
+  EVENT_FORM: "sm:max-w-lg", // Form tạo sự kiện (512px)
 
   // KHÚC ĂN TIỀN LÀ ĐÂY: Form Routine cho to chà bá lên (768px hoặc 896px)
   ROUTINE_FORM: "sm:max-w-3xl lg:max-w-4xl",
@@ -71,8 +88,7 @@ export default function GlobalDialog() {
   if (!isOpen || !type || !data) return null;
 
   const getTitle = () => {
-    const resolver = DIALOG_TITLES[type] as any;
-    return resolver(data);
+    return DIALOG_TITLES[type](data as never);
   };
 
   const ComponentToRender = DIALOG_COMPONENTS[type];

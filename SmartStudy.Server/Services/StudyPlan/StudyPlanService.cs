@@ -50,7 +50,7 @@ namespace SmartStudy.Server.Services
 
             var studyPlan = _mapper.Map<Entities.StudyPlan>(studyPlanDto);
             studyPlan.UserId = userId;
-
+            _context.StudyPlans.Add(studyPlan);
             await _context.SaveChangesAsync();
 
             var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();

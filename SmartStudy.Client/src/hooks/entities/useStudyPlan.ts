@@ -8,6 +8,7 @@ import {
   bulkCreateStudyPlansMutation,
   deleteStudyPlanMutation,
 } from "@/services/api/@tanstack/react-query.gen";
+import { toast } from "sonner";
 
 export const useStudyPlan = () => {
   const queryClient = useQueryClient();
@@ -21,6 +22,7 @@ export const useStudyPlan = () => {
       ...getStudyPlanByIdOptions({
         path: { studyPlanId: id },
       }),
+      enabled: !!id, // Chỉ gọi API khi có ID
     });
   };
 
@@ -30,7 +32,7 @@ export const useStudyPlan = () => {
       queryClient.invalidateQueries({
         queryKey: getStudyPlansQueryKey(),
       });
-      alert("Tạo kế hoạch học tập thành công");
+      toast.success("Tạo kế hoạch học tập thành công");
     },
   });
 
@@ -40,7 +42,7 @@ export const useStudyPlan = () => {
       queryClient.invalidateQueries({
         queryKey: getStudyPlansQueryKey(),
       });
-      alert("Tạo nhiều kế hoạch học tập thành công");
+      toast.success("Tạo hàng loạt kế hoạch học tập thành công");
     },
   });
 
@@ -50,7 +52,7 @@ export const useStudyPlan = () => {
       queryClient.invalidateQueries({
         queryKey: getStudyPlansQueryKey(),
       });
-      alert("Cập nhật kế hoạch học tập thành công");
+      toast.success("Cập nhật kế hoạch học tập thành công");
     },
   });
 
@@ -60,7 +62,7 @@ export const useStudyPlan = () => {
       queryClient.invalidateQueries({
         queryKey: getStudyPlansQueryKey(),
       });
-      alert("Xóa kế hoạch học tập thành công");
+      toast.success("Xóa kế hoạch học tập thành công");
     },
   });
 

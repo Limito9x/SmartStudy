@@ -1,29 +1,40 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getEventsByCourseOptions,
-  getEventsByCourseQueryKey,
+  getEventsOptions,
+  getEventsQueryKey,
+  getEventByIdOptions,
   createEventMutation,
   updateEventMutation,
   deleteEventMutation,
 } from "@/services/api/@tanstack/react-query.gen";
 
-export const useTimelineEvent = ({ courseId }: { courseId: number }) => {
+export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
   const queryClient = useQueryClient();
 
   const getEventsByCourse = useQuery({
-    ...getEventsByCourseOptions({
-      path: {
+    ...getEventsOptions({
+      query: {
         courseId: courseId,
-      },
+      }
     }),
   });
+
+  const getEventById = (eventId: number) =>
+    useQuery({
+      ...getEventByIdOptions({
+        path: {
+          eventId: eventId,
+        },
+      }),
+      enabled: !!eventId,
+    });
 
   const createEvent = useMutation({
     ...createEventMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: getEventsByCourseQueryKey({
-          path: {
+        queryKey: getEventsQueryKey({
+          query: {
             courseId: courseId,
           },
         }),
@@ -36,8 +47,8 @@ export const useTimelineEvent = ({ courseId }: { courseId: number }) => {
       ...updateEventMutation(),
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: getEventsByCourseQueryKey({
-            path: {
+          queryKey: getEventsQueryKey({
+            query: {
               courseId: courseId,
             },
           }),
@@ -50,8 +61,8 @@ export const useTimelineEvent = ({ courseId }: { courseId: number }) => {
       ...deleteEventMutation(),
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: getEventsByCourseQueryKey({
-            path: {
+          queryKey: getEventsQueryKey({
+            query: {
               courseId: courseId,
             },
           }),
@@ -61,6 +72,7 @@ export const useTimelineEvent = ({ courseId }: { courseId: number }) => {
 
   return {
     getEventsByCourse,
+    getEventById,
     createEvent,
     updateEvent,
     deleteEvent,

@@ -63,9 +63,32 @@ export type ChatHistoryDto = {
     type: string;
 };
 
+export type CloneTemplateDto = {
+    templateId: number | string;
+    name: null | string;
+    startDate: string;
+};
+
 export type ComprehensionLevel = number;
 
+export type CourseAssetResponseDto = {
+    id?: number | string;
+    fileName?: string;
+    url?: string;
+    type?: FileType;
+    createdAt?: string;
+    linkedType?: AssetLinkType;
+    sourceName?: string;
+};
+
 export type CourseStatus = 'Enrolled' | 'Completed' | 'Dropped';
+
+export type CreatePlanTemplateDto = {
+    sourcePlanId: number | string;
+    name: null | string;
+    description: null | string;
+    isPublic?: boolean;
+};
 
 export type DashboardSummaryDto = {
     weeklyStudyHours?: number | string;
@@ -129,6 +152,7 @@ export type LogDto = {
 
 export type LoginResponseDto = {
     email?: string;
+    role?: string;
     userName?: string;
     fullName?: string;
     token: string;
@@ -144,6 +168,16 @@ export type LogWorkDto = {
     timerEndAt: null | string;
     assetIds: null | Array<number | string>;
     markAsCompleted: boolean;
+};
+
+export type PagedResultOfPlanTemplateDto = {
+    items?: Array<PlanTemplateDto>;
+    totalCount?: number | string;
+    pageIndex?: number | string;
+    pageSize?: number | string;
+    totalPages?: number | string;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
 };
 
 export type PagedResultOfResponseSubjectDto = {
@@ -166,6 +200,33 @@ export type PagedResultOfUserAdminDto = {
     hasNextPage?: boolean;
 };
 
+export type PlanTemplateDetailDto = {
+    payload?: TemplatePayload;
+    id?: number | string;
+    name?: string;
+    description?: null | string;
+    isPublic?: boolean;
+    createdAt?: string;
+    createdByName?: null | string;
+    sourcePlanId?: null | number | string;
+    courseCount?: number | string;
+    routineCount?: number | string;
+    durationDays?: null | number | string;
+};
+
+export type PlanTemplateDto = {
+    id?: number | string;
+    name?: string;
+    description?: null | string;
+    isPublic?: boolean;
+    createdAt?: string;
+    createdByName?: null | string;
+    sourcePlanId?: null | number | string;
+    courseCount?: number | string;
+    routineCount?: number | string;
+    durationDays?: null | number | string;
+};
+
 export type PriorityLevel = number;
 
 export type RequestCourseDto = {
@@ -184,6 +245,8 @@ export type RequestRoutineDto = {
     type: TaskType;
     courseId: null | number | string;
     timelineEventId: null | number | string;
+    startDate: null | string;
+    endDate: null | string;
     studyPlanId: number | string;
     schedules: null | Array<ScheduleDto>;
 };
@@ -360,6 +423,34 @@ export type TaskStatusDto = {
 
 export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting';
 
+export type TemplateCourse = {
+    name?: string;
+    goal?: null | string;
+    targetScore?: null | number | string;
+    routines?: Array<TemplateRoutine>;
+};
+
+export type TemplatePayload = {
+    durationDays?: number | string;
+    courses?: Array<TemplateCourse>;
+};
+
+export type TemplateRoutine = {
+    name?: string;
+    type?: TaskType;
+    instructor?: null | string;
+    startDayOffset?: number | string;
+    endDayOffset?: null | number | string;
+    schedules?: Array<TemplateSchedule>;
+};
+
+export type TemplateSchedule = {
+    dayOfWeek?: DayOfWeek;
+    startTime?: null | string;
+    duration?: null | number | string;
+    location?: null | string;
+};
+
 export type TodayTaskDto = {
     id?: number | string;
     name?: string;
@@ -393,6 +484,12 @@ export type UpcomingEventDto = {
 
 export type UpdateCourseStatusDto = {
     status: CourseStatus;
+};
+
+export type UpdatePlanTemplateDto = {
+    name: string;
+    description: null | string;
+    isPublic: boolean;
 };
 
 export type UpdateScheduleDto = {
@@ -523,6 +620,24 @@ export type ToggleUserStatusResponses = {
      */
     200: unknown;
 };
+
+export type GetCourseAssetData = {
+    body?: never;
+    path: {
+        courseId: number;
+    };
+    query?: never;
+    url: '/api/assets/Course/{courseId}';
+};
+
+export type GetCourseAssetResponses = {
+    /**
+     * OK
+     */
+    200: Array<CourseAssetResponseDto>;
+};
+
+export type GetCourseAssetResponse = GetCourseAssetResponses[keyof GetCourseAssetResponses];
 
 export type GetAssetsData = {
     body?: never;
@@ -892,6 +1007,24 @@ export type PostApiDevResetResponses = {
     200: unknown;
 };
 
+export type GetLogsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        courseId?: number | string;
+    };
+    url: '/api/logs';
+};
+
+export type GetLogsResponses = {
+    /**
+     * OK
+     */
+    200: Array<LogDto>;
+};
+
+export type GetLogsResponse = GetLogsResponses[keyof GetLogsResponses];
+
 export type DeleteLogData = {
     body?: never;
     path: {
@@ -908,7 +1041,7 @@ export type DeleteLogResponses = {
     200: unknown;
 };
 
-export type GetLogData = {
+export type GetLogByIdData = {
     body?: never;
     path: {
         taskLogId: number | string;
@@ -917,14 +1050,14 @@ export type GetLogData = {
     url: '/api/logs/{taskLogId}';
 };
 
-export type GetLogResponses = {
+export type GetLogByIdResponses = {
     /**
      * OK
      */
     200: LogDto;
 };
 
-export type GetLogResponse = GetLogResponses[keyof GetLogResponses];
+export type GetLogByIdResponse = GetLogByIdResponses[keyof GetLogByIdResponses];
 
 export type UpdateLogData = {
     body: LogWorkDto;
@@ -943,6 +1076,124 @@ export type UpdateLogResponses = {
 };
 
 export type UpdateLogResponse = UpdateLogResponses[keyof UpdateLogResponses];
+
+export type GetPlanTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        PageIndex?: number | string;
+        PageSize?: number | string;
+        SearchTerm?: string;
+    };
+    url: '/api/templates';
+};
+
+export type GetPlanTemplatesResponses = {
+    /**
+     * OK
+     */
+    200: PagedResultOfPlanTemplateDto;
+};
+
+export type GetPlanTemplatesResponse = GetPlanTemplatesResponses[keyof GetPlanTemplatesResponses];
+
+export type CreatePlanTemplateData = {
+    body: CreatePlanTemplateDto;
+    path?: never;
+    query?: never;
+    url: '/api/templates';
+};
+
+export type CreatePlanTemplateResponses = {
+    /**
+     * OK
+     */
+    200: PlanTemplateDto;
+};
+
+export type CreatePlanTemplateResponse = CreatePlanTemplateResponses[keyof CreatePlanTemplateResponses];
+
+export type DeletePlanTemplateData = {
+    body?: never;
+    path: {
+        templateId: number | string;
+    };
+    query?: never;
+    url: '/api/templates/{templateId}';
+};
+
+export type DeletePlanTemplateResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetPlanTemplateByIdData = {
+    body?: never;
+    path: {
+        templateId: number | string;
+    };
+    query?: never;
+    url: '/api/templates/{templateId}';
+};
+
+export type GetPlanTemplateByIdResponses = {
+    /**
+     * OK
+     */
+    200: PlanTemplateDetailDto;
+};
+
+export type GetPlanTemplateByIdResponse = GetPlanTemplateByIdResponses[keyof GetPlanTemplateByIdResponses];
+
+export type UpdatePlanTemplateData = {
+    body: UpdatePlanTemplateDto;
+    path: {
+        templateId: number | string;
+    };
+    query?: never;
+    url: '/api/templates/{templateId}';
+};
+
+export type UpdatePlanTemplateResponses = {
+    /**
+     * OK
+     */
+    200: PlanTemplateDto;
+};
+
+export type UpdatePlanTemplateResponse = UpdatePlanTemplateResponses[keyof UpdatePlanTemplateResponses];
+
+export type GetMyPlanTemplatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/templates/my';
+};
+
+export type GetMyPlanTemplatesResponses = {
+    /**
+     * OK
+     */
+    200: Array<PlanTemplateDto>;
+};
+
+export type GetMyPlanTemplatesResponse = GetMyPlanTemplatesResponses[keyof GetMyPlanTemplatesResponses];
+
+export type ClonePlanTemplateData = {
+    body: CloneTemplateDto;
+    path?: never;
+    query?: never;
+    url: '/api/templates/clone';
+};
+
+export type ClonePlanTemplateResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type DeleteRoutineData = {
     body?: never;
@@ -1344,9 +1595,8 @@ export type GetTasksData = {
     body?: never;
     path?: never;
     query?: {
-        fromDate?: string;
-        toDate?: string;
-        studyPlanId?: number | string;
+        courseId?: number | string;
+        status?: TaskStatus;
     };
     url: '/api/tasks';
 };
@@ -1464,6 +1714,25 @@ export type CreateTaskLogWorkResponses = {
 
 export type CreateTaskLogWorkResponse = CreateTaskLogWorkResponses[keyof CreateTaskLogWorkResponses];
 
+export type GetEventsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        studyPlanId?: number | string;
+        courseId?: number | string;
+    };
+    url: '/api/events';
+};
+
+export type GetEventsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ResponseTimelineEventDto>;
+};
+
+export type GetEventsResponse = GetEventsResponses[keyof GetEventsResponses];
+
 export type CreateEventData = {
     body: RequestTimelineEventDto;
     path?: never;
@@ -1480,23 +1749,23 @@ export type CreateEventResponses = {
 
 export type CreateEventResponse = CreateEventResponses[keyof CreateEventResponses];
 
-export type GetEventsByCourseData = {
+export type GetEventByIdData = {
     body?: never;
     path: {
-        courseId: number;
+        eventId: number;
     };
     query?: never;
-    url: '/api/events/course/{courseId}';
+    url: '/api/events/{eventId}';
 };
 
-export type GetEventsByCourseResponses = {
+export type GetEventByIdResponses = {
     /**
      * OK
      */
-    200: Array<ResponseTimelineEventDto>;
+    200: ResponseTimelineEventDto;
 };
 
-export type GetEventsByCourseResponse = GetEventsByCourseResponses[keyof GetEventsByCourseResponses];
+export type GetEventByIdResponse = GetEventByIdResponses[keyof GetEventByIdResponses];
 
 export type DeleteEventData = {
     body?: never;

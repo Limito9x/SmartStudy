@@ -478,6 +478,52 @@ namespace SmartStudy.Server.Migrations
                     b.ToTable("Logs");
                 });
 
+            modelBuilder.Entity("SmartStudy.Server.Entities.PlanTemplate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<int?>("SourcePlanId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("SourcePlanId");
+
+                    b.ToTable("PlanTemplates", (string)null);
+                });
+
             modelBuilder.Entity("SmartStudy.Server.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
@@ -679,6 +725,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("TemplateId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -686,6 +735,8 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TemplateId");
 
                     b.HasIndex("UserId");
 
@@ -1070,6 +1121,22 @@ namespace SmartStudy.Server.Migrations
                     b.Navigation("Task");
                 });
 
+            modelBuilder.Entity("SmartStudy.Server.Entities.PlanTemplate", b =>
+                {
+                    b.HasOne("SmartStudy.Server.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("SmartStudy.Server.Entities.StudyPlan", "SourcePlan")
+                        .WithMany()
+                        .HasForeignKey("SourcePlanId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("SourcePlan");
+                });
+
             modelBuilder.Entity("SmartStudy.Server.Entities.RefreshToken", b =>
                 {
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
@@ -1136,11 +1203,18 @@ namespace SmartStudy.Server.Migrations
 
             modelBuilder.Entity("SmartStudy.Server.Entities.StudyPlan", b =>
                 {
+                    b.HasOne("SmartStudy.Server.Entities.PlanTemplate", "Template")
+                        .WithMany()
+                        .HasForeignKey("TemplateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("StudyPlans")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Template");
 
                     b.Navigation("User");
                 });

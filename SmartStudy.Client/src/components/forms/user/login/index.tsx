@@ -23,11 +23,7 @@ export const LoginForm = () => {
       const response = await loginApi({ body: data });
       if (response.data) {
         useAuthStore.getState().login(response.data);
-        if (response.data.hasCompletedOnboarding) {
           navigate("/app");
-        } else {
-          navigate("/onboarding");
-        }
       }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);

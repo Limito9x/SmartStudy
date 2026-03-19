@@ -3,11 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 import { useDialogStore } from "@/stores/useDialogStore";
-import { EventForm } from "@/components/forms/timeline-event/EventForm";
-import { timelineEventApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { timelineEventFormMapper } from "@/utils/mapper.ts/formMapper";
-import { type ResponseTimelineEventDto } from "@/services/api";
-import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
 
 const priorityConfig = {
   3: { label: "Cao", color: "text-red-500", bg: "bg-red-50" },
@@ -30,89 +25,40 @@ const formatDueDate = (dueDate: string | null | undefined) => {
 };
 
 export default function EventsTab({ courseId }: { courseId: number }) {
-  const { getEventsByCourse, updateEvent, createEvent, deleteEvent } =
+  const { getEventsByCourse, deleteEvent } =
     useTimelineEvent({
       courseId,
     });
   const { data: events } = getEventsByCourse;
 
-  const { openDialog, closeDialog } = useDialogStore();
+  const { openDialog } = useDialogStore();
 
   const handleCreateEvent = () => {
-    openDialog({
-      title: "Thêm sự kiện mới",
-      view: (
-        <EventForm
-          defaultValues={{
-            title: "",
-            type: "Assignment",
-            priority: 2,
-            dueDate: "",
-            notes: "",
-            location: "",
-            courseId: courseId,
-          }}
-          onSubmit={(data) => {
-            createEvent.mutate(
-              {
-                body: timelineEventApiMapper.toRequestTimelineEventDto(
-                  data,
-                  courseId,
-                ),
-              },
-              {
-                onSuccess: () => {
-                  closeDialog();
-                },
-              },
-            );
-          }}
-        />
-      ),
+    openDialog("EVENT_FORM",{
+      courseId
+    })
+  };
+
+  const handleUpdateEvent = (id: number) => {
+    openDialog("EVENT_FORM",{
+      eventId: id,
+      courseId
     });
   };
 
-  const handleUpdateEvent = (id: number, data: ResponseTimelineEventDto) => {
-    openDialog({
-      title: "Cập nhật sự kiện",
-      view: (
-        <EventForm
-          defaultValues={timelineEventFormMapper.toFormValues(data)}
-          onSubmit={(formData) => {
-            updateEvent.mutate({
-              body: timelineEventApiMapper.toRequestTimelineEventDto(
-                formData,
-                courseId,
-              ),
-              path: {
-                timelineEventId: id,
-              },
-            });
-          }}
-        />
-      ),
-    });
-  };
-
-  const handleDeleteEvent = (id: number) => {
-    openDialog({
-      title: "Xác nhận xóa",
-      view: (
-        <ConfirmDelete
-          message="Bạn có chắc chắn muốn xóa sự kiện này không?"
-          onConfirm={() => {
-            deleteEvent.mutate({
-              path: {
-                timelineEventId: id,
-              },
-            });
-            closeDialog();
-          }}
-          onCancel={closeDialog}
-        />
-      ),
-    });
-  };
+  const handleDeleteEvent = (id: number, name: string) => {
+    openDialog("CONFIRM_DELETE",{
+      itemType: "sự kiện",
+      itemName: name,
+      onConfirm: () => {
+        deleteEvent.mutate(
+          {
+            path: { timelineEventId: id },
+          },
+        );
+      },
+    })
+  }
 
   return (
     <div className="space-y-4">
@@ -145,7 +91,7 @@ export default function EventsTab({ courseId }: { courseId: number }) {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      onClick={() => handleUpdateEvent(Number(event.id), event)}
+                      onClick={() => handleUpdateEvent(Number(event.id))}
                     >
                       <Edit2 size={13} />
                     </Button>
@@ -153,7 +99,7 @@ export default function EventsTab({ courseId }: { courseId: number }) {
                       variant="ghost"
                       size="icon"
                       className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleDeleteEvent(Number(event.id))}
+                      onClick={() => handleDeleteEvent(Number(event.id), String(event.title))}
                     >
                       <Trash2 size={13} />
                     </Button>

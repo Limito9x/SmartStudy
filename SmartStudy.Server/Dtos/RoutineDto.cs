@@ -10,6 +10,8 @@ namespace SmartStudy.Server.Dtos
         TaskType Type,
         int? CourseId,
         int? TimelineEventId,
+        DateTime? StartDate,
+        DateTime? EndDate,
         int StudyPlanId,
         List<ScheduleDto>? Schedules
     );

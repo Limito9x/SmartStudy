@@ -17,13 +17,14 @@ export default function ScheduleFormContainer() {
   const finalDefaultValues = {
     ...defaultValues,
     location: defaultValues?.location || "",
+    duration: 60,
   };
 
   const handleSubmit = (values: ScheduleFormValues) => {
     const payload = {
       dayOfWeek: Number(values.dayOfWeek ?? defaultValues?.dayOfWeek ?? 0),
       startTime: values.startTime,
-      duration: Number(values.duration),
+      duration: values.duration,
       location: values.location || null,
     };
 

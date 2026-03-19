@@ -15,9 +15,6 @@ import { courseApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { courseFormMapper } from "@/utils/mapper.ts/formMapper";
 import { useDialogStore } from "@/stores/useDialogStore";
 import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
-import { useOutletContext } from "react-router-dom";
-import type { StudyPlanOutletContext } from "@/layouts/StudyPlanLayout";
-import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 
 interface CourseSheetProps {
   courseId?: number;
@@ -31,6 +28,7 @@ const FORM_DEFAULT_VALUES: CourseFormValues = {
   targetScore: undefined,
   finalScore: undefined,
   goal: "",
+  color: "#000000",
 };
 
 export default function PlanOverviewTab() {
@@ -47,67 +45,23 @@ export default function PlanOverviewTab() {
   });
   const { openDialog, closeDialog } = useDialogStore();
 
-  const { data: courses } = courseApi.getCoursesByStudyPlan;
+  const { data: courses } = courseApi.getCourses;
 
   const createCourseMutation = courseApi.createCourse;
   const deleteCourseMutation = courseApi.deleteCourse;
-
-  const handleCreateCourse = async (courseData: CourseFormValues) => {
-    try {
-      const payload = courseApiMapper.toRequestCourseDto(
-        courseData,
-        Number(studyPlanId),
-      );
-
-      await createCourseMutation.mutateAsync({ body: payload });
-    } catch (error) {
-      console.error("Failed to create course:", error);
-    }
-  };
-
-  const handleDeleteCourse = async (courseId: number) => {
-    try {
-      const course = courses?.find((c) => c.id === courseId);
-      if (!course) {
-        alert("Không tìm thấy khóa học");
-        return;
-      }
-      openDialog({
-        title: "Xác nhận xóa",
-        view: (
-          <ConfirmDelete
-            message={`Bạn có chắc chắn muốn xóa khóa học "${course.name}" không? Hành động này không thể hoàn tác.`}
-            onConfirm={async () => {
-              await deleteCourseMutation.mutateAsync({
-                path: {
-                  courseId,
-                },
-              });
-              closeDialog();
-            }}
-            onCancel={closeDialog}
-          />
-        ),
-      });
-    } catch (error) {
-      console.error("Failed to delete course:", error);
-    }
-  };
-
-  const openCreateCourseSheet = () => {
-    setSheetState({
-      title: "Thêm khóa học",
-      onSubmit: handleCreateCourse,
-      formDefaultValues: FORM_DEFAULT_VALUES,
-    });
-    setIsSheetOpen(true);
-  };
 
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold">Danh sách khóa học</h2>
-        <Button variant="outline" onClick={() => openCreateCourseSheet()}>
+        <Button
+          variant="outline"
+          onClick={() =>
+            openDialog("COURSE_FORM", {
+              studyPlanId: Number(studyPlanId),
+            })
+          }
+        >
           Thêm khóa học
         </Button>
       </div>
@@ -118,35 +72,34 @@ export default function PlanOverviewTab() {
               key={course.id}
               course={course}
               onEdit={() => {
-                openDialog("COURSE_FORM",{
+                openDialog("COURSE_FORM", {
                   courseId: Number(course.id),
                   studyPlanId: Number(studyPlanId),
                   defaultValues: courseFormMapper.toFormValues(course),
-                })
+                });
               }}
               onDelete={() => {
-                openDialog("CONFIRM_DELETE",{
+                openDialog("CONFIRM_DELETE", {
                   itemType: "khóa học",
                   itemName: String(course.name),
-                  onConfirm: () => deleteCourseMutation.mutate({
-                    path:{
-                      courseId: Number(course.id)
-                    }
-                  })
-                })
+                  onConfirm: () => {
+                    deleteCourseMutation.mutate({
+                      path: {
+                        courseId: Number(course.id),
+                      },
+                    });
+                    closeDialog();
+                  },
+                });
               }}
-              onView={() =>
-                navigate(
-                  `/app/courses/${course.id}`,
-                )
-              }
+              onView={() => navigate(`/app/courses/${course.id}`)}
             />
           ))}
         </div>
       ) : (
         <div>
-          Chưa có khóa học nào trong kế hoạch học tập này. Hãy thêm lớp học
-          phần để bắt đầu lên kế hoạch học tập của bạn!
+          Chưa có khóa học nào trong kế hoạch học tập này. Hãy thêm lớp học phần
+          để bắt đầu lên kế hoạch học tập của bạn!
         </div>
       )}
       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>

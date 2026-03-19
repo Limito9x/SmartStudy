@@ -17,6 +17,13 @@ namespace SmartStudy.Server.Controllers
         {
             _assetService = assetService;
         }
+        
+        [HttpGet("Course/{courseId:int}",Name ="GetCourseAsset")]
+        public async Task<ActionResult<List<CourseAssetResponseDto>>> GetCourseAssets(int courseId)
+        {
+            var assets = await _assetService.GetCourseAssetsAsync(courseId);
+            return Ok(assets);
+        }
 
         [HttpGet(Name = "GetAssets")]
         public async Task<ActionResult<List<AssetResponseDto>>> GetAssets(

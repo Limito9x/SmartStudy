@@ -33,6 +33,7 @@ namespace SmartStudy.Server.Data
         public DbSet<TimelineEvent> TimelineEvents { get; set; } = null!;
         public DbSet<EventRequirement> EventRequirements { get; set; } = null!;
         public DbSet<StudentInfo> StudentInfos { get; set; } = null!;
+        public DbSet<PlanTemplate> PlanTemplates { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

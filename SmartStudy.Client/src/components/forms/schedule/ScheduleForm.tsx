@@ -32,7 +32,7 @@ export default function ScheduleForm({
               name="duration"
               control={methods.control}
               label="Thời lượng"
-              placeholder="Nhập thời lượng"
+              placeholder="Nhập thời lượng (phút)"
             />
             <FormInput
                 name="location"

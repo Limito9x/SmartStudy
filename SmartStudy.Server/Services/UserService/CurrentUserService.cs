@@ -1,10 +1,12 @@
 ﻿using System.Security.Claims;
+using SmartStudy.Server.Entities;
 
 namespace SmartStudy.Server.Services
 {
     public interface ICurrentUserService
     {
         int UserId { get; }
+        bool IsAdmin { get; }
         void CheckAuthorized(int resourceOwnerId, string? resourceName);
     }
 
@@ -33,5 +35,8 @@ namespace SmartStudy.Server.Services
                 throw new UnauthorizedAccessException($"You do not have access to this {resourceName??new string("resource")}");
             }
         }
+        
+        public bool IsAdmin => _httpContextAccessor.HttpContext?.User
+            .IsInRole("Admin") ?? false;
     }
 }

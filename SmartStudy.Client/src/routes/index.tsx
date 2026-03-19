@@ -13,6 +13,9 @@ import PlanOverviewTab from "@/pages/school-study/study-plan/PlanOverviewTab";
 import AdminLayout from "@/layouts/AdminLayout";
 import UserManagementPage from "@/pages/admin/users/UserManagementPage";
 import AdminOverviewPage from "@/pages/admin/AdminOverviewPage";
+import TemplateGalleryPage from "@/pages/school-study/template/TemplateGalleryPage";
+import TemplateDetailPage from "@/pages/school-study/template/TemplateDetailPage";
+import AdminTemplatePage from "@/pages/admin/templates/AdminTemplatePage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -69,6 +72,14 @@ export default function AppRoutes() {
                   path: "calendar",
                   element: <CalendarPage />,
                 },
+                {
+                  path: "templates",
+                  element: <TemplateGalleryPage />,
+                },
+                {
+                  path: "templates/:templateId",
+                  element: <TemplateDetailPage />,
+                },
               ],
             },
           ],
@@ -85,6 +96,14 @@ export default function AppRoutes() {
             {
               path: "users",
               element: <UserManagementPage />,
+            },
+            {
+              path: "templates",
+              element: <AdminTemplatePage />,
+            },
+            {
+              path: "templates/:templateId",
+              element: <TemplateDetailPage />,
             },
           ],
         },

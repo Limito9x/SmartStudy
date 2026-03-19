@@ -65,7 +65,6 @@ export default function TaskFormContainer() {
 
   return (
     <TaskForm
-      studyPlanId={studyPlanId}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
       onSubmit={handleSubmit}

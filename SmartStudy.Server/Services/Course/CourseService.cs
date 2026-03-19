@@ -55,12 +55,17 @@ namespace SmartStudy.Server.Services
             var userId = _currentUserService.UserId;
             var query = _context.Courses
                 .Include(c => c.StudyPlan)
-                .Where(c => c.StudyPlan!.UserId == userId && c.StudyPlan.Status==StudyPlanStatus.Active)
-                .AsNoTracking();
+                .Where(c => c.StudyPlan!.UserId == userId);
             
-            if(studyPlanId.HasValue)
+            if (studyPlanId.HasValue)
             {
+                // Filter theo plan cụ thể
                 query = query.Where(c => c.StudyPlanId == studyPlanId.Value);
+            }
+            else
+            {
+                // Không truyền planId → chỉ lấy plan Active
+                query = query.Where(c => c.StudyPlan!.Status == StudyPlanStatus.Active);
             }
             
             var courses = await query.ToListAsync();

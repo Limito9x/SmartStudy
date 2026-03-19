@@ -4,6 +4,7 @@ import {
   FormInput,
   FormSelect,
   FormCombobox,
+  FormDatePicker,
 } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
 import type { ResponseCourseDto } from "@/services/api";
@@ -12,19 +13,19 @@ import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 
 interface RoutineFormProps {
-  studyPlanId: number;
   isEditMode?: boolean;
   defaultValues?: RoutineFormValues;
   onSubmit: (values: RoutineFormValues) => void;
 }
 
 export default function RoutineForm({
-  studyPlanId,
   isEditMode = false,
   defaultValues,
   onSubmit,
 }: RoutineFormProps) {
-  const { data: courses } = useCourse({ studyPlanId }).getCoursesByStudyPlan;
+  const { data: courses } = useCourse({
+    studyPlanId: undefined,
+  }).getCourses;
   return (
     <BaseForm
       schema={routineSchema}
@@ -72,6 +73,23 @@ export default function RoutineForm({
               valueAsNumber
               emptyText="Không tìm thấy khóa học"
             />
+            <div className="flex items-center">
+              <FormDatePicker
+                name="startDate"
+                control={control}
+                label="Ngày bắt đầu"
+                placeholder="Chọn ngày bắt đầu"
+              />
+
+              <span className="mx-4 text-gray-500">|</span>
+
+              <FormDatePicker
+                name="endDate"
+                control={control}
+                label="Ngày kết thúc"
+                placeholder="Chọn ngày kết thúc"
+              />
+            </div>
 
             {/* --- KHU VỰC 2: CÁC CA HỌC (SCHEDULES) VỚI FIELD ARRAY --- */}
             <div className="pt-4 mt-6 border-t border-gray-200">
@@ -131,12 +149,12 @@ export default function RoutineForm({
                         control={control}
                         label="Thứ"
                         options={[
-                          { label: "Thứ 2", value: "2" },
-                          { label: "Thứ 3", value: "3" },
-                          { label: "Thứ 4", value: "4" },
-                          { label: "Thứ 5", value: "5" },
-                          { label: "Thứ 6", value: "6" },
-                          { label: "Thứ 7", value: "7" },
+                          { label: "Thứ 2", value: "1" },
+                          { label: "Thứ 3", value: "2" },
+                          { label: "Thứ 4", value: "3" },
+                          { label: "Thứ 5", value: "4" },
+                          { label: "Thứ 6", value: "5" },
+                          { label: "Thứ 7", value: "6" },
                           { label: "Chủ nhật", value: "0" },
                         ]}
                       />

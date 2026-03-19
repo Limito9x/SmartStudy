@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services;
+using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Controllers
 {
@@ -35,12 +36,11 @@ namespace SmartStudy.Server.Controllers
         
         [HttpGet(Name = "GetTasks")]
         public async Task<ActionResult<List<ResponseTaskDto>>> GetTasks(
-            [FromQuery] DateTime? fromDate,
-            [FromQuery] DateTime? toDate,
-            [FromQuery] int? studyPlanId
+            [FromQuery] int? courseId,
+            [FromQuery] TaskStatus? status
             )
         {
-            var tasks = await _TaskService.GetTasksAsync(fromDate, toDate);
+            var tasks = await _TaskService.GetTasksAsync(courseId, status);
             return Ok(tasks);
         }
 

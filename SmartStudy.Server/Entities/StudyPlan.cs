@@ -15,6 +15,8 @@ namespace SmartStudy.Server.Entities
         public User? User { get; set; }
 
         public List<Course>? Courses { get; set; }
+        public int? TemplateId { get; set; }
+        public PlanTemplate? Template { get; set; }
     }
 }
 

@@ -6,6 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import { type AssetLinkType } from "@/services/api";
+import { getCourseAssetQueryKey } from "@/services/api/@tanstack/react-query.gen";
 
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginImagePreview);
 
@@ -42,8 +43,16 @@ export default function AssetUploader({
             queryClient.invalidateQueries({
               queryKey: ["assets", linkedId, linkedType],
             });
+            if(linkedType==="Course"){
+              queryClient.invalidateQueries({
+                queryKey: getCourseAssetQueryKey({
+                  path: {
+                    courseId: linkedId,
+                  },
+                }),
+              });
+            }
             onUploaded?.();
-            console.log("Asset uploaded:", response);
             return response;
           },
         },

@@ -5,7 +5,7 @@
         private const int MaxPageSize = 50;
         private int _pageSize = 10;
 
-        public int PageIndex { get; set; } = 1; // Mặc định là trang 1
+        public int PageIndex { get; set; } = 0; // Mặc định là trang 1
 
         public int PageSize
         {

@@ -4,8 +4,20 @@ import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { CourseFormValues } from "@/components/forms/course/schema";
 import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
 import type { LogFormValues } from "@/components/forms/log/schema";
+import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
+import type { UpdatePlanTemplateDto } from "@/services/api";
+import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
 
 export interface DialogDataMap {
+  EVENT_FORM: {
+    courseId?: number;
+    eventId?: number;
+    defaultValues?: TimelineEventFormValues;
+  };
+  STUDY_PLAN_FORM: {
+    studyPlanId?: number;
+    defaultValues?: StudyPlanFormValues;
+  };
   TASK_FORM: {
     studyPlanId: number;
     taskId?: number;
@@ -21,7 +33,7 @@ export interface DialogDataMap {
     courseId?: number;
     defaultValues?: Partial<CourseFormValues>;
   };
-    SCHEDULE_FORM: {
+  SCHEDULE_FORM: {
     routineId?: number;
     defaultValues: ScheduleFormValues;
   };
@@ -35,6 +47,11 @@ export interface DialogDataMap {
     itemName: string;
     onConfirm: () => void;
   };
+  PLAN_TEMPLATE_EDIT: {
+    templateId: number;
+    defaultValues: UpdatePlanTemplateDto;
+  };
+  PLAN_TEMPLATE_SELECT_PLAN: Record<string, never>;
 }
 
 export type DialogType = keyof DialogDataMap;

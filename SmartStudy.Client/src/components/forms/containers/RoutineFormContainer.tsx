@@ -65,7 +65,6 @@ export default function RoutineFormContainer() {
 
   return (
     <RoutineForm
-      studyPlanId={studyPlanId}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
       onSubmit={handleSubmit}

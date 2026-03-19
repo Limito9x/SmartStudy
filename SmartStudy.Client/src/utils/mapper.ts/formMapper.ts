@@ -2,6 +2,7 @@ import type { CourseFormValues } from "@/components/forms/course/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { LogFormValues } from "@/components/forms/log/schema";
+import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
 import type {
   ResponseCourseDto,
   ResponseTimelineEventDto,
@@ -9,6 +10,7 @@ import type {
   ResponseRoutineDto,
   LogDto,
   TaskStatus,
+  ResponseStudyPlanDto
 } from "@/services/api/types.gen";
 
 const formatDueDate = (dueDate: string | null | undefined) => {
@@ -16,6 +18,14 @@ const formatDueDate = (dueDate: string | null | undefined) => {
   const date = new Date(dueDate);
   if (date.getFullYear() <= 1) return null;
   return date.toISOString();
+};
+
+export const studyPlanFormMapper = {
+  toFormValues: (studyPlanDto: ResponseStudyPlanDto): StudyPlanFormValues => ({
+    name: studyPlanDto.name,
+    startDate: studyPlanDto.startDate || "",
+    endDate: studyPlanDto.endDate || "",
+  }),
 };
 
 export const courseFormMapper = {
@@ -61,6 +71,8 @@ export const routineFormMapper = {
     instructor: routineDto.instructor || "",
     description: routineDto.description || "",
     type: routineDto.type,
+    startDate: routineDto.startDate || "",
+    endDate: routineDto.endDate || "",
     courseId: Number(routineDto.courseId),
     schedules:
       routineDto.schedules?.map((s) => ({

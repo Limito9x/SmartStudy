@@ -1,4 +1,3 @@
-import { Separator } from "@/components/ui/separator";
 import {
   Sidebar as ShadcnSidebar,
   SidebarHeader,
@@ -12,11 +11,12 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { User2, LayoutDashboard, LogOut } from "lucide-react";
+import { User2, LayoutDashboard, LogOut, FileStack } from "lucide-react";
 
 const navigationItems = [
   { label: "Tổng quan", path: "/", icon: LayoutDashboard },
   { label: "Người dùng", path: "/users", icon: User2 },
+  { label: "Template", path: "/templates", icon: FileStack },
 ];
 
 export default function AdminSidebar() {

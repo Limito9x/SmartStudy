@@ -149,6 +149,15 @@ namespace SmartStudy.Server.Services
                 throw new AppException("Ngày không khớp với lịch trình");
             }
             
+            var existingTask = await _context.Tasks
+                .FirstOrDefaultAsync(t => t.ScheduleId == scheduleId 
+                                          && t.TaskDate == taskDate);
+
+            if (existingTask != null)
+            {
+                throw new AppException("Nhiệm vụ này đã được xác nhận từ trước rồi!");
+            }
+            
             var task = new TaskItem()
             {
                 Name = schedule.Routine!.Name,

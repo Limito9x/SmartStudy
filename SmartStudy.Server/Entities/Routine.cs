@@ -12,7 +12,7 @@ namespace SmartStudy.Server.Entities
         public DateTime? EndDate { get; set; }
         public DateTime NextOccurrence { get; set; }
         public int UserId { get; set; }
-        public required User User { get; set; }
+        public User User { get; set; }
         public int StudyPlanId { get; set; }
         public StudyPlan StudyPlan { get; set; }
         public int? CourseId { get; set; }

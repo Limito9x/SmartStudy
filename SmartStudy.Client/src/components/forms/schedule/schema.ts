@@ -39,9 +39,10 @@ export const defaultScheduleItemValues: ScheduleItemFormInput = {
 
 export const scheduleSchema = z.object({
   id: z.number(),
-  dayOfWeek: z.number().min(0).max(6),
+  dayOfWeek: z.coerce.number().min(0).max(6),
   startTime: z.string().min(1, "Giờ bắt đầu không được để trống"), // "08:00"
-  duration: z.number().min(1),
+  duration: z.number().min(1, "Thời lượng phải lớn hơn hoặc bằng 1")
+  .max(12*60,"Thời lượng không được vượt quá 12 tiếng"), // 60
   location: z.string().optional(),
 });
 
