@@ -64,7 +64,7 @@ export function Sidebar() {
         <Workspace />
         <Separator className="mx-4 my-2 w-auto" />
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="w-full border-t">
         <UserNav />
       </SidebarFooter>
     </ShadcnSidebar>

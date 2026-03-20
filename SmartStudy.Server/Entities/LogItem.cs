@@ -13,7 +13,7 @@ namespace SmartStudy.Server.Entities
         // public int? ProductivityScore { get; set; }
         public ComprehensionLevel? ComprehensionLevel { get; set; } // Hiểu bài
         public DifficultyLevel? DifficultyLevel { get; set; } // Độ khó
-        // Pomodora - Hardcore mode: log thời gian bắt đầu và kết thúc thực tế, để hỗ trợ đánh giá sau này
+        // Pomodoro - Hardcore mode: log thời gian bắt đầu và kết thúc thực tế, để hỗ trợ đánh giá sau này
         public DateTime? TimerStartAt { get; set; }
         public DateTime? TimerEndAt { get; set; }
         public int TaskId { get; set; }

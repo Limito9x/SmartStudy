@@ -1,13 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { useDialogStore } from "@/stores/useDialogStore";
-import StudentInfoForm from "@/components/forms/user/student-info/StudentInfoForm";
+import { User, LogOut } from "lucide-react";
+import { SidebarMenuItem } from "@/components/ui/sidebar";
 
 export default function UserNav() {
   const navigate = useNavigate();
-  const { logout } = useAuthStore();
-  const { openDialog } = useDialogStore();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -15,11 +14,15 @@ export default function UserNav() {
   };
 
   return (
-    <div className="p-2">
+    <SidebarMenuItem className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <User className="w-4 h-4" />
+          <span>{user?.fullName || "User"}</span>
+        </div>
 
-      <Button variant="outline" onClick={handleLogout}>
-        Đăng xuất
+      <Button variant="ghost" size="icon" onClick={handleLogout}>
+        <LogOut className="w-4 h-4" />
       </Button>
-    </div>
+    </SidebarMenuItem>
   );
 }

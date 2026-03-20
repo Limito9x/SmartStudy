@@ -36,7 +36,7 @@ namespace SmartStudy.Server.Controllers
         /// Stream chat response với SSE (Server-Sent Events)
         /// </summary>
         [HttpPost("sessions/{sessionId}/stream")]
-        public async Task StreamChat(int sessionId, [FromBody] ChatDto chatDto)
+        public async Task StreamChat(int sessionId, [FromBody] ChatDto chatDto, [FromQuery] int? studyPlanId)
         {
             // Set headers cho SSE
             Response.Headers.Append("Content-Type", "text/event-stream");
@@ -62,7 +62,7 @@ namespace SmartStudy.Server.Controllers
                     await Response.WriteAsync(sseWidgetMessage);
                     await Response.Body.FlushAsync();
                 };
-                await foreach (var text in _chatService.StreamChatAsync(sessionId, chatDto.prompt))
+                await foreach (var text in _chatService.StreamChatAsync(sessionId, chatDto.prompt, studyPlanId))
                 {
                     // Serialize chunk thành JSON
                     var chunk = new AiResponseChunk

@@ -14,7 +14,7 @@ namespace SmartStudy.Server.Services
         Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status);
         Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
-        Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto Dto);
+        Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto dto);
         Task<bool> DeleteTaskByIdAsync(int taskId);
     }
     public class TaskService: ITaskService
@@ -42,8 +42,6 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseTaskDto> CreateTaskAsync(RequestTaskDto taskItemDto)
         {
             var userId = _currentUserService.UserId;
-            
-            
             var Task = _mapper.Map<Entities.TaskItem>(taskItemDto);
             Task.UserId = userId;
             await _context.Tasks.AddAsync(Task);

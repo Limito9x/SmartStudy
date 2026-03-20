@@ -278,38 +278,13 @@ export default function TodayPage() {
     }
 
     if (task.type === "ClassSession" || task.type === "SelfStudy") {
-      openDialog({
-        title: `Ghi nhận: ${task.name ?? "Nhiệm vụ"}`,
-        view: (
-          <LogWorkForm
-            onSubmit={(data) => {
-              createTaskLogWork.mutate(
-                {
-                  path: { taskId },
-                  body: {
-                    note: data.note ?? null,
-                    actualDurationMinutes: data.actualDurationMinutes ?? null,
-                    comprehensionLevel: data.comrehensiveLevel ?? null,
-                    difficultyLevel: data.difficultyLevel ?? null,
-                    timerStartAt: data.timerStartAt ?? null,
-                    timerEndAt: data.timerEndAt ?? null,
-                    eventRequirementId: data.eventRequirementId ?? null,
-                    earnedValue: data.earnedValue ?? null,
-                    assetIds: data.assetIds ?? null,
-                    markAsCompleted: data.markAsCompleted ?? false,
-                  },
-                },
-                {
-                  onSuccess: () => {
-                    closeDialog();
-                    refreshDashboard();
-                    toast.success(`Đã ghi nhận ${task.name ?? "nhiệm vụ"}`);
-                  },
-                },
-              );
-            }}
-          />
-        ),
+      openDialog("LOG_WORK_FORM", {
+        taskId: taskId,
+        defaultValues: {
+          actualDuration: Number(task.plannedDuration) || 60,
+          note: "",
+          markAsCompleted: false,
+        },
       });
       return;
     }

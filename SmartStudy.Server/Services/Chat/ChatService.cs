@@ -15,7 +15,7 @@ namespace SmartStudy.Server.Services
     public interface IChatService
     {
         public Task<List<ChatHistoryDto>> GetMessagesBySessionId(int sessionId);
-        public IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message);
+        public IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message, int? studyPlanId);
         public System.Threading.Tasks.Task CreateSession(SessionDto sessionDto);
         public Task<List<SessionResponseDto>> GetSessions();
         public Task<string> GetInsight(DashboardSummaryDto summaryDto);
@@ -73,7 +73,8 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<List<ChatHistoryDto>>(messages);
         }
 
-        public async IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message)
+        public async IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message,
+            int? studyPlanId)
         {
             var userId = _currentUserService.UserId;
             _uIWidgetCollector.Clear();
@@ -89,37 +90,24 @@ namespace SmartStudy.Server.Services
                 .OrderBy(m => m.CreatedAt)
                 .Select(m => new { m.Role, m.Content })
                 .ToList();
-            
-            var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
-            var todayTasks = await _context.Tasks
-                .Where(t => t.UserId == userId && t.TaskDate == today)
-                .Include(t => t.Course)
-                .Include(t => t.Logs)  // thêm dòng này
-                .OrderBy(t => t.StartTime)
-                .ToListAsync();
-
-            var taskContext = todayTasks.Any()
-                ? string.Join("\n", todayTasks.Select(t =>
-                {
-                    var logSummary = t.Logs != null && t.Logs.Any()
-                        ? $"| Đã học {t.Logs.Sum(l => l.ActualDuration)} phút"
-                        : "| Chưa có log";
-                    return $"- {t.Name} | {t.StartTime?.ToString("HH:mm") ?? "chưa có giờ"} | {t.Status} | Môn: {t.Course?.Name ?? "không có"} {logSummary}";
-                }))
-                : "Hôm nay không có task nào.";
 
             var history = new ChatHistory();
+            
+            var todayStr = DateTime.UtcNow.AddHours(7).ToString("dddd, yyyy-MM-dd");
 
             // 2. Thêm system message TRƯỚC lịch sử
             history.AddSystemMessage($"""
-                                          Bạn là trợ lý học tập thông minh của SmartStudy, hỗ trợ sinh viên Việt Nam quản lý lịch học.
-                                          Hôm nay là {today:dd/MM/yyyy}.
+                                          Bạn là trợ lý học tập thông minh của SmartStudy.
+                                          Hôm nay là: {todayStr}.
+                                          Ngữ cảnh cụ thể của người dùng trong ứng dụng là: studyPlanId = {studyPlanId}.
+                                          Tham số ngữ cảnh trên rất quan troọng, có thể giúp ích quá trình function calling khi cần.
                                           
-                                          LỊCH HỌC HÔM NAY:
-                                          {taskContext}
-                                          
-                                          Trả lời ngắn gọn, thân thiện, bằng tiếng Việt.
-                                          Chỉ tư vấn về học tập, lịch học, quản lý thời gian.
+                                          QUY TẮC TỐI THƯỢNG (BẮT BUỘC TUÂN THỦ):
+                                          1. TUYỆT ĐỐI KHÔNG TỰ BỊA ĐẶT LỊCH HỌC HAY CÔNG VIỆC.
+                                          2. Nếu người dùng hỏi về lịch học (hôm nay, ngày mai, tuần sau, v.v.), bạn KHÔNG ĐƯỢC TỰ SUY ĐOÁN. Bạn BẮT BUỘC PHẢI gọi hàm (function) để kiểm tra dữ liệu thực tế.
+                                          3. Nếu hàm trả về không có dữ liệu, hãy trả lời chính xác là "Bạn không có lịch trình nào".
+                                          4. QUY TẮC HIỂN THỊ: PHẢI sử dụng Markdown để trình bày. Tuyệt đối KHÔNG in ra các ký tự code như '\n'. Để xuống dòng, hãy tạo một dòng trống thực sự. Để liệt kê, dùng dấu gạch ngang (-).
+                                          5. Trả lời ngắn gọn, thân thiện bằng tiếng Việt.
                                       """);
 
             // 3. Load lịch sử chat

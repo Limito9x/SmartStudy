@@ -4,6 +4,7 @@ import {
   type AppendMessage,
 } from "@assistant-ui/react";
 import { useRef, useState, useCallback } from "react";
+import { useStudyPlanStore } from "@/stores/studyPlanStore";
 
 export function useChatRuntime(sessionId: number) {
   const [isRunning, setIsRunning] = useState(false);
@@ -11,6 +12,7 @@ export function useChatRuntime(sessionId: number) {
   const [messages, setMessages] = useState<ThreadMessageLike[]>([]);
   const token = localStorage.getItem("token");
   const historyLoadedRef = useRef<number | null>(null);
+  const { activePlanId } = useStudyPlanStore();
 
   // Load history (using ref to avoid duplicate loads)
   if (sessionId && historyLoadedRef.current !== sessionId) {
@@ -48,7 +50,7 @@ export function useChatRuntime(sessionId: number) {
 
       try {
         const response = await fetch(
-          `http://localhost:5037/api/chat/sessions/${sessionId}/stream`,
+          `http://localhost:5037/api/chat/sessions/${sessionId}/stream?studyPlanId=${activePlanId}`,
           {
             method: "POST",
             headers: {

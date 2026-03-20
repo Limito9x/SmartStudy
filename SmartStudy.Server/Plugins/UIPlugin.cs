@@ -4,7 +4,6 @@ using SmartStudy.Server.Helpers;
 using SmartStudy.Server.Services;
 using System.ComponentModel;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace SmartStudy.Server.Plugins
 {
@@ -14,7 +13,6 @@ namespace SmartStudy.Server.Plugins
         public UIPlugin(UIWidgetCollector uIWidgetCollector)
         {
             _uIWidgetCollector = uIWidgetCollector;
-            Console.WriteLine("UIPlugin initialized with UIWidgetCollector.");
         }
 
         [KernelFunction]

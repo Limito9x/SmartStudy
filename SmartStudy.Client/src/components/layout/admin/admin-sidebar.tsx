@@ -22,7 +22,7 @@ const navigationItems = [
 export default function AdminSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -64,14 +64,16 @@ export default function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <Button
-          onClick={handleLogout}
-          variant="outline"
-          className="w-full justify-start gap-2"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Đăng xuất</span>
-        </Button>
+        <SidebarMenuItem className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <User2 className="w-4 h-4" />
+            <span>{user?.fullName || "User"}</span>
+          </div>
+
+          <Button variant="ghost" size="icon" onClick={handleLogout}>
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </SidebarMenuItem>
       </SidebarFooter>
     </ShadcnSidebar>
   );

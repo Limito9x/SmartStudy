@@ -51,7 +51,7 @@ public class StudentDashboardService: IStudentDashboardService
     var todayTasks = await _context.Tasks
         .Include(t => t.Course)
         .Where(t => t.UserId == userId
-                 && t.TaskDate == todayOnly)
+                 && t.TaskDate == todayOnly && t.Status!= Entities.Enums.TaskStatus.Completed)
         .ToListAsync();
 
     // Overdue

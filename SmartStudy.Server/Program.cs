@@ -98,12 +98,15 @@ builder.Services.AddScoped<Kernel>(sp =>
 
     // Thêm Gemini
     builder.AddGoogleAIGeminiChatCompletion(
-        modelId: "gemini-2.5-flash-lite",
+        modelId: "gemini-2.5-flash",
         apiKey: geminiApiKey);
 
     // QUAN TRỌNG: Lấy UIPlugin từ DI và nạp vào Kernel
-    var uiPlugin = sp.GetRequiredService<UIPlugin>();
-    builder.Plugins.AddFromObject(uiPlugin, "UIPlugin"); // Đặt tên rõ ràng
+    // var uiPlugin = sp.GetRequiredService<UIPlugin>();
+    // builder.Plugins.AddFromObject(uiPlugin, "UIPlugin");
+    
+    var studyPlugin = sp.GetRequiredService<StudyPlugin>();
+    builder.Plugins.AddFromObject(studyPlugin, "StudyPlugin");
 
     return builder.Build();
 });
@@ -135,10 +138,12 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IStudentDashboardService, StudentDashboardService>()
                 .AddScoped<IAdminDashboardService, AdminDashboardService>()
                 .AddScoped<IDatabaseSeeder, DatabaseSeeder>()
+                .AddScoped<IMeaningfulSeeder,MeaningfulSeeder>()
                 .AddScoped<IPlanTemplateService, PlanTemplateService>()
                 .AddScoped<ICalendarService, CalendarService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
+                .AddScoped<StudyPlugin>()
                 .AddScoped<IMapper, ServiceMapper>();
 
 // Đăng ký Interceptor để xóa file trên Cloudinary khi xóa bản ghi Asset

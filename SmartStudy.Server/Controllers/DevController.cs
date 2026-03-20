@@ -15,21 +15,24 @@ public class DevController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly IWebHostEnvironment _env;
     private readonly IDatabaseSeeder _seeder;
+    private readonly IMeaningfulSeeder _meaningfulSeeder;
 
     public DevController(
         ApplicationDbContext context,
         UserManager<User> userManager,
         IWebHostEnvironment env,
-        IDatabaseSeeder seeder)
+        IDatabaseSeeder seeder,
+        IMeaningfulSeeder meaningfulSeeder)
     {
         _context = context;
         _userManager = userManager;
         _env = env;
         _seeder = seeder;
+        _meaningfulSeeder = meaningfulSeeder;
     }
 
     // POST /api/dev/seed — chạy seeder nếu chưa có data
-    [HttpPost("seed")]
+    [HttpPost("seed-bogus")]
     public async Task<IActionResult> Seed()
     {
         if (!_env.IsDevelopment())
@@ -38,6 +41,17 @@ public class DevController : ControllerBase
         await _seeder.SeedAsync();
         return Ok(new { message = "Seeded successfully" });
     }
+    
+    [HttpPost("seed-meaningful")]
+    public async Task<IActionResult> SeedMeaningful()
+    {
+        if (!_env.IsDevelopment())
+            return Forbid(); // Chặn tuyệt đối trên Production
+
+        await _meaningfulSeeder.SeedAsync();
+        return Ok(new { message = "Meaningful data seeded successfully" });
+    }
+    
 
     // POST /api/dev/reset — xóa sạch rồi seed lại
     [HttpPost("reset")]

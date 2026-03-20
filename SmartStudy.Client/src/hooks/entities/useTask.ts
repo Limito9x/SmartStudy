@@ -12,19 +12,19 @@ import {
   getUnscheduledItemsQueryKey,
   getStudentDashboardSummaryQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
+import type { TaskStatus } from "@/services/api";
 
 export const useTask = () => {
   const queryClient = useQueryClient();
 
-  const getTasks = ({ from, to }: { from: string; to: string }) =>
+  const getTasks = ({ courseId, status }: { courseId?: number, status?: TaskStatus }) =>
     useQuery({
       ...getTasksOptions({
         query: {
-          fromDate: from,
-          toDate: to,
+          courseId,
+          status,
         },
       }),
-      enabled: !!from && !!to,
     });
 
   const getTaskById = (id: number) =>
