@@ -15,7 +15,7 @@ namespace SmartStudy.Server.Controllers
         {
             _userService = userService;
         }
-        [HttpPatch("setting/student-info")]
+        [HttpPatch("setting/student-info", Name = "SettingStudentInfo")]
         public async Task<ActionResult> SettingStudentInfo([FromBody] StudentInfoDto settingDto)
         {
             await _userService.SettingStudentInfo(settingDto);

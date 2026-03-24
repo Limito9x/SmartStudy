@@ -2,7 +2,7 @@
 
 import { type Client, type Options as Options2, type TDataShape, urlSearchParamsBodySerializer } from './client';
 import { client } from './client.gen';
-import type { BulkCreateStudyPlansData, BulkCreateStudyPlansResponses, BulkCreateSubjectsData, BulkCreateSubjectsResponses, ClonePlanTemplateData, ClonePlanTemplateResponses, ConfirmTaskOnOccurrenceData, ConfirmTaskOnOccurrenceResponses, CreateChatSessionData, CreateChatSessionResponses, CreateCourseData, CreateCourseResponses, CreateEvenetRequirementData, CreateEvenetRequirementResponses, CreateEventData, CreateEventResponses, CreatePlanTemplateData, CreatePlanTemplateResponses, CreateRoutineData, CreateRoutineResponses, CreateScheduleData, CreateScheduleResponses, CreateStudyPlanData, CreateStudyPlanResponses, CreateSubjectData, CreateSubjectResponses, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponses, CreateTaskResponses, DeleteAssetData, DeleteAssetResponses, DeleteCourseData, DeleteCourseResponses, DeleteEventData, DeleteEventRequirementData, DeleteEventRequirementResponses, DeleteEventResponses, DeleteLogData, DeleteLogResponses, DeletePlanTemplateData, DeletePlanTemplateResponses, DeleteRoutineData, DeleteRoutineResponses, DeleteScheduleData, DeleteScheduleResponses, DeleteStudyPlanData, DeleteStudyPlanResponses, DeleteSubjectData, DeleteSubjectResponses, DeleteTaskByIdData, DeleteTaskByIdResponses, GenerateTasksData, GenerateTasksResponses, GetAllChatSessionsData, GetAllChatSessionsResponses, GetAssetsData, GetAssetsResponses, GetBehaviorData, GetBehaviorResponses, GetCalendarData, GetCalendarResponses, GetChatSessionByIdData, GetChatSessionByIdResponses, GetCourseAssetData, GetCourseAssetResponses, GetCourseByIdData, GetCourseByIdResponses, GetCoursesData, GetCoursesResponses, GetEventByIdData, GetEventByIdResponses, GetEventRequirementsData, GetEventRequirementsResponses, GetEventsData, GetEventsResponses, GetKpiData, GetKpiResponses, GetLogByIdData, GetLogByIdResponses, GetLogsData, GetLogsResponses, GetMyPlanTemplatesData, GetMyPlanTemplatesResponses, GetPlanTemplateByIdData, GetPlanTemplateByIdResponses, GetPlanTemplatesData, GetPlanTemplatesResponses, GetProfileData, GetProfileResponses, GetRoutineByIdData, GetRoutineByIdResponses, GetRoutinesData, GetRoutinesResponses, GetStudentDashboardInsightData, GetStudentDashboardInsightResponses, GetStudentDashboardSummaryData, GetStudentDashboardSummaryResponses, GetStudyPlanByIdData, GetStudyPlanByIdResponses, GetStudyPlansData, GetStudyPlansResponses, GetSubjectsData, GetSubjectsResponses, GetTaskByIdData, GetTaskByIdResponses, GetTasksData, GetTasksResponses, GetUnscheduledItemsData, GetUnscheduledItemsResponses, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponses, GetUserGrowthData, GetUserGrowthResponses, GetUsersData, GetUsersResponses, LoginData, LoginResponses, PatchApiUsersSettingStudentInfoData, PatchApiUsersSettingStudentInfoResponses, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsBySessionIdStreamResponses, PostApiDevResetData, PostApiDevResetResponses, PostApiDevSeedData, PostApiDevSeedResponses, RegisterData, RegisterResponses, ToggleUserStatusData, ToggleUserStatusResponses, UpdateCourseData, UpdateCourseResponses, UpdateCourseStatusData, UpdateCourseStatusResponses, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponses, UpdateEventResponses, UpdateLogData, UpdateLogResponses, UpdatePlanTemplateData, UpdatePlanTemplateResponses, UpdateRoutineData, UpdateRoutineResponses, UpdateScheduleData, UpdateScheduleResponses, UpdateStudyPlanData, UpdateStudyPlanResponses, UpdateStudyPlanStatusData, UpdateStudyPlanStatusResponses, UpdateSubjectData, UpdateSubjectResponses, UpdateTaskInfoData, UpdateTaskInfoResponses, UpdateTaskStatusData, UpdateTaskStatusResponses, UploadAssetsData, UploadAssetsResponses } from './types.gen';
+import type { BulkCreateStudyPlansData, BulkCreateStudyPlansResponses, BulkCreateSubjectsData, BulkCreateSubjectsResponses, ClonePlanTemplateData, ClonePlanTemplateResponses, ConfirmTaskOnOccurrenceData, ConfirmTaskOnOccurrenceResponses, CreateChatSessionData, CreateChatSessionResponses, CreateCourseData, CreateCourseResponses, CreateEvenetRequirementData, CreateEvenetRequirementResponses, CreateEventData, CreateEventResponses, CreatePlanTemplateData, CreatePlanTemplateResponses, CreateRoutineData, CreateRoutineResponses, CreateScheduleData, CreateScheduleResponses, CreateStudyPlanData, CreateStudyPlanResponses, CreateSubjectData, CreateSubjectResponses, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponses, CreateTaskResponses, DeleteAssetData, DeleteAssetResponses, DeleteCourseData, DeleteCourseResponses, DeleteEventData, DeleteEventRequirementData, DeleteEventRequirementResponses, DeleteEventResponses, DeleteLogData, DeleteLogResponses, DeletePlanTemplateData, DeletePlanTemplateResponses, DeleteRoutineData, DeleteRoutineResponses, DeleteScheduleData, DeleteScheduleResponses, DeleteStudyPlanData, DeleteStudyPlanResponses, DeleteSubjectData, DeleteSubjectResponses, DeleteTaskByIdData, DeleteTaskByIdResponses, GenerateTasksData, GenerateTasksResponses, GetAcademicContextData, GetAcademicContextResponses, GetAllChatSessionsData, GetAllChatSessionsResponses, GetAssetsData, GetAssetsResponses, GetBehaviorData, GetBehaviorResponses, GetCalendarData, GetCalendarResponses, GetChatSessionByIdData, GetChatSessionByIdResponses, GetCourseAssetData, GetCourseAssetResponses, GetCourseByIdData, GetCourseByIdResponses, GetCoursesData, GetCoursesResponses, GetEventByIdData, GetEventByIdResponses, GetEventRequirementsData, GetEventRequirementsResponses, GetEventsData, GetEventsResponses, GetKpiData, GetKpiResponses, GetLogByIdData, GetLogByIdResponses, GetLogsData, GetLogsResponses, GetMyPlanTemplatesData, GetMyPlanTemplatesResponses, GetPlanTemplateByIdData, GetPlanTemplateByIdResponses, GetPlanTemplatesData, GetPlanTemplatesResponses, GetProfileData, GetProfileResponses, GetRoutineByIdData, GetRoutineByIdResponses, GetRoutinesData, GetRoutinesResponses, GetStudentDashboardInsightData, GetStudentDashboardInsightResponses, GetStudentDashboardSummaryData, GetStudentDashboardSummaryResponses, GetStudyPlanByIdData, GetStudyPlanByIdResponses, GetStudyPlansData, GetStudyPlansResponses, GetSubjectData, GetSubjectResponses, GetSubjectsData, GetSubjectsResponses, GetTaskByIdData, GetTaskByIdResponses, GetTasksData, GetTasksResponses, GetUnscheduledItemsData, GetUnscheduledItemsResponses, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponses, GetUserGrowthData, GetUserGrowthResponses, GetUsersData, GetUsersResponses, LoginData, LoginResponses, PostApiChatSessionsBySessionIdStreamData, PostApiChatSessionsBySessionIdStreamResponses, PostApiDevResetData, PostApiDevResetResponses, PostApiDevSeedBogusData, PostApiDevSeedBogusResponses, PostApiDevSeedMeaningfulData, PostApiDevSeedMeaningfulResponses, RegisterData, RegisterResponses, SettingStudentInfoData, SettingStudentInfoResponses, ToggleUserStatusData, ToggleUserStatusResponses, UpdateCourseData, UpdateCourseResponses, UpdateCourseStatusData, UpdateCourseStatusResponses, UpdateEventData, UpdateEventRequirementData, UpdateEventRequirementResponses, UpdateEventResponses, UpdateLogData, UpdateLogResponses, UpdatePlanTemplateData, UpdatePlanTemplateResponses, UpdateRoutineData, UpdateRoutineResponses, UpdateScheduleData, UpdateScheduleResponses, UpdateStudyPlanData, UpdateStudyPlanResponses, UpdateStudyPlanStatusData, UpdateStudyPlanStatusResponses, UpdateSubjectData, UpdateSubjectResponses, UpdateTaskInfoData, UpdateTaskInfoResponses, UpdateTaskStatusData, UpdateTaskStatusResponses, UploadAssetsData, UploadAssetsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -192,7 +192,9 @@ export const getStudentDashboardInsight = <ThrowOnError extends boolean = false>
     ...options
 });
 
-export const postApiDevSeed = <ThrowOnError extends boolean = false>(options?: Options<PostApiDevSeedData, ThrowOnError>) => (options?.client ?? client).post<PostApiDevSeedResponses, unknown, ThrowOnError>({ url: '/api/dev/seed', ...options });
+export const postApiDevSeedBogus = <ThrowOnError extends boolean = false>(options?: Options<PostApiDevSeedBogusData, ThrowOnError>) => (options?.client ?? client).post<PostApiDevSeedBogusResponses, unknown, ThrowOnError>({ url: '/api/dev/seed-bogus', ...options });
+
+export const postApiDevSeedMeaningful = <ThrowOnError extends boolean = false>(options?: Options<PostApiDevSeedMeaningfulData, ThrowOnError>) => (options?.client ?? client).post<PostApiDevSeedMeaningfulResponses, unknown, ThrowOnError>({ url: '/api/dev/seed-meaningful', ...options });
 
 export const postApiDevReset = <ThrowOnError extends boolean = false>(options?: Options<PostApiDevResetData, ThrowOnError>) => (options?.client ?? client).post<PostApiDevResetResponses, unknown, ThrowOnError>({ url: '/api/dev/reset', ...options });
 
@@ -378,6 +380,12 @@ export const updateStudyPlan = <ThrowOnError extends boolean = false>(options: O
     }
 });
 
+export const getAcademicContext = <ThrowOnError extends boolean = false>(options?: Options<GetAcademicContextData, ThrowOnError>) => (options?.client ?? client).get<GetAcademicContextResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/study-plans/AcademicContext',
+    ...options
+});
+
 export const updateStudyPlanStatus = <ThrowOnError extends boolean = false>(options: Options<UpdateStudyPlanStatusData, ThrowOnError>) => (options.client ?? client).patch<UpdateStudyPlanStatusResponses, unknown, ThrowOnError>({
     url: '/api/study-plans/{planId}/status',
     ...options,
@@ -403,9 +411,17 @@ export const createSubject = <ThrowOnError extends boolean = false>(options: Opt
     }
 });
 
-export const bulkCreateSubjects = <ThrowOnError extends boolean = false>(options: Options<BulkCreateSubjectsData, ThrowOnError>) => (options.client ?? client).post<BulkCreateSubjectsResponses, unknown, ThrowOnError>({
+export const deleteSubject = <ThrowOnError extends boolean = false>(options: Options<DeleteSubjectData, ThrowOnError>) => (options.client ?? client).delete<DeleteSubjectResponses, unknown, ThrowOnError>({ url: '/api/subjects/{subjectId}', ...options });
+
+export const getSubject = <ThrowOnError extends boolean = false>(options: Options<GetSubjectData, ThrowOnError>) => (options.client ?? client).get<GetSubjectResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/subjects/bulk',
+    url: '/api/subjects/{subjectId}',
+    ...options
+});
+
+export const updateSubject = <ThrowOnError extends boolean = false>(options: Options<UpdateSubjectData, ThrowOnError>) => (options.client ?? client).put<UpdateSubjectResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/subjects/{subjectId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -413,11 +429,9 @@ export const bulkCreateSubjects = <ThrowOnError extends boolean = false>(options
     }
 });
 
-export const deleteSubject = <ThrowOnError extends boolean = false>(options: Options<DeleteSubjectData, ThrowOnError>) => (options.client ?? client).delete<DeleteSubjectResponses, unknown, ThrowOnError>({ url: '/api/subjects/{subjectId}', ...options });
-
-export const updateSubject = <ThrowOnError extends boolean = false>(options: Options<UpdateSubjectData, ThrowOnError>) => (options.client ?? client).put<UpdateSubjectResponses, unknown, ThrowOnError>({
+export const bulkCreateSubjects = <ThrowOnError extends boolean = false>(options: Options<BulkCreateSubjectsData, ThrowOnError>) => (options.client ?? client).post<BulkCreateSubjectsResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/subjects/{subjectId}',
+    url: '/api/subjects/bulk',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -541,7 +555,7 @@ export const updateEventRequirement = <ThrowOnError extends boolean = false>(opt
     }
 });
 
-export const patchApiUsersSettingStudentInfo = <ThrowOnError extends boolean = false>(options: Options<PatchApiUsersSettingStudentInfoData, ThrowOnError>) => (options.client ?? client).patch<PatchApiUsersSettingStudentInfoResponses, unknown, ThrowOnError>({
+export const settingStudentInfo = <ThrowOnError extends boolean = false>(options: Options<SettingStudentInfoData, ThrowOnError>) => (options.client ?? client).patch<SettingStudentInfoResponses, unknown, ThrowOnError>({
     url: '/api/users/setting/student-info',
     ...options,
     headers: {

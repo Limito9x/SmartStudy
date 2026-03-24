@@ -104,11 +104,11 @@ builder.Services.AddScoped<Kernel>(sp =>
     // QUAN TRỌNG: Lấy UIPlugin từ DI và nạp vào Kernel
     // var uiPlugin = sp.GetRequiredService<UIPlugin>();
     // builder.Plugins.AddFromObject(uiPlugin, "UIPlugin");
-    
-    var studyPlugin = sp.GetRequiredService<StudyPlugin>();
-    builder.Plugins.AddFromObject(studyPlugin, "StudyPlugin");
+    var kernel = builder.Build();
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<UIPlugin>(), "UIPlugin");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<StudyPlugin>(), "StudyPlugin");
 
-    return builder.Build();
+    return kernel;
 });
 
 // Cấu hình Mapster

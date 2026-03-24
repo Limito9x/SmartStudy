@@ -1,35 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import CourseCard from "@/components/features/course/CourseCard";
 import { useCourse } from "@/hooks/entities/useCourse";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import CourseForm from "@/components/forms/course/CourseForm";
 import type { CourseFormValues } from "@/components/forms/course/schema";
 import { useNavigate, useParams } from "react-router-dom";
-import { courseApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { courseFormMapper } from "@/utils/mapper.ts/formMapper";
 import { useDialogStore } from "@/stores/useDialogStore";
-import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
-
-interface CourseSheetProps {
-  courseId?: number;
-  title: string;
-  formDefaultValues?: CourseFormValues;
-  onSubmit: (data: CourseFormValues) => void;
-}
-
-const FORM_DEFAULT_VALUES: CourseFormValues = {
-  name: "",
-  targetScore: undefined,
-  finalScore: undefined,
-  goal: "",
-  color: "#000000",
-};
+import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 
 export default function PlanOverviewTab() {
   const { studyPlanId } = useParams();
@@ -37,17 +12,12 @@ export default function PlanOverviewTab() {
   const courseApi = useCourse({
     studyPlanId: Number(studyPlanId),
   });
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [sheetState, setSheetState] = useState<CourseSheetProps>({
-    title: "Thêm khóa học",
-    formDefaultValues: FORM_DEFAULT_VALUES,
-    onSubmit: () => {},
-  });
   const { openDialog, closeDialog } = useDialogStore();
 
-  const { data: courses } = courseApi.getCourses;
+  const {getStudyPlanById} = useStudyPlan();
+  const { data: studyPlanData } = getStudyPlanById(Number(studyPlanId));
 
-  const createCourseMutation = courseApi.createCourse;
+  const { data: courses } = courseApi.getCourses;
   const deleteCourseMutation = courseApi.deleteCourse;
 
   return (
@@ -58,6 +28,7 @@ export default function PlanOverviewTab() {
           variant="outline"
           onClick={() =>
             openDialog("COURSE_FORM", {
+              type: studyPlanData?.type || "Personal",
               studyPlanId: Number(studyPlanId),
             })
           }
@@ -73,9 +44,9 @@ export default function PlanOverviewTab() {
               course={course}
               onEdit={() => {
                 openDialog("COURSE_FORM", {
+                  type: studyPlanData?.type || "Personal",
                   courseId: Number(course.id),
                   studyPlanId: Number(studyPlanId),
-                  defaultValues: courseFormMapper.toFormValues(course),
                 });
               }}
               onDelete={() => {
@@ -92,7 +63,7 @@ export default function PlanOverviewTab() {
                   },
                 });
               }}
-              onView={() => navigate(`/app/courses/${course.id}`)}
+              onView={() => navigate(`/app/study-plans/${studyPlanData?.id}/courses/${course.id}`)}
             />
           ))}
         </div>
@@ -102,17 +73,6 @@ export default function PlanOverviewTab() {
           để bắt đầu lên kế hoạch học tập của bạn!
         </div>
       )}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-        <SheetContent className="w-lg p-4">
-          <SheetHeader>
-            <SheetTitle>{sheetState.title}</SheetTitle>
-          </SheetHeader>
-          <CourseForm
-            defaultValues={sheetState.formDefaultValues}
-            onSubmit={sheetState.onSubmit}
-          />
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }

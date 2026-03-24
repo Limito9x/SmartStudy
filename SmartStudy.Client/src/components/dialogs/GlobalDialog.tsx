@@ -17,10 +17,13 @@ import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
 import PlanTemplateEditDialog from "@/components/dialogs/template/PlanTemplateEditDialog";
 import PlanTemplateSelectPlanDialog from "@/components/dialogs/template/PlanTemplateSelectPlanDialog";
 import EventFormContainer from "../forms/containers/EventFormContainer";
+import SubjectFormContainer from "../forms/containers/SubjectFormContainer";
 
 const DIALOG_TITLES: {
   [K in DialogType]: (data: DialogDataMap[K]) => string;
 } = {
+  SUBJECT_FORM: (data) =>
+    data.subjectId ? "Cập nhật môn học" : "Tạo môn học mới",
   STUDY_PLAN_FORM: (data) =>
     data.studyPlanId ? "Cập nhật kế hoạch học tập" : "Tạo kế hoạch học tập mới",
   TASK_FORM: (data) => (data.taskId ? "Cập nhật nhiệm vụ" : "Tạo nhiệm vụ mới"),
@@ -41,6 +44,7 @@ const DIALOG_COMPONENTS: {
   [K in DialogType]: React.FC;
 } = {
   STUDY_PLAN_FORM: StudyPlanFormContainer,
+  SUBJECT_FORM: SubjectFormContainer,
   TASK_FORM: TaskFormContainer,
   ROUTINE_FORM: RoutineFormContainer,
   COURSE_FORM: CourseFormContainer,
@@ -77,8 +81,7 @@ const DIALOG_SIZES: { [K in DialogType]: string } = {
   PLAN_TEMPLATE_EDIT: "sm:max-w-lg",
   PLAN_TEMPLATE_SELECT_PLAN: "sm:max-w-lg",
   EVENT_FORM: "sm:max-w-lg", // Form tạo sự kiện (512px)
-
-  // KHÚC ĂN TIỀN LÀ ĐÂY: Form Routine cho to chà bá lên (768px hoặc 896px)
+  SUBJECT_FORM: "sm:max-w-md", // Form tạo môn học (448px)
   ROUTINE_FORM: "sm:max-w-3xl lg:max-w-4xl",
 };
 

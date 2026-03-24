@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type {
   CourseAssetResponseDto,
+  LogDto,
   ResponseCourseDto,
   ResponseTaskDto,
   ResponseTimelineEventDto,
@@ -29,7 +30,7 @@ interface CourseDetailTabsProps {
   course: ResponseCourseDto | null | undefined;
   routines: SimpleResponseRoutineDto[];
   pendingTasks: ResponseTaskDto[];
-  completedTasks: ResponseTaskDto[];
+  logs: LogDto[];
   timelineEvents: ResponseTimelineEventDto[];
   assets: CourseAssetResponseDto[];
 }
@@ -38,7 +39,7 @@ export default function CourseDetailTabs({
   course,
   routines,
   pendingTasks,
-  completedTasks,
+  logs,
   timelineEvents,
   assets,
 }: CourseDetailTabsProps) {
@@ -83,7 +84,7 @@ export default function CourseDetailTabs({
       </TabsContent>
 
       <TabsContent value="history" className="mt-6">
-        <HistoryTab completedTasks={completedTasks} />
+        <HistoryTab logs={logs} />
       </TabsContent>
 
       <TabsContent value="assets" className="mt-6">
@@ -147,11 +148,11 @@ function OverviewTab({
       </Card>
 
       <div>
-        <h3 className="mb-3 text-sm font-semibold">Lịch trình học tập</h3>
+        <h2 className="mb-3 text-md font-semibold">Lịch trình học tập</h2>
         {routines.length === 0 ? (
           <EmptyState text="Chưa có lịch trình" />
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {routines.map((routine) => (
               <Card key={routine.id}>
                 <CardHeader className="pb-2">
@@ -308,60 +309,50 @@ function TimelineTab({
   );
 }
 
-function HistoryTab({ completedTasks }: { completedTasks: ResponseTaskDto[] }) {
-  const items = useMemo(() => {
-    return [...completedTasks]
-      .filter((task) => task.logs?.length)
-      .sort((a, b) => {
-        const aTime = a.logs?.[a.logs.length - 1]?.timerEndAt
-          ? new Date(a.logs[a.logs.length - 1].timerEndAt || "").getTime()
-          : 0;
-        const bTime = b.logs?.[b.logs.length - 1]?.timerEndAt
-          ? new Date(b.logs[b.logs.length - 1].timerEndAt || "").getTime()
-          : 0;
-        return bTime - aTime;
-      });
-  }, [completedTasks]);
-
-  if (items.length === 0) {
-    return <EmptyState text="Chưa có lịch sử học" />;
-  }
-
+function HistoryTab({ logs }: { logs: LogDto[] }) {
+  if (logs.length === 0) return <EmptyState text="Chưa có lịch sử học" />;
   return (
-    <div className="space-y-3">
-      {items.map((task) => {
-        const latestLog = task.logs?.[task.logs.length - 1];
-        return (
-          <Card key={task.id}>
-            <CardHeader className="pb-2">
-              <div className="flex items-start justify-between gap-3">
-                <CardTitle className="text-base">{task.name}</CardTitle>
-                <Badge variant="outline">Đã hoàn thành</Badge>
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 overflow-auto">
+      {logs.map((log) => (
+        <Card key={log.id}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">{log.task?.name}</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              {log.completedAt
+                ? new Date(log.completedAt).toLocaleDateString("vi-VN")
+                : "—"}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-lg bg-muted/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Thời lượng</p>
+                <p className="text-lg font-bold">
+                  {log.actualDuration ?? "—"}
+                  <span className="text-xs ml-1">phút</span>
+                </p>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span>
-                  Ngày hoàn thành:{" "}
-                  {latestLog?.timerEndAt
-                    ? new Date(latestLog.timerEndAt).toLocaleString("vi-VN")
-                    : "—"}
-                </span>
-                <span>•</span>
-                <span>Thời lượng: {latestLog?.actualDuration ?? "—"} phút</span>
-                <span>•</span>
-                <span>Mức độ khó: {latestLog?.difficultyLevel ?? "—"}</span>
+              <div className="rounded-lg bg-muted/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Hiểu bài</p>
+                <p className="text-sm font-semibold">
+                  {log.comprehensionLevel ?? "—"}
+                </p>
               </div>
-
-              {latestLog?.note ? (
-                <div className="rounded-lg bg-muted/50 p-3 text-sm italic text-muted-foreground">
-                  {latestLog.note}
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-        );
-      })}
+              <div className="rounded-lg bg-muted/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">Độ khó</p>
+                <p className="text-sm font-semibold">
+                  {log.difficultyLevel ?? "—"}
+                </p>
+              </div>
+            </div>
+            {log.note && (
+              <div className="rounded-lg bg-muted/50 p-3 mt-3 text-sm italic text-muted-foreground">
+                {log.note}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

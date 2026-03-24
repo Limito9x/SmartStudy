@@ -5,8 +5,9 @@ import type { CourseFormValues } from "@/components/forms/course/schema";
 import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
 import type { LogFormValues } from "@/components/forms/log/schema";
 import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
-import type { UpdatePlanTemplateDto } from "@/services/api";
+import type { StudyPlanType, UpdatePlanTemplateDto } from "@/services/api";
 import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
+import type { SubjectFormValues } from "@/components/forms/subject/schema";
 
 export interface DialogDataMap {
   EVENT_FORM: {
@@ -18,17 +19,20 @@ export interface DialogDataMap {
     studyPlanId?: number;
     defaultValues?: StudyPlanFormValues;
   };
+  SUBJECT_FORM: {
+    subjectId?: number;
+    defaultValues?: SubjectFormValues;
+  };
   TASK_FORM: {
-    studyPlanId: number;
     taskId?: number;
     defaultValues?: TaskFormValues;
   };
   ROUTINE_FORM: {
-    studyPlanId: number;
     routineId?: number;
     defaultValues?: RoutineFormValues;
   };
   COURSE_FORM: {
+    type: StudyPlanType;
     studyPlanId: number;
     courseId?: number;
     defaultValues?: Partial<CourseFormValues>;

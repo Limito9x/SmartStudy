@@ -40,6 +40,9 @@ export default function StudyPlanFormContainer() {
           endDate:
             defaultValues?.endDate ||
             addMonths(new Date(), 1).toISOString().split("T")[0], // Mặc định là 1 tháng sau
+          termId: defaultValues?.termId || null,
+          yearId: defaultValues?.yearId || null,
+          type: defaultValues?.type || "Academic",
         };
 
   const handleSubmit = (values: StudyPlanFormValues) => {

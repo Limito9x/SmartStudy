@@ -11,7 +11,9 @@ namespace SmartStudy.Server.Dtos
         DifficultyLevel? DifficultyLevel,
         double Productivity,
         DateTime? TimerStartAt,
-        DateTime? TimerEndAt
+        DateTime? TimerEndAt,
+        DateTime? CompletedAt,
+        SimpleResponseTaskDto Task
     );
 
     // Task generate log

@@ -9,7 +9,7 @@ import { routineFormMapper } from "@/utils/mapper.ts/formMapper";
 
 export default function RoutineFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { studyPlanId, routineId, defaultValues } =
+  const { routineId, defaultValues } =
     data as DialogDataMap["ROUTINE_FORM"];
 
   const isEditMode = !!routineId;
@@ -45,7 +45,7 @@ export default function RoutineFormContainer() {
       updateRoutine.mutate(
         {
           path: { id: routineId! },
-          body: routineApiMapper.toRequestRoutineDto(values, studyPlanId),
+          body: routineApiMapper.toRequestRoutineDto(values),
         },
         {
           onSuccess: () => closeDialog(),
@@ -54,7 +54,7 @@ export default function RoutineFormContainer() {
     } else {
       createRoutine.mutate(
         {
-          body: routineApiMapper.toRequestRoutineDto(values, studyPlanId),
+          body: routineApiMapper.toRequestRoutineDto(values),
         },
         {
           onSuccess: () => closeDialog(),

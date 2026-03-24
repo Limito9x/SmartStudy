@@ -9,7 +9,7 @@ import { courseFormMapper } from "@/utils/mapper.ts/formMapper";
 
 export default function CourseFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { studyPlanId, courseId, defaultValues } =
+  const { type, studyPlanId, courseId, defaultValues } =
     data as DialogDataMap["COURSE_FORM"];
 
   const isEditMode = !!courseId;
@@ -70,6 +70,7 @@ export default function CourseFormContainer() {
 
   return (
     <CourseForm
+      type={type}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
       onSubmit={handleSubmit}

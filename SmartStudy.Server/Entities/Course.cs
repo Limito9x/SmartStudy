@@ -10,6 +10,8 @@ namespace SmartStudy.Server.Entities
         public double? TargetScore { get; set; }
         public double? FinalScore { get; set; }
         public string? Goal { get; set; }
+        public int? SubjectId { get; set; }
+        public Subject? Subject { get; set; }
         public int StudyPlanId { get; set; }
         public StudyPlan? StudyPlan { get; set; }
         public ICollection<TimelineEvent> TimelineEvents { get; set; } = new List<TimelineEvent>();

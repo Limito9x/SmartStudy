@@ -31,12 +31,12 @@ export default function AppRoutes() {
       element: <AuthGuard />,
       children: [
         {
-          path: "onboarding",
-          element: <OnboardingPage />,
-        },
-        {
           element: <OnboardingGuard />,
           children: [
+            {
+              path: "onboarding",
+              element: <OnboardingPage />,
+            },
             {
               path: "/app",
               element: <DashboardLayout />,
@@ -62,11 +62,11 @@ export default function AppRoutes() {
                       element: <PlanOverviewTab />,
                       index: true,
                     },
+                    {
+                      path: "courses/:courseId",
+                      element: <CoursePage />,
+                    },
                   ],
-                },
-                {
-                  path: "courses/:courseId",
-                  element: <CoursePage />,
                 },
                 {
                   path: "calendar",

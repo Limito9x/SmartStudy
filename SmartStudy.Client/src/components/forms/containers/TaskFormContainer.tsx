@@ -9,7 +9,7 @@ import { taskFormMapper } from "@/utils/mapper.ts/formMapper";
 
 export default function TaskFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { studyPlanId, taskId, defaultValues } =
+  const { taskId, defaultValues } =
     data as DialogDataMap["TASK_FORM"];
 
   const isEditMode = !!taskId;
@@ -45,7 +45,7 @@ export default function TaskFormContainer() {
       updateTaskInfo.mutate(
         {
           path: { taskId: taskId! },
-          body: taskApiMapper.toRequestTaskDto(values, studyPlanId),
+          body: taskApiMapper.toRequestTaskDto(values),
         },
         {
           onSuccess: () => closeDialog(),
@@ -54,7 +54,7 @@ export default function TaskFormContainer() {
     } else {
       createTask.mutate(
         {
-          body: taskApiMapper.toRequestTaskDto(values, studyPlanId),
+          body: taskApiMapper.toRequestTaskDto(values),
         },
         {
           onSuccess: () => closeDialog(),

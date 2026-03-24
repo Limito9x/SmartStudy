@@ -171,6 +171,288 @@ namespace SmartStudy.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("SmartStudy.Server.Entities.AcademicTerm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TermNumber")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AcademicTerms");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Học kỳ I",
+                            TermNumber = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Học kỳ II",
+                            TermNumber = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Học kỳ III",
+                            TermNumber = 0
+                        });
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.AcademicYear", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("EndYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("StartYear")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AcademicYears");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 2010,
+                            EndYear = 2011,
+                            Name = "Niên khóa 2010 - 2011",
+                            StartYear = 2010
+                        },
+                        new
+                        {
+                            Id = 2011,
+                            EndYear = 2012,
+                            Name = "Niên khóa 2011 - 2012",
+                            StartYear = 2011
+                        },
+                        new
+                        {
+                            Id = 2012,
+                            EndYear = 2013,
+                            Name = "Niên khóa 2012 - 2013",
+                            StartYear = 2012
+                        },
+                        new
+                        {
+                            Id = 2013,
+                            EndYear = 2014,
+                            Name = "Niên khóa 2013 - 2014",
+                            StartYear = 2013
+                        },
+                        new
+                        {
+                            Id = 2014,
+                            EndYear = 2015,
+                            Name = "Niên khóa 2014 - 2015",
+                            StartYear = 2014
+                        },
+                        new
+                        {
+                            Id = 2015,
+                            EndYear = 2016,
+                            Name = "Niên khóa 2015 - 2016",
+                            StartYear = 2015
+                        },
+                        new
+                        {
+                            Id = 2016,
+                            EndYear = 2017,
+                            Name = "Niên khóa 2016 - 2017",
+                            StartYear = 2016
+                        },
+                        new
+                        {
+                            Id = 2017,
+                            EndYear = 2018,
+                            Name = "Niên khóa 2017 - 2018",
+                            StartYear = 2017
+                        },
+                        new
+                        {
+                            Id = 2018,
+                            EndYear = 2019,
+                            Name = "Niên khóa 2018 - 2019",
+                            StartYear = 2018
+                        },
+                        new
+                        {
+                            Id = 2019,
+                            EndYear = 2020,
+                            Name = "Niên khóa 2019 - 2020",
+                            StartYear = 2019
+                        },
+                        new
+                        {
+                            Id = 2020,
+                            EndYear = 2021,
+                            Name = "Niên khóa 2020 - 2021",
+                            StartYear = 2020
+                        },
+                        new
+                        {
+                            Id = 2021,
+                            EndYear = 2022,
+                            Name = "Niên khóa 2021 - 2022",
+                            StartYear = 2021
+                        },
+                        new
+                        {
+                            Id = 2022,
+                            EndYear = 2023,
+                            Name = "Niên khóa 2022 - 2023",
+                            StartYear = 2022
+                        },
+                        new
+                        {
+                            Id = 2023,
+                            EndYear = 2024,
+                            Name = "Niên khóa 2023 - 2024",
+                            StartYear = 2023
+                        },
+                        new
+                        {
+                            Id = 2024,
+                            EndYear = 2025,
+                            Name = "Niên khóa 2024 - 2025",
+                            StartYear = 2024
+                        },
+                        new
+                        {
+                            Id = 2025,
+                            EndYear = 2026,
+                            Name = "Niên khóa 2025 - 2026",
+                            StartYear = 2025
+                        },
+                        new
+                        {
+                            Id = 2026,
+                            EndYear = 2027,
+                            Name = "Niên khóa 2026 - 2027",
+                            StartYear = 2026
+                        },
+                        new
+                        {
+                            Id = 2027,
+                            EndYear = 2028,
+                            Name = "Niên khóa 2027 - 2028",
+                            StartYear = 2027
+                        },
+                        new
+                        {
+                            Id = 2028,
+                            EndYear = 2029,
+                            Name = "Niên khóa 2028 - 2029",
+                            StartYear = 2028
+                        },
+                        new
+                        {
+                            Id = 2029,
+                            EndYear = 2030,
+                            Name = "Niên khóa 2029 - 2030",
+                            StartYear = 2029
+                        },
+                        new
+                        {
+                            Id = 2030,
+                            EndYear = 2031,
+                            Name = "Niên khóa 2030 - 2031",
+                            StartYear = 2030
+                        },
+                        new
+                        {
+                            Id = 2031,
+                            EndYear = 2032,
+                            Name = "Niên khóa 2031 - 2032",
+                            StartYear = 2031
+                        },
+                        new
+                        {
+                            Id = 2032,
+                            EndYear = 2033,
+                            Name = "Niên khóa 2032 - 2033",
+                            StartYear = 2032
+                        },
+                        new
+                        {
+                            Id = 2033,
+                            EndYear = 2034,
+                            Name = "Niên khóa 2033 - 2034",
+                            StartYear = 2033
+                        },
+                        new
+                        {
+                            Id = 2034,
+                            EndYear = 2035,
+                            Name = "Niên khóa 2034 - 2035",
+                            StartYear = 2034
+                        },
+                        new
+                        {
+                            Id = 2035,
+                            EndYear = 2036,
+                            Name = "Niên khóa 2035 - 2036",
+                            StartYear = 2035
+                        },
+                        new
+                        {
+                            Id = 2036,
+                            EndYear = 2037,
+                            Name = "Niên khóa 2036 - 2037",
+                            StartYear = 2036
+                        },
+                        new
+                        {
+                            Id = 2037,
+                            EndYear = 2038,
+                            Name = "Niên khóa 2037 - 2038",
+                            StartYear = 2037
+                        },
+                        new
+                        {
+                            Id = 2038,
+                            EndYear = 2039,
+                            Name = "Niên khóa 2038 - 2039",
+                            StartYear = 2038
+                        },
+                        new
+                        {
+                            Id = 2039,
+                            EndYear = 2040,
+                            Name = "Niên khóa 2039 - 2040",
+                            StartYear = 2039
+                        },
+                        new
+                        {
+                            Id = 2040,
+                            EndYear = 2041,
+                            Name = "Niên khóa 2040 - 2041",
+                            StartYear = 2040
+                        });
+                });
+
             modelBuilder.Entity("SmartStudy.Server.Entities.Asset", b =>
                 {
                     b.Property<int>("Id")
@@ -596,7 +878,7 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("StudyPlanId")
+                    b.Property<int?>("StudyPlanId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("TimelineEventId")
@@ -728,17 +1010,30 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int?>("TemplateId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("TermId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("YearId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TemplateId");
 
+                    b.HasIndex("TermId");
+
                     b.HasIndex("UserId");
+
+                    b.HasIndex("YearId");
 
                     b.ToTable("StudyPlans");
                 });
@@ -752,13 +1047,12 @@ namespace SmartStudy.Server.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("Credits")
+                    b.Property<int?>("Credits")
                         .HasColumnType("integer");
 
                     b.Property<string>("Name")
@@ -772,10 +1066,15 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Subjects");
                 });
@@ -826,7 +1125,7 @@ namespace SmartStudy.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("StudyPlanId")
+                    b.Property<int?>("StudyPlanId")
                         .HasColumnType("integer");
 
                     b.Property<DateOnly?>("TaskDate")
@@ -1092,11 +1391,13 @@ namespace SmartStudy.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartStudy.Server.Entities.Subject", null)
+                    b.HasOne("SmartStudy.Server.Entities.Subject", "Subject")
                         .WithMany("Courses")
                         .HasForeignKey("SubjectId");
 
                     b.Navigation("StudyPlan");
+
+                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.EventRequirement", b =>
@@ -1157,9 +1458,7 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
                         .WithMany()
-                        .HasForeignKey("StudyPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StudyPlanId");
 
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
                         .WithMany()
@@ -1208,15 +1507,34 @@ namespace SmartStudy.Server.Migrations
                         .HasForeignKey("TemplateId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("SmartStudy.Server.Entities.AcademicTerm", "Term")
+                        .WithMany()
+                        .HasForeignKey("TermId");
+
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("StudyPlans")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SmartStudy.Server.Entities.AcademicYear", "Year")
+                        .WithMany()
+                        .HasForeignKey("YearId");
+
                     b.Navigation("Template");
 
+                    b.Navigation("Term");
+
                     b.Navigation("User");
+
+                    b.Navigation("Year");
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.Subject", b =>
+                {
+                    b.HasOne("SmartStudy.Server.Entities.User", null)
+                        .WithMany("Subjects")
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.TaskItem", b =>
@@ -1239,9 +1557,7 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
                         .WithMany()
-                        .HasForeignKey("StudyPlanId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StudyPlanId");
 
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
                         .WithMany()
@@ -1333,6 +1649,8 @@ namespace SmartStudy.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("StudyPlans");
+
+                    b.Navigation("Subjects");
 
                     b.Navigation("Tasks");
                 });

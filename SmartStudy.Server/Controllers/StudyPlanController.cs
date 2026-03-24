@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services;
 
@@ -11,10 +13,13 @@ namespace SmartStudy.Server.Controllers
     public class StudyPlanController : ControllerBase
     {
         private readonly IStudyPlanService _studyPlanService;
+        private readonly ApplicationDbContext _context;
 
-        public StudyPlanController(IStudyPlanService studyPlanService)
+        public StudyPlanController(IStudyPlanService studyPlanService,
+            ApplicationDbContext context)
         {
             _studyPlanService = studyPlanService;
+            _context = context;
         }
 
         [HttpPost(Name = "CreateStudyPlan")]
@@ -33,7 +38,7 @@ namespace SmartStudy.Server.Controllers
 
         [HttpGet(Name = "GetStudyPlans")]
         public async Task<ActionResult<List<ResponseStudyPlanDto>>> GetStudyPlans(
-            [FromQuery] bool isActive = true)
+            [FromQuery]bool? isActive)
         {
             var studyPlans = await _studyPlanService.GetStudyPlansByUserIdAsync(isActive);
             return Ok(studyPlans);
@@ -63,19 +68,21 @@ namespace SmartStudy.Server.Controllers
             return NoContent();
         }
 
-        //[HttpPut("{planId:int}/drafts", Name = "SyncDraftCourses")]
-        //public async Task<ActionResult> SyncDraftCourses(int planId, [FromBody] SyncDraftCoursesDto dto)
-        //{
-        //    await _studyPlanService.SyncDraftCoursesAsync(planId, dto);
-        //    return NoContent();
-        //}
+        [HttpGet("AcademicContext", Name = "GetAcademicContext")]
+        public async Task<ActionResult<AcademicContextDto>> GetAcademicContext()
+        {
+            var terms = await _context.AcademicTerms.OrderBy(t => t.TermNumber).ToListAsync();
+            var years = await _context.AcademicYears
+                .Where(y => y.StartYear <= DateTime.UtcNow.Year + 1)
+                .OrderByDescending(y => y.StartYear).ToListAsync();
 
-        //[HttpPatch("{planId:int}/commit", Name = "CommitStudyPlan")]
-        //public async Task<ActionResult> CommitStudyPlan(int planId)
-        //{
-        //    await _studyPlanService.CommitStudyPlanAsync(planId);
-        //    return NoContent();
-        //}
+            var dto = new AcademicContextDto
+            {
+                Terms = terms,
+                Years = years
+            };
+            return Ok(dto);
+        }
 
         [HttpPatch("{planId:int}/status", Name = "UpdateStudyPlanStatus")]
         public async Task<ActionResult> UpdateStudyPlanStatus(int planId, [FromBody] UpdateStudyPlanStatusDto dto)

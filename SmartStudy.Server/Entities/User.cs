@@ -10,6 +10,7 @@ namespace SmartStudy.Server.Entities
         public ICollection<StudyPlan>? StudyPlans { get; set; }
         public ICollection<TaskItem>? Tasks { get; set; }
         public ICollection<Routine>? Routines { get; set; }
+        public ICollection<Subject>? Subjects { get; set; }
         public virtual StudentInfo StudentInfo { get; set; }
     }
 }

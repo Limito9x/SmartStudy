@@ -1,80 +1,53 @@
-import type { SettingFormValues } from "@/components/forms/user/student-info/schema";
 import { useFormContext } from "react-hook-form";
-import {
-  FormInput,
-  FormSelect,
-  FormDatePicker,
-} from "@/components/form-controls";
+import { FormSelect, FormDatePicker } from "@/components/form-controls";
+import type { AcademicContextDto } from "@/services/api";
+import type { SettingFormValues } from "@/components/forms/user/student-info/schema";
 
-export default function Step2Program() {
-  const { control, watch } = useFormContext<SettingFormValues>();
-  const semestersPerYear = watch("semestersPerYear");
+interface Step2ProgramProps {
+  academicContext: AcademicContextDto | undefined;
+}
+
+export default function Step2Program({ academicContext }: Step2ProgramProps) {
+  const { control } = useFormContext<SettingFormValues>();
 
   return (
     <div className="space-y-4">
-      <FormDatePicker
+      <FormSelect
+        name="termId"
         control={control}
-        name="admissionDate"
-        label="Ngày nhập học"
+        label="Học kỳ hiện tại"
+        placeholder="Chọn học kỳ hiện tại"
+        options={
+          academicContext?.terms?.map((term) => ({
+            value: term.id!.toString(),
+            label: term.name || `Học kỳ ${term.termNumber}`,
+          })) || []
+        }
       />
       <FormSelect
+        name="yearId"
         control={control}
-        name="semestersPerYear"
-        label="Số học kỳ mỗi năm"
-        valueAsNumber
-        options={[
-          { label: "2 học kỳ chính và 1 học kỳ hè", value: "2" },
-          { label: "3 học kỳ chính", value: "3" },
-        ]}
+        label="Năm học hiện tại"
+        placeholder="Chọn năm học hiện tại"
+        options={
+          academicContext?.years?.map((year) => ({
+            value: year.id!.toString(),
+            label: `${year.startYear} - ${year.endYear}`,
+          })) || []
+        }
       />
-      <FormInput
+      <FormDatePicker
+        name="startDate"
         control={control}
-        name="programLength"
-        type="number"
-        label="Thời gian chương trình (năm)"
+        label="Ngày bắt đầu học kỳ"
+        placeholder="Chọn ngày bắt đầu học"
       />
-      <FormInput
+      <FormDatePicker
+        name="endDate"
         control={control}
-        name="weeksPerSemester"
-        type="number"
-        label="Số tuần mỗi học kỳ"
+        label="Ngày kết thúc học kỳ"
+        placeholder="Chọn ngày kết thúc học"
       />
-      {semestersPerYear === 2 && (
-        <FormInput
-          control={control}
-          name="weeksOfSummerSemester"
-          type="number"
-          label="Số tuần học kỳ hè"
-        />
-      )}
-
-      <div className="pt-2">
-        <p className="mb-2 text-sm text-muted-foreground">
-          Thông tin tùy chọn (có thể bỏ qua)
-        </p>
-        <div className="space-y-4">
-          <FormInput
-            control={control}
-            name="totalRequiredCredits"
-            type="number"
-            label="Tổng số tín chỉ yêu cầu"
-          />
-          <FormInput
-            control={control}
-            name="creditsPerSemester"
-            type="number"
-            label="Số tín chỉ mỗi học kỳ"
-          />
-          {semestersPerYear === 2 && (
-            <FormInput
-              control={control}
-              name="creditsPerSummerSemester"
-              type="number"
-              label="Số tín chỉ học kỳ hè"
-            />
-          )}
-        </div>
-      </div>
     </div>
   );
 }

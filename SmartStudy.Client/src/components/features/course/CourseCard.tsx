@@ -78,20 +78,6 @@ export default function CourseCard({
         </div>
       </CardHeader>
 
-      {/* Có thể để trống, hoặc nhét thêm Tín chỉ / Tên giảng viên vào đây */}
-      <CardContent className="pb-2 flex-1 pl-5">
-        {/* Khuyến mãi thêm cái Tag nếu DB bác có trường Description/Tín chỉ */}
-        <span
-          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1"
-          style={{
-            backgroundColor: `${courseColor}15`, // Thêm 15 (hex alpha) để lấy 8% opacity làm nền
-            color: courseColor,
-          }}
-        >
-          Khóa học
-        </span>
-      </CardContent>
-
       <CardFooter className="pt-2 border-t pl-5">
         <Button
           variant="ghost"

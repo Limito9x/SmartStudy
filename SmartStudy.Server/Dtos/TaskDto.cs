@@ -13,7 +13,7 @@ namespace SmartStudy.Server.Dtos
         int? PlannedDuration,
         TaskType Type,
         int? CourseId,
-        int StudyPlanId
+        int? StudyPlanId
     );
 
     public record TaskStatusDto
@@ -36,7 +36,7 @@ namespace SmartStudy.Server.Dtos
         int? RoutineId,
         int? ScheduleId,
         int? CourseId,
-        int StudyPlanId
+        int? StudyPlanId
     );
 
     public record SimpleResponseTaskDto

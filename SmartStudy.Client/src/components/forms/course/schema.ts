@@ -15,6 +15,7 @@ export const courseSchema = z.object({
     .nullish(),
   goal: z.string().nullable(),
   color: z.string().nullable(),
+  subjectId: z.coerce.number().nullable(),
 }) satisfies z.ZodType<Partial<RequestCourseDto>, any, any>;
 
 export type CourseFormValues = z.infer<typeof courseSchema>;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using SmartStudy.Server.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
 
@@ -5,11 +6,10 @@ namespace SmartStudy.Server.Entities
 {
     public class Subject : BaseSimpleEntity
     {
-        [Required]
-        public required string Code { get; set; }
+        public string? Code { get; set; }
         public required string Name { get; set; }
-        public int Credits { get; set; }
-        public SubjectType Type { get; set; }
+        public StudyPlanType Type { get; set; } = StudyPlanType.Academic;
+        public int? Credits { get; set; }
         public ICollection<Course> Courses { get; set; } = new List<Course>();
     }
 }

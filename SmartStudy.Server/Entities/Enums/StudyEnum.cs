@@ -11,12 +11,10 @@ namespace SmartStudy.Server.Entities.Enums
     }
     
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum SubjectType
+    public enum StudyPlanType
     {
-        Theory,
-        Practice,
-        Project,
-        Thesis,
+        Academic,
+        Personal
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

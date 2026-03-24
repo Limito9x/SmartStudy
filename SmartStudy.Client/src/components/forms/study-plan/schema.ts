@@ -1,15 +1,44 @@
 import z from "zod";
-import type { RequestStudyPlanDto } from "@/services/api";
 
 export const studyPlanSchema = z
   .object({
     name: z.string().min(1, "Tên kế hoạch học tập không được để trống"),
     startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
     endDate: z.string().min(1, "Ngày kết thúc không được để trống"),
+    termId: z.coerce.number().nullable(),
+    yearId: z.coerce.number().nullable(),
+    type: z.enum(["Academic", "Personal"]).default("Academic"),
   })
+  // 1. Refine cũ: Check ngày tháng
   .refine((data) => new Date(data.startDate) < new Date(data.endDate), {
     message: "Ngày kết thúc phải sau ngày bắt đầu",
     path: ["endDate"],
-  }) satisfies z.ZodType<Partial<RequestStudyPlanDto>, any, any>;
+  })
+  // 2. Refine mới: Check Học kỳ (Term) nếu là Đại học
+  .refine(
+    (data) => {
+      if (data.type === "Academic") {
+        return data.termId !== null && data.termId !== undefined;
+      }
+      return true; // Nếu là Personal thì không cần check, cho qua luôn
+    },
+    {
+      message: "Vui lòng chọn Học kỳ cho kế hoạch Đại học",
+      path: ["termId"], // Bắn lỗi đỏ chót ngay dưới ô chọn Học kỳ
+    },
+  )
+  // 3. Refine mới: Check Năm học (Year) nếu là Đại học
+  .refine(
+    (data) => {
+      if (data.type === "Academic") {
+        return data.yearId !== null && data.yearId !== undefined;
+      }
+      return true;
+    },
+    {
+      message: "Vui lòng chọn Năm học cho kế hoạch Đại học",
+      path: ["yearId"], // Bắn lỗi đỏ chót ngay dưới ô chọn Năm học
+    },
+  );
 
 export type StudyPlanFormValues = z.infer<typeof studyPlanSchema>;

@@ -123,6 +123,7 @@ namespace SmartStudy.Server.Services
                 }
                 var log = _mapper.Map<Entities.LogItem>(logWorkDto);
                 log.TaskId = taskId;
+                log.CompletedAt = DateTime.UtcNow;
                 _context.Logs.Add(log);
                 await _context.SaveChangesAsync();
 

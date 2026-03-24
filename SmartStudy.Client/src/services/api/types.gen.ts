@@ -4,6 +4,24 @@ export type ClientOptions = {
     baseURL: 'http://localhost:5037/' | (string & {});
 };
 
+export type AcademicContextDto = {
+    terms?: Array<AcademicTerm>;
+    years?: Array<AcademicYear>;
+};
+
+export type AcademicTerm = {
+    id?: number | string;
+    termNumber?: number | string;
+    name?: string;
+};
+
+export type AcademicYear = {
+    id?: number | string;
+    startYear?: number | string;
+    endYear?: number | string;
+    name?: string;
+};
+
 export type AssetLinkCategory = number;
 
 export type AssetLinkType = 'StudyPlan' | 'Course' | 'Task' | 'Log';
@@ -148,6 +166,8 @@ export type LogDto = {
     productivity: number | string;
     timerStartAt: null | string;
     timerEndAt: null | string;
+    completedAt: null | string;
+    task: SimpleResponseTaskDto;
 };
 
 export type LoginResponseDto = {
@@ -236,6 +256,7 @@ export type RequestCourseDto = {
     finalScore: null | number | string;
     goal: null | string;
     color: null | string;
+    subjectId: null | number | string;
 };
 
 export type RequestRoutineDto = {
@@ -247,7 +268,7 @@ export type RequestRoutineDto = {
     timelineEventId: null | number | string;
     startDate: null | string;
     endDate: null | string;
-    studyPlanId: number | string;
+    studyPlanId: null | number | string;
     schedules: null | Array<ScheduleDto>;
 };
 
@@ -263,12 +284,16 @@ export type RequestStudyPlanDto = {
     name: string;
     startDate: string;
     endDate: string;
+    type: StudyPlanType;
+    termId: null | number | string;
+    yearId: null | number | string;
 };
 
 export type RequestSubjectDto = {
+    code: null | string;
     name: string;
-    credits: number | string;
-    type: SubjectType;
+    credits: null | number | string;
+    type: StudyPlanType;
 };
 
 export type RequestTaskDto = {
@@ -279,7 +304,7 @@ export type RequestTaskDto = {
     plannedDuration: null | number | string;
     type: TaskType;
     courseId: null | number | string;
-    studyPlanId: number | string;
+    studyPlanId: null | number | string;
 };
 
 export type RequestTimelineEventDto = {
@@ -304,6 +329,7 @@ export type ResponseCourseDto = {
     status?: CourseStatus;
     color?: null | string;
     progress?: number | string;
+    subjectId?: null | number | string;
     timelineEvents?: null | Array<ResponseTimelineEventDto>;
 };
 
@@ -330,6 +356,12 @@ export type ResponseScheduleDto = {
     location: null | string;
 };
 
+export type ResponseStudentInfoDto = {
+    university: null | string;
+    major: null | string;
+    cohort: null | string;
+};
+
 export type ResponseStudyPlanDto = {
     id: number | string;
     name: string;
@@ -338,13 +370,17 @@ export type ResponseStudyPlanDto = {
     createdAt: string;
     updatedAt: null | string;
     status: StudyPlanStatus;
+    type: StudyPlanType;
+    termId: null | number | string;
+    yearId: null | number | string;
 };
 
 export type ResponseSubjectDto = {
     id: number | string;
+    code: null | string;
     name: string;
-    credits: number | string;
-    type: SubjectType;
+    credits: null | number | string;
+    type: StudyPlanType;
 };
 
 export type ResponseTaskDto = {
@@ -361,7 +397,7 @@ export type ResponseTaskDto = {
     routineId: null | number | string;
     scheduleId: null | number | string;
     courseId: null | number | string;
-    studyPlanId: number | string;
+    studyPlanId: null | number | string;
 };
 
 export type ResponseTimelineEventDto = {
@@ -405,15 +441,34 @@ export type SimpleResponseRoutineDto = {
     schedules: Array<ScheduleDto>;
 };
 
+export type SimpleResponseTaskDto = {
+    id: number | string;
+    name: string;
+    description: null | string;
+    taskDate: null | string;
+    startTime: null | string;
+    plannedDuration: null | number | string;
+    type: TaskType;
+    status: TaskStatus;
+    routineId: null | number | string;
+    scheduleId: null | number | string;
+    courseId: null | number | string;
+    studyPlanId: number | string;
+};
+
 export type StudentInfoDto = {
     university: null | string;
     major: null | string;
     cohort: null | string;
+    termId: number | string;
+    yearId: number | string;
+    startDate: string;
+    endDate: string;
 };
 
 export type StudyPlanStatus = 'Active' | 'Completed' | 'Archived';
 
-export type SubjectType = 'Theory' | 'Practice' | 'Project' | 'Thesis';
+export type StudyPlanType = 'Academic' | 'Personal';
 
 export type TaskStatus = 'Pending' | 'InProgress' | 'Completed' | 'Cancelled';
 
@@ -534,6 +589,8 @@ export type UserResponseDto = {
     email?: string;
     userName?: string;
     fullName?: string;
+    studentInfo?: ResponseStudentInfoDto;
+    roles?: Array<string>;
 };
 
 export type GetKpiData = {
@@ -834,7 +891,9 @@ export type PostApiChatSessionsBySessionIdStreamData = {
     path: {
         sessionId: number | string;
     };
-    query?: never;
+    query?: {
+        studyPlanId?: number | string;
+    };
     url: '/api/Chat/sessions/{sessionId}/stream';
 };
 
@@ -979,14 +1038,28 @@ export type GetStudentDashboardInsightResponses = {
 
 export type GetStudentDashboardInsightResponse = GetStudentDashboardInsightResponses[keyof GetStudentDashboardInsightResponses];
 
-export type PostApiDevSeedData = {
+export type PostApiDevSeedBogusData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/dev/seed';
+    url: '/api/dev/seed-bogus';
 };
 
-export type PostApiDevSeedResponses = {
+export type PostApiDevSeedBogusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiDevSeedMeaningfulData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/dev/seed-meaningful';
+};
+
+export type PostApiDevSeedMeaningfulResponses = {
     /**
      * OK
      */
@@ -1489,6 +1562,22 @@ export type UpdateStudyPlanResponses = {
 
 export type UpdateStudyPlanResponse = UpdateStudyPlanResponses[keyof UpdateStudyPlanResponses];
 
+export type GetAcademicContextData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/study-plans/AcademicContext';
+};
+
+export type GetAcademicContextResponses = {
+    /**
+     * OK
+     */
+    200: AcademicContextDto;
+};
+
+export type GetAcademicContextResponse = GetAcademicContextResponses[keyof GetAcademicContextResponses];
+
 export type UpdateStudyPlanStatusData = {
     body: UpdateStudyPlanStatusDto;
     path: {
@@ -1512,6 +1601,7 @@ export type GetSubjectsData = {
         PageIndex?: number | string;
         PageSize?: number | string;
         SearchTerm?: string;
+        type?: StudyPlanType;
     };
     url: '/api/subjects';
 };
@@ -1541,22 +1631,6 @@ export type CreateSubjectResponses = {
 
 export type CreateSubjectResponse = CreateSubjectResponses[keyof CreateSubjectResponses];
 
-export type BulkCreateSubjectsData = {
-    body: Array<RequestSubjectDto>;
-    path?: never;
-    query?: never;
-    url: '/api/subjects/bulk';
-};
-
-export type BulkCreateSubjectsResponses = {
-    /**
-     * OK
-     */
-    200: Array<ResponseSubjectDto>;
-};
-
-export type BulkCreateSubjectsResponse = BulkCreateSubjectsResponses[keyof BulkCreateSubjectsResponses];
-
 export type DeleteSubjectData = {
     body?: never;
     path: {
@@ -1572,6 +1646,24 @@ export type DeleteSubjectResponses = {
      */
     200: unknown;
 };
+
+export type GetSubjectData = {
+    body?: never;
+    path: {
+        subjectId: number;
+    };
+    query?: never;
+    url: '/api/subjects/{subjectId}';
+};
+
+export type GetSubjectResponses = {
+    /**
+     * OK
+     */
+    200: ResponseSubjectDto;
+};
+
+export type GetSubjectResponse = GetSubjectResponses[keyof GetSubjectResponses];
 
 export type UpdateSubjectData = {
     body: RequestSubjectDto;
@@ -1590,6 +1682,22 @@ export type UpdateSubjectResponses = {
 };
 
 export type UpdateSubjectResponse = UpdateSubjectResponses[keyof UpdateSubjectResponses];
+
+export type BulkCreateSubjectsData = {
+    body: Array<RequestSubjectDto>;
+    path?: never;
+    query?: never;
+    url: '/api/subjects/bulk';
+};
+
+export type BulkCreateSubjectsResponses = {
+    /**
+     * OK
+     */
+    200: Array<ResponseSubjectDto>;
+};
+
+export type BulkCreateSubjectsResponse = BulkCreateSubjectsResponses[keyof BulkCreateSubjectsResponses];
 
 export type GetTasksData = {
     body?: never;
@@ -1871,14 +1979,14 @@ export type UpdateEventRequirementResponses = {
 
 export type UpdateEventRequirementResponse = UpdateEventRequirementResponses[keyof UpdateEventRequirementResponses];
 
-export type PatchApiUsersSettingStudentInfoData = {
+export type SettingStudentInfoData = {
     body: StudentInfoDto;
     path?: never;
     query?: never;
     url: '/api/users/setting/student-info';
 };
 
-export type PatchApiUsersSettingStudentInfoResponses = {
+export type SettingStudentInfoResponses = {
     /**
      * OK
      */

@@ -7,14 +7,21 @@ import {
   updateStudyPlanMutation,
   bulkCreateStudyPlansMutation,
   deleteStudyPlanMutation,
+  getAcademicContextOptions
 } from "@/services/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 
 export const useStudyPlan = () => {
   const queryClient = useQueryClient();
 
-  const getAllStudyPlans = useQuery({
-    ...getStudyPlansOptions(),
+  const getAcademicContext = useQuery({
+    ...getAcademicContextOptions(),
+  });
+
+  const getAllStudyPlans = (isActive?:boolean) => useQuery({
+    ...getStudyPlansOptions({
+      query: { isActive }
+    }),
   });
 
   const getStudyPlanById = (id: number) => {
@@ -67,6 +74,7 @@ export const useStudyPlan = () => {
   });
 
   return {
+    getAcademicContext,
     getAllStudyPlans,
     getStudyPlanById,
     createStudyPlan,

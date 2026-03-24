@@ -12,7 +12,7 @@ namespace SmartStudy.Server.Dtos
         int? TimelineEventId,
         DateTime? StartDate,
         DateTime? EndDate,
-        int StudyPlanId,
+        int? StudyPlanId,
         List<ScheduleDto>? Schedules
     );
     
@@ -26,7 +26,7 @@ namespace SmartStudy.Server.Dtos
         TaskType Type,
         int? CourseId,
         int? TimelineEventId,
-        int StudyPlanId,
+        int? StudyPlanId,
         List<ScheduleDto>? Schedules
     );
 

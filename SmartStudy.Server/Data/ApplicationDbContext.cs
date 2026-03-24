@@ -34,6 +34,8 @@ namespace SmartStudy.Server.Data
         public DbSet<EventRequirement> EventRequirements { get; set; } = null!;
         public DbSet<StudentInfo> StudentInfos { get; set; } = null!;
         public DbSet<PlanTemplate> PlanTemplates { get; set; } = null!;
+        public DbSet<AcademicTerm> AcademicTerms { get; set; } = null!;
+        public DbSet<AcademicYear> AcademicYears { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -43,6 +45,27 @@ namespace SmartStudy.Server.Data
                 new IdentityRole<int> { Id = 1, Name = "Admin", NormalizedName = "ADMIN", ConcurrencyStamp = "a1b2c3d4-0001-0000-0000-000000000000" },
                 new IdentityRole<int> { Id = 2, Name = "Student", NormalizedName = "STUDENT", ConcurrencyStamp = "a1b2c3d4-0002-0000-0000-000000000000" }
             );
+            
+            builder.Entity<AcademicTerm>().HasData(
+                new AcademicTerm { Id = 1, Name = "Học kỳ I" },
+                new AcademicTerm { Id = 2, Name = "Học kỳ II" },
+                new AcademicTerm { Id = 3, Name = "Học kỳ III" }
+            );
+
+            var years = new List<AcademicYear>();
+            for (int i = 2010; i <=2040; i++)
+            {
+                var year = new AcademicYear()
+                {
+                    Id = i,
+                    StartYear = i,
+                    EndYear = i+1,
+                    Name = $"Niên khóa {i} - {i+1}",
+                };
+                years.Add(year);
+            }
+            
+            builder.Entity<AcademicYear>().HasData(years);
 
             // Ignore System.Threading.Tasks.Task type to avoid conflicts
             builder.Ignore<System.Threading.Tasks.Task>();

@@ -3,14 +3,16 @@ import type { TaskFormValues } from "@/components/forms/task/schema";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { LogFormValues } from "@/components/forms/log/schema";
 import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
+import type { SubjectFormValues } from "@/components/forms/subject/schema";
 import type {
   ResponseCourseDto,
   ResponseTimelineEventDto,
   ResponseTaskDto,
   ResponseRoutineDto,
+  ResponseSubjectDto,
   LogDto,
   TaskStatus,
-  ResponseStudyPlanDto
+  ResponseStudyPlanDto,
 } from "@/services/api/types.gen";
 
 const formatDueDate = (dueDate: string | null | undefined) => {
@@ -25,6 +27,9 @@ export const studyPlanFormMapper = {
     name: studyPlanDto.name,
     startDate: studyPlanDto.startDate || "",
     endDate: studyPlanDto.endDate || "",
+    termId: Number(studyPlanDto.termId) || null,
+    yearId: Number(studyPlanDto.yearId) || null,
+    type: studyPlanDto.type || "Academic",
   }),
 };
 
@@ -35,6 +40,7 @@ export const courseFormMapper = {
     targetScore: Number(courseDto.targetScore) || undefined,
     finalScore: Number(courseDto.finalScore) || undefined,
     color: courseDto.color || "#000000",
+    subjectId: Number(courseDto.subjectId) || null,
   }),
 };
 
@@ -107,4 +113,13 @@ export const logFormMapper = {
       assetIds: [],
     };
   },
+};
+
+export const subjectFormMapper = {
+  toFormValues: (subjectDto: ResponseSubjectDto): SubjectFormValues => ({
+    name: subjectDto.name,
+    code: subjectDto.code || "",
+    credits: Number(subjectDto.credits) || null,
+    type: subjectDto.type || "Academic",
+  }),
 };

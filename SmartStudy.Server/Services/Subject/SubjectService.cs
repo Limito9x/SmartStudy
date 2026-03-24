@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Constants;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Exceptions;
 using SmartStudy.Server.Helpers;
 
@@ -11,7 +12,8 @@ namespace SmartStudy.Server.Services
 {
     public interface ISubjectService
     {
-        Task<PagedResult<ResponseSubjectDto>> GetAllSubjectsAsync(PaginationParams paginationParams);
+        Task<PagedResult<ResponseSubjectDto>> GetAllSubjectsAsync(PaginationParams paginationParams,
+            StudyPlanType? type);
         Task<ResponseSubjectDto> GetSubjectByIdAsync(int SubjectId);
         Task<ResponseSubjectDto> CreateSubjectAsync(RequestSubjectDto SubjectDto);
         Task<List<ResponseSubjectDto>> BulkCreateSubjectsAsync(List<RequestSubjectDto> subjectDtos);
@@ -31,11 +33,16 @@ namespace SmartStudy.Server.Services
             _currentUserService = currentUserService;
         }
 
-        public async Task<PagedResult<ResponseSubjectDto>> GetAllSubjectsAsync(PaginationParams paginationParams)
+        public async Task<PagedResult<ResponseSubjectDto>> GetAllSubjectsAsync(PaginationParams paginationParams,
+            StudyPlanType? type)
         {
             var userId = _currentUserService.UserId;
             var query = _context.Subjects.AsQueryable();
-            
+
+            if (type.HasValue)
+            {
+                query = query.Where(s => s.Type == type.Value);
+            }
 
             if (!string.IsNullOrWhiteSpace(paginationParams.SearchTerm))
             {
@@ -54,7 +61,8 @@ namespace SmartStudy.Server.Services
 
         public async Task<ResponseSubjectDto> GetSubjectByIdAsync(int SubjectId)
         {
-            var subject = await _context.Subjects.FindAsync(SubjectId);
+            var subject = await _context.Subjects.FindAsync(SubjectId)
+                          ?? throw new KeyNotFoundException("Không tìm thấy môn học");
 
             return _mapper.Map<ResponseSubjectDto>(subject);
         }

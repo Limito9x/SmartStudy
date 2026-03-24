@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Constants;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Services;
 
 namespace SmartStudy.Server.Controllers
@@ -19,10 +20,19 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpGet(Name = "GetSubjects")]
-        public async Task<ActionResult<PagedResult<ResponseSubjectDto>>> GetSubjects([FromQuery] PaginationParams pagingParams)
+        public async Task<ActionResult<PagedResult<ResponseSubjectDto>>> GetSubjects(
+            [FromQuery] PaginationParams pagingParams,
+            StudyPlanType? type)
         {
-            var subjects = await _subjectService.GetAllSubjectsAsync(pagingParams);
+            var subjects = await _subjectService.GetAllSubjectsAsync(pagingParams,type);
             return Ok(subjects);
+        }
+        
+        [HttpGet("{subjectId:int}", Name = "GetSubject")]
+        public async Task<ActionResult<ResponseSubjectDto>> GetSubject(int subjectId)
+        {
+            var subject = await _subjectService.GetSubjectByIdAsync(subjectId);
+            return Ok(subject);
         }
 
         [HttpPost(Name = "CreateSubject")]

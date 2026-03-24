@@ -143,17 +143,26 @@ namespace SmartStudy.Server.Services
 
         public async Task<UserResponseDto> GetUserProfileAsync(int userId)
         {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
+            var user = await _userManager.Users.Include(u => u.StudentInfo).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new Exception("User not found");
             }
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            var infoDto = new ResponseStudentInfoDto(
+                user.StudentInfo?.University,
+                user.StudentInfo?.Major,
+                user.StudentInfo?.Cohort
+            );
 
             return new UserResponseDto
             {
                 Email = user.Email,
+                Roles = roles.ToList(),
                 UserName = user.UserName,
                 FullName = user.FullName,
+                StudentInfo = infoDto
             };
         }
     }

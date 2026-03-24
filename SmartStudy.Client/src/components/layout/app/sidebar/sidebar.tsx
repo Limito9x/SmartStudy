@@ -12,13 +12,13 @@ import {
 import UserNav from "./user-nav";
 import Workspace from "./workspace";
 import { useNavigate, useLocation } from "react-router-dom";
-// Nhớ import icon để menu bớt phèn nhé bác
-import { Calendar, LayoutDashboard, FileStack } from "lucide-react";
+import { Calendar, LayoutDashboard, FileStack, BookOpen } from "lucide-react";
 
 const navigationItems = [
   { label: "Hôm nay", path: "/", icon: LayoutDashboard },
   { label: "Lịch trình", path: "/calendar", icon: Calendar },
   { label: "Template", path: "/templates", icon: FileStack },
+  { label: "Môn học", path: "/subjects", icon: BookOpen },
 ];
 
 export function Sidebar() {

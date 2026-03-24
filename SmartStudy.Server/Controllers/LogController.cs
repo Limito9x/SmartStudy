@@ -19,7 +19,7 @@ namespace SmartStudy.Server.Controllers
         [HttpGet(Name = "GetLogs")]
         public async Task<ActionResult<List<LogDto>>> GetTaskLogs([FromQuery] int? courseId)
         {
-            var taskLogs = await _taskLogService.GetTasks(courseId);
+            var taskLogs = await _taskLogService.GetLogs(courseId);
             return Ok(taskLogs);
         }
 

@@ -19,6 +19,7 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
     ...getCoursesOptions({
       query: { studyPlanId: studyPlanId },
     }),
+    enabled: !!studyPlanId,
   });
 
   const getCourseById = (courseId: number) => useQuery({

@@ -9,16 +9,17 @@ import {
   getEventsOptions,
   getRoutinesOptions,
   getTasksOptions,
+  getLogsOptions,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { SimpleResponseRoutineDto } from "@/services/api";
 import CourseDetailTabs from "@/components/features/course/CourseDetailTabs";
 import { useStudyPlanStore } from "@/stores/studyPlanStore";
 
 export default function CoursePage() {
-  const { activePlanId } = useStudyPlanStore();
-  const { courseId } = useParams<{ courseId: string }>();
+  const { courseId, studyPlanId } = useParams<{ courseId: string, studyPlanId: string }>();
   const navigate = useNavigate();
   const courseIdNum = Number(courseId);
+  const studyPlanIdNum = Number(studyPlanId);
 
   const courseQuery = useQuery({
     ...getCourseByIdOptions({
@@ -48,12 +49,10 @@ export default function CoursePage() {
     enabled: !!courseIdNum,
   });
 
-  const completedTasksQuery = useQuery({
-    ...getTasksOptions({
-      query: {
-        courseId: courseIdNum,
-        status: "Completed",
-      },
+  const logsQuery = useQuery({
+    ...getLogsOptions({
+      // dùng logs endpoint
+      query: { courseId: courseIdNum },
     }),
     enabled: !!courseIdNum,
   });
@@ -80,7 +79,7 @@ export default function CoursePage() {
     courseQuery.isLoading ||
     routinesQuery.isLoading ||
     pendingTasksQuery.isLoading ||
-    completedTasksQuery.isLoading ||
+    logsQuery.isLoading ||
     eventsQuery.isLoading ||
     assetsQuery.isLoading;
 
@@ -88,7 +87,7 @@ export default function CoursePage() {
     courseQuery.error ||
     routinesQuery.error ||
     pendingTasksQuery.error ||
-    completedTasksQuery.error ||
+    logsQuery.error ||
     eventsQuery.error ||
     assetsQuery.error;
 
@@ -121,7 +120,7 @@ export default function CoursePage() {
           variant="ghost"
           size="sm"
           className="-ml-3 gap-1.5 text-muted-foreground hover:text-foreground"
-          onClick={() => navigate(`/app/study-plans/${activePlanId}`)}
+          onClick={() => navigate(`/app/study-plans/${studyPlanIdNum}`)}
         >
           <ArrowLeft size={16} />
           Quay lại
@@ -133,7 +132,7 @@ export default function CoursePage() {
           course={course}
           routines={(routinesQuery.data ?? []) as SimpleResponseRoutineDto[]}
           pendingTasks={pendingTasksQuery.data ?? []}
-          completedTasks={completedTasksQuery.data ?? []}
+          logs={logsQuery.data ?? []}
           timelineEvents={eventsQuery.data ?? []}
           assets={assetsQuery.data ?? []}
         />

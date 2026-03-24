@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SmartStudy.Server.Entities;
 
 namespace SmartStudy.Server.Dtos
 {
@@ -23,6 +24,17 @@ namespace SmartStudy.Server.Dtos
     // Thông tin để hiển thị trong profile, có thể bổ sung sau
         string? University,
         string? Major,
+        string? Cohort,
+        int TermId,
+        int YearId,
+        DateTime StartDate,
+        DateTime EndDate
+    );
+
+    public record ResponseStudentInfoDto
+    (
+        string? University,
+        string? Major,
         string? Cohort
     );
 
@@ -42,6 +54,8 @@ namespace SmartStudy.Server.Dtos
         public string Email { get; set; }
         public string UserName { get; set; }
         public string FullName { get; set; }
+        public ResponseStudentInfoDto StudentInfo { get; set; }
+        public List<string> Roles { get; set; } = new List<string>();
     }
 
     public class LoginResponseDto

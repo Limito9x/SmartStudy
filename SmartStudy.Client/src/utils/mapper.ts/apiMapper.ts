@@ -7,6 +7,8 @@ import type {
   RequestScheduleDto,
   LogWorkDto,
   RequestStudyPlanDto,
+  RequestSubjectDto,
+  StudyPlanType,
 } from "@/services/api/types.gen";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
@@ -14,6 +16,7 @@ import type { TimelineEventFormValues } from "@/components/forms/timeline-event/
 import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
 import type { LogFormValues } from "@/components/forms/log/schema";
 import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
+import type { SubjectFormValues } from "@/components/forms/subject/schema";
 
 export const studyPlanApiMapper = {
   toRequeststudyPlanDto: (
@@ -22,6 +25,9 @@ export const studyPlanApiMapper = {
     name: studyPlanData.name,
     startDate: studyPlanData.startDate,
     endDate: studyPlanData.endDate,
+    termId: studyPlanData.termId || null,
+    yearId: studyPlanData.yearId || null,
+    type: studyPlanData.type,
   }),
 };
 
@@ -36,15 +42,16 @@ export const courseApiMapper = {
     finalScore: null,
     goal: courseData.goal || null,
     color: courseData.color || null,
+    subjectId: courseData.subjectId || null,
   }),
 };
 
 export const routineApiMapper = {
   toRequestRoutineDto: (
     routineData: RoutineFormValues,
-    studyPlanId: number,
+    studyPlanId?: number,
   ): RequestRoutineDto => ({
-    studyPlanId,
+    studyPlanId: studyPlanId || null,
     name: routineData.name,
     instructor: routineData.instructor || null,
     description: routineData.description || null,
@@ -135,9 +142,9 @@ const calculateDurationMinutes = (
 export const taskApiMapper = {
   toRequestTaskDto: (
     taskData: TaskFormValues,
-    studyPlanId: number,
+    studyPlanId?: number,
   ): RequestTaskDto => ({
-    studyPlanId,
+    studyPlanId: studyPlanId || null,
     name: taskData.name,
     description: taskData.description || null,
     taskDate: parseDateToYyyyMmDd(taskData.taskDate),
@@ -187,5 +194,16 @@ export const logApiMapper = {
     comprehensionLevel: logData.comprehensionLevel || null,
     assetIds: logData.assetIds || null,
     markAsCompleted: logData.markAsCompleted,
+  }),
+};
+
+export const subjectApiMapper = {
+  toRequestSubjectDto: (
+    subjectData: SubjectFormValues,
+  ): RequestSubjectDto => ({
+    name: subjectData.name,
+    code: subjectData.code || null,
+    credits: subjectData.credits || null,
+    type: subjectData.type || "Academic",
   }),
 };
