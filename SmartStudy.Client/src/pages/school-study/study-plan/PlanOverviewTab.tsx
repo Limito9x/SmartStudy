@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import CourseCard from "@/components/features/course/CourseCard";
 import { useCourse } from "@/hooks/entities/useCourse";
-import type { CourseFormValues } from "@/components/forms/course/schema";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { useStudyPlan } from "@/hooks/entities/useStudyPlan";

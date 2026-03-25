@@ -36,8 +36,6 @@ export type AssetResponseDto = {
     type: FileType;
     createdAt: string;
     linkedType: AssetLinkType;
-    category: AssetLinkCategory;
-    formFieldKey: null | string;
 };
 
 export type BehaviorChartDto = {
@@ -99,7 +97,23 @@ export type CourseAssetResponseDto = {
     sourceName?: string;
 };
 
+export type CourseRoutineDto = {
+    routine?: SimpleResponseRoutineDto;
+    tasks?: Array<CourseTaskDto>;
+};
+
 export type CourseStatus = 'Enrolled' | 'Completed' | 'Dropped';
+
+export type CourseTaskDto = {
+    task?: ResponseTaskDto;
+    docs?: Array<AssetResponseDto>;
+    logs?: Array<LogDoc>;
+};
+
+export type CourseWorkloadDto = {
+    routines?: Array<CourseRoutineDto>;
+    singleTasks?: Array<CourseTaskDto>;
+};
 
 export type CreatePlanTemplateDto = {
     sourcePlanId: number | string;
@@ -157,6 +171,11 @@ export type KpiSummaryDto = {
     totalCompletedTasks?: number | string;
 };
 
+export type LogDoc = {
+    log?: LogDto;
+    assets?: Array<AssetResponseDto>;
+};
+
 export type LogDto = {
     id: number | string;
     note: null | string;
@@ -167,7 +186,6 @@ export type LogDto = {
     timerStartAt: null | string;
     timerEndAt: null | string;
     completedAt: null | string;
-    task: SimpleResponseTaskDto;
 };
 
 export type LoginResponseDto = {
@@ -441,21 +459,6 @@ export type SimpleResponseRoutineDto = {
     schedules: Array<ScheduleDto>;
 };
 
-export type SimpleResponseTaskDto = {
-    id: number | string;
-    name: string;
-    description: null | string;
-    taskDate: null | string;
-    startTime: null | string;
-    plannedDuration: null | number | string;
-    type: TaskType;
-    status: TaskStatus;
-    routineId: null | number | string;
-    scheduleId: null | number | string;
-    courseId: null | number | string;
-    studyPlanId: number | string;
-};
-
 export type StudentInfoDto = {
     university: null | string;
     major: null | string;
@@ -717,7 +720,7 @@ export type GetAssetsResponse = GetAssetsResponses[keyof GetAssetsResponses];
 
 export type UploadAssetsData = {
     body: {
-        filepond?: IFormFileCollection;
+        file?: IFormFileCollection;
     } & {
         linkedId?: number | string;
     } & {
@@ -989,6 +992,26 @@ export type UpdateCourseResponses = {
 };
 
 export type UpdateCourseResponse = UpdateCourseResponses[keyof UpdateCourseResponses];
+
+export type GetCourseWorkloadData = {
+    body?: never;
+    path: {
+        courseId: number | string;
+    };
+    query?: {
+        search?: string;
+    };
+    url: '/api/courses/{courseId}/workload';
+};
+
+export type GetCourseWorkloadResponses = {
+    /**
+     * OK
+     */
+    200: CourseWorkloadDto;
+};
+
+export type GetCourseWorkloadResponse = GetCourseWorkloadResponses[keyof GetCourseWorkloadResponses];
 
 export type UpdateCourseStatusData = {
     body: UpdateCourseStatusDto;

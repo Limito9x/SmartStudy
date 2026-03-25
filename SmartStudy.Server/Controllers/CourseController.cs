@@ -31,12 +31,20 @@ namespace SmartStudy.Server.Controllers
             if (course == null) return NotFound();
             return Ok(course);
         }
+        
+        [HttpGet("{courseId}/workload", Name = "GetCourseWorkload")]
+        public async Task<ActionResult<CourseWorkloadDto>> GetCourseWorkload(int courseId,
+            [FromQuery]string? search)
+        {
+            var workload = await _CourseService.GetCourseWorkloadAsync(courseId, search);
+            return Ok(workload);
+        }
 
         [HttpPost(Name = "CreateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> CreateCourse(RequestCourseDto CourseDto)
         {
             ResponseCourseDto createdCourse = await _CourseService.CreateCourseAsync(CourseDto);
-            return CreatedAtAction(nameof(GetCourseById), new { courseId = createdCourse.Id }, createdCourse);
+            return CreatedAtAction(nameof(GetCourseWorkload), new { courseId = createdCourse.Id }, createdCourse);
         }
 
         [HttpPatch("{courseId}", Name = "UpdateCourse")]

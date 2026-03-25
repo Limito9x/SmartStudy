@@ -11,12 +11,14 @@ import type { ResponseCourseDto } from "@/services/api";
 import { Button } from "@/components/ui/button";
 
 interface TaskFormProps {
+  showCourseField?: boolean;
   isEditMode?: boolean;
   defaultValues?: TaskFormValues;
   onSubmit: (values: TaskFormValues) => void;
 }
 
 export default function TaskForm({
+  showCourseField = true,
   isEditMode = false,
   defaultValues,
   onSubmit,
@@ -45,7 +47,11 @@ export default function TaskForm({
               label="Mô tả"
               placeholder="Nhập mô tả (tùy chọn)"
             />
-            <FormDatePicker name="taskDate" control={control} label="Ngày học" />
+            <FormDatePicker
+              name="taskDate"
+              control={control}
+              label="Ngày học"
+            />
             <div className="grid grid-cols-2 gap-3">
               <FormInput
                 name="startTime"
@@ -72,18 +78,20 @@ export default function TaskForm({
                 { label: "Họp nhóm", value: "Meeting" },
               ]}
             />
-            
-            <FormCombobox<TaskFormValues, ResponseCourseDto>
-              name="courseId"
-              control={control}
-              label="Thuộc khóa học"
-              placeholder="Chọn khóa học (nếu có)"
-              options={courses || []}
-              getOptionLabel={(option) => `${option.name}`}
-              getOptionValue={(option) => option.id!.toString()}
-              valueAsNumber
-              emptyText="Không tìm thấy khóa học"
-            />
+            {showCourseField && (
+              <FormCombobox<TaskFormValues, ResponseCourseDto>
+                name="courseId"
+                control={control}
+                label="Thuộc khóa học"
+                placeholder="Chọn khóa học (nếu có)"
+                options={courses || []}
+                getOptionLabel={(option) => `${option.name}`}
+                getOptionValue={(option) => option.id!.toString()}
+                valueAsNumber
+                emptyText="Không tìm thấy khóa học"
+              />
+            )}
+
             <Button type="submit" className="mt-4">
               {isEditMode ? "Lưu thay đổi" : "Tạo nhiệm vụ"}
             </Button>

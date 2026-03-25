@@ -13,12 +13,14 @@ import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 
 interface RoutineFormProps {
+  showCourseField?: boolean;
   isEditMode?: boolean;
   defaultValues?: RoutineFormValues;
   onSubmit: (values: RoutineFormValues) => void;
 }
 
 export default function RoutineForm({
+  showCourseField = true,
   isEditMode = false,
   defaultValues,
   onSubmit,
@@ -62,17 +64,19 @@ export default function RoutineForm({
                 { label: "Họp nhóm", value: "Meeting" },
               ]}
             />
-            <FormCombobox<RoutineFormValues, ResponseCourseDto>
-              name="courseId"
-              control={control}
-              label="Thuộc khóa học"
-              placeholder="Chọn khóa học (nếu có)"
-              options={courses || []}
-              getOptionLabel={(option) => `${option.name}`}
-              getOptionValue={(option) => option.id!.toString()}
-              valueAsNumber
-              emptyText="Không tìm thấy khóa học"
-            />
+            {showCourseField && (
+              <FormCombobox<RoutineFormValues, ResponseCourseDto>
+                name="courseId"
+                control={control}
+                label="Thuộc khóa học"
+                placeholder="Chọn khóa học (nếu có)"
+                options={courses || []}
+                getOptionLabel={(option) => `${option.name}`}
+                getOptionValue={(option) => option.id!.toString()}
+                valueAsNumber
+                emptyText="Không tìm thấy khóa học"
+              />
+            )}
             <div className="flex items-center">
               <FormDatePicker
                 name="startDate"

@@ -23,9 +23,7 @@ namespace SmartStudy.Server.Dtos
         long FileSize,
         FileType Type,
         DateTime CreatedAt,
-        AssetLinkType LinkedType,
-        AssetLinkCategory Category,
-        string? FormFieldKey
+        AssetLinkType LinkedType
     );
     
     public class CourseAssetResponseDto 

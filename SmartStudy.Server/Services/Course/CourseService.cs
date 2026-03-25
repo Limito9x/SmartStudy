@@ -21,6 +21,7 @@ namespace SmartStudy.Server.Services
         Task UpdateCourseStatusAsync(int courseId, UpdateCourseStatusDto dto);
         //Task UpdateCourseProgressAsync(int CourseId);
         Task SyncCourseClassSessions(int courseId, List<ScheduleDto> scheduleDtos);
+        Task<CourseWorkloadDto> GetCourseWorkloadAsync(int courseId, string? keyword);
     }
     public class CourseService : ICourseService
     {
@@ -252,26 +253,112 @@ namespace SmartStudy.Server.Services
             await _context.SaveChangesAsync();
         }
 
-        // private List<TimelineEvent>? GenerateAutoEventsForCourse(int courseId, SubjectType subjectType)
-        // {
-        //     // Bí kíp C#: Luôn dùng TryGetValue với Dictionary để không bao giờ bị Crash app
-        //     if (SubjectEventRegistry.Templates.TryGetValue(subjectType, out var templates))
-        //     {
-        //         // Dùng LINQ Select để "đúc" từ Template thành Entity thật
-        //         var timelineEvents = templates.Select(t => new TimelineEvent
-        //         {
-        //             CourseId = courseId,
-        //             Title = t.Title,
-        //             Type = t.Type,
-        //             Priority = t.Priority,
-        //             DueDate = null
-        //         }).ToList();
-        //
-        //         return timelineEvents;
-        //     }
-        //
-        //     return null;
-        // }
+        public async Task<CourseWorkloadDto> GetCourseWorkloadAsync(int courseId, string? keyword)
+        {
+            keyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
+
+            var course = await _context.Courses
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+
+            if (course == null) throw new KeyNotFoundException("Không tìm thấy khóa học");
+
+            var singleTasks = await _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.CourseId == courseId
+                    && t.RoutineId == null
+                    && (keyword == null || t.Name.Contains(keyword)))
+                .ToListAsync();
+
+            var routines = await _context.Routines
+                .AsNoTracking()
+                .Where(r => r.CourseId == courseId)
+                .ToListAsync();
+
+            var routineIds = routines.Select(r => r.Id).ToList();
+            var routineTasks = routineIds.Count == 0
+                ? []
+                : await _context.Tasks
+                    .AsNoTracking()
+                    .Where(t => t.RoutineId.HasValue
+                        && routineIds.Contains(t.RoutineId.Value)
+                        && (keyword == null || t.Name.Contains(keyword)))
+                    .ToListAsync();
+
+            var allTaskIds = singleTasks.Select(t => t.Id)
+                .Concat(routineTasks.Select(t => t.Id))
+                .ToList();
+
+            var allLogs = allTaskIds.Count == 0
+                ? []
+                : await _context.Logs
+                    .AsNoTracking()
+                    .Where(l => allTaskIds.Contains(l.TaskId))
+                    .ToListAsync();
+
+            var allLogIds = allLogs.Select(l => l.Id).ToList();
+
+            var relatedLinks = (allTaskIds.Count == 0 && allLogIds.Count == 0)
+                ? []
+                : await _context.AssetLinks
+                    .Include(al => al.Asset)
+                    .AsNoTracking()
+                    .Where(al =>
+                        (al.LinkedType == AssetLinkType.Task && allTaskIds.Contains(al.LinkedId)) ||
+                        (al.LinkedType == AssetLinkType.Log && allLogIds.Contains(al.LinkedId)))
+                    .ToListAsync();
+
+            var logsByTaskId = allLogs.GroupBy(l => l.TaskId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            return new CourseWorkloadDto
+            {
+                SingleTasks = singleTasks
+                    .Select(t => BuildTaskDto(t, logsByTaskId, relatedLinks))
+                    .ToList(),
+                Routines = routines.Select(r => new CourseRoutineDto
+                {
+                    Routine = _mapper.Map<SimpleResponseRoutineDto>(r),
+                    Tasks = routineTasks
+                        .Where(t => t.RoutineId == r.Id)
+                        .Select(t => BuildTaskDto(t, logsByTaskId, relatedLinks))
+                        .ToList()
+                }).ToList()
+            };
+        }
+
+        private CourseTaskDto BuildTaskDto(
+            TaskItem task,
+            Dictionary<int, List<LogItem>> logsByTaskId,
+            List<AssetLink> links)
+        {
+            var logs = logsByTaskId.GetValueOrDefault(task.Id, []);
+
+            return new CourseTaskDto
+            {
+                Task = _mapper.Map<ResponseTaskDto>(task),
+                Docs = links
+                    .Where(al => al.LinkedType == AssetLinkType.Task && al.LinkedId == task.Id)
+                    .Select(al => _mapper.Map<AssetResponseDto>(al.Asset))
+                    .ToList(),
+                Logs = logs.Select(l =>
+                {
+                    var mappedLog = _mapper.Map<LogDto>(l) with
+                    {
+                        Productivity = StatisticHelper.CalculateProductivity(l, task)
+                    };
+
+                    return new LogDoc
+                    {
+                        Log = mappedLog,
+                        Assets = links
+                            .Where(al => al.LinkedType == AssetLinkType.Log && al.LinkedId == l.Id)
+                            .Select(al => _mapper.Map<AssetResponseDto>(al.Asset))
+                            .ToList()
+                    };
+                }).ToList()
+            };
+        }
         
         private double CalculateProgress(Course course)
         {

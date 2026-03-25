@@ -6,17 +6,17 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getCourseAssetOptions,
   getCourseByIdOptions,
-  getEventsOptions,
+  getCourseWorkloadOptions,
   getRoutinesOptions,
-  getTasksOptions,
-  getLogsOptions,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { SimpleResponseRoutineDto } from "@/services/api";
 import CourseDetailTabs from "@/components/features/course/CourseDetailTabs";
-import { useStudyPlanStore } from "@/stores/studyPlanStore";
 
 export default function CoursePage() {
-  const { courseId, studyPlanId } = useParams<{ courseId: string, studyPlanId: string }>();
+  const { courseId, studyPlanId } = useParams<{
+    courseId: string;
+    studyPlanId: string;
+  }>();
   const navigate = useNavigate();
   const courseIdNum = Number(courseId);
   const studyPlanIdNum = Number(studyPlanId);
@@ -39,28 +39,13 @@ export default function CoursePage() {
     enabled: !!courseIdNum,
   });
 
-  const pendingTasksQuery = useQuery({
-    ...getTasksOptions({
-      query: {
+  const workloadQuery = useQuery({
+    ...getCourseWorkloadOptions({
+      path: {
         courseId: courseIdNum,
-        status: "Pending",
       },
-    }),
-    enabled: !!courseIdNum,
-  });
-
-  const logsQuery = useQuery({
-    ...getLogsOptions({
-      // dùng logs endpoint
-      query: { courseId: courseIdNum },
-    }),
-    enabled: !!courseIdNum,
-  });
-
-  const eventsQuery = useQuery({
-    ...getEventsOptions({
       query: {
-        courseId: courseIdNum,
+        search: "",
       },
     }),
     enabled: !!courseIdNum,
@@ -78,28 +63,26 @@ export default function CoursePage() {
   const isLoading =
     courseQuery.isLoading ||
     routinesQuery.isLoading ||
-    pendingTasksQuery.isLoading ||
-    logsQuery.isLoading ||
-    eventsQuery.isLoading ||
+    workloadQuery.isLoading ||
     assetsQuery.isLoading;
 
   const error =
     courseQuery.error ||
     routinesQuery.error ||
-    pendingTasksQuery.error ||
-    logsQuery.error ||
-    eventsQuery.error ||
+    workloadQuery.error ||
     assetsQuery.error;
 
   const course = courseQuery.data;
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-6 space-y-6">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-24 w-full rounded-xl" />
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-48 w-full rounded-xl" />
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto max-w-4xl space-y-6 p-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-24 w-full rounded-xl" />
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-48 w-full rounded-xl" />
+        </div>
       </div>
     );
   }
@@ -107,36 +90,38 @@ export default function CoursePage() {
   if (error) {
     const message = error instanceof Error ? error.message : "Không xác định";
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <p className="text-sm text-destructive">Lỗi tải dữ liệu: {message}</p>
+      <div className="h-full overflow-y-auto">
+        <div className="mx-auto max-w-4xl p-6">
+          <p className="text-sm text-destructive">Lỗi tải dữ liệu: {message}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-8xl mx-auto p-6 space-y-6">
-      <div className="flex">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="-ml-3 gap-1.5 text-muted-foreground hover:text-foreground"
-          onClick={() => navigate(`/app/study-plans/${studyPlanIdNum}`)}
-        >
-          <ArrowLeft size={16} />
-          Quay lại
-        </Button>
-      </div>
+    <div className="h-full overflow-y-auto">
+      <div className="mx-auto max-w-8xl space-y-6 p-6">
+        <div className="flex">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-3 gap-1.5 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate(`/app/study-plans/${studyPlanIdNum}`)}
+          >
+            <ArrowLeft size={16} />
+            Quay lại
+          </Button>
+        </div>
 
-      {course ? (
-        <CourseDetailTabs
-          course={course}
-          routines={(routinesQuery.data ?? []) as SimpleResponseRoutineDto[]}
-          pendingTasks={pendingTasksQuery.data ?? []}
-          logs={logsQuery.data ?? []}
-          timelineEvents={eventsQuery.data ?? []}
-          assets={assetsQuery.data ?? []}
-        />
-      ) : null}
+        {course ? (
+          <CourseDetailTabs
+            course={course}
+            routines={(routinesQuery.data ?? []) as SimpleResponseRoutineDto[]}
+            workloads={workloadQuery.data}
+            assets={assetsQuery.data ?? []}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }

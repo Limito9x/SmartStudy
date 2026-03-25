@@ -38,12 +38,13 @@ namespace SmartStudy.Server.Controllers
 
         [HttpPost(Name="UploadAssets")]
         public async Task<ActionResult<List<AssetResponseDto>>> UploadAssets(
-            [FromForm] IFormFileCollection filepond,
+            [FromForm] IFormFileCollection file,
             [FromForm] int linkedId,
             [FromForm] AssetLinkType linkedType,
             [FromForm] AssetLinkCategory category = AssetLinkCategory.Reference)
         {
-            var dto = new UploadAssetDto(filepond.ToList(), linkedId, linkedType, category, null);
+            Console.WriteLine($"Received {file.Count} files for upload. LinkedId: {linkedId}, LinkedType: {linkedType}, Category: {category}");
+            var dto = new UploadAssetDto(file.ToList(), linkedId, linkedType, category, null);
             var uploadedAssets = await _assetService.UploadAssetsAsync(dto);
             return Ok(uploadedAssets);
         }

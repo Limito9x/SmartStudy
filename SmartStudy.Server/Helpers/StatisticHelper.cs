@@ -5,8 +5,10 @@ namespace SmartStudy.Server.Helpers;
 
 public static class StatisticHelper
 {
-    public static double CalculateProductivity(LogItem log, TaskItem task)
+    public static double CalculateProductivity(LogItem log, TaskItem? task)
     {
+        if (task == null) return 0;
+
         var actualMinutes =
             log.TimerStartAt.HasValue && log.TimerEndAt.HasValue
                 ? (log.TimerEndAt.Value - log.TimerStartAt.Value).TotalMinutes

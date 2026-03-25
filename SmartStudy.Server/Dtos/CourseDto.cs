@@ -31,4 +31,31 @@ namespace SmartStudy.Server.Dtos
     public record SyncDraftCoursesDto(List<int> SelectedCourseIds);
 
     public record UpdateCourseStatusDto(CourseStatus Status);
+    
+
+    // 1 log thường kèm với các tài liệu
+    public class LogDoc
+    {
+        public LogDto Log { get; set; }
+        public List<AssetResponseDto>  Assets { get; set; }
+    }
+
+    public class CourseTaskDto
+    {
+        public ResponseTaskDto Task { get; set; }
+        public List<AssetResponseDto> Docs { get; set; }
+        public List<LogDoc> Logs { get; set; }
+    }
+    
+    public class CourseRoutineDto
+    {
+        public SimpleResponseRoutineDto Routine { get; set; }
+        public List<CourseTaskDto> Tasks { get; set; }
+    }
+
+    public class CourseWorkloadDto
+    {
+        public List<CourseRoutineDto> Routines { get; set; }
+        public List<CourseTaskDto> SingleTasks { get; set; }
+    }
 }

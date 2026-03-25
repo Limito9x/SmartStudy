@@ -10,8 +10,6 @@ namespace SmartStudy.Server.Data.Configurations
         {
             builder.ToTable("AssetLinks");
             builder.HasKey(al => al.Id);
-            builder.Property(al => al.Category)
-                .HasConversion<string>();
             builder.Property(al => al.LinkedType)
                 .HasConversion<string>();
             builder.HasOne(al => al.Asset)

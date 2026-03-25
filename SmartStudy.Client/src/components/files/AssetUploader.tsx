@@ -1,12 +1,12 @@
-// components/ui/custom/AssetUploader.tsx
 import { FilePond, registerPlugin } from "react-filepond";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { uploadAssetsMutation } from "@/services/api/@tanstack/react-query.gen";
+import { formDataBodySerializer } from "@/services/api/client";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import { type AssetLinkType } from "@/services/api";
-import { getCourseAssetQueryKey } from "@/services/api/@tanstack/react-query.gen";
 
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginImagePreview);
 
@@ -23,38 +23,60 @@ export default function AssetUploader({
 }: AssetUploaderProps) {
   const queryClient = useQueryClient();
 
+  const uploadMutation = useMutation({
+    ...uploadAssetsMutation({
+      ...formDataBodySerializer,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  });
+
   return (
     <FilePond
       allowMultiple={true}
       server={{
-        process: {
-          url: "http://localhost:5037/api/assets",
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          ondata: (formData) => {
-            
-            formData.append("linkedId", String(linkedId));
-            formData.append("linkedType", linkedType);
-            return formData;
-          },
-          onload: (response: any) => {
-            queryClient.invalidateQueries({
-              queryKey: ["assets", linkedId, linkedType],
+        process: (
+          _fieldName,
+          file,
+          _metadata,
+          load,
+          error,
+          progress,
+          abort,
+        ) => {
+          uploadMutation
+            .mutateAsync({
+              body: {
+                file: [file] as any,
+                linkedId: linkedId,
+                linkedType: linkedType,
+              },
+            })
+            .then((res: any) => {
+              // Báo cho FilePond biết là 100% xong
+              progress(true, file.size, file.size);
+              const firstUploaded = Array.isArray(res) ? res[0] : res;
+              load(String(firstUploaded?.id ?? "success"));
+
+              // Invalidate cache y như cũ
+              if (linkedId) {
+                queryClient.invalidateQueries({
+                  queryKey: ["assets", linkedId, linkedType],
+                });
+              }
+              onUploaded?.();
+            })
+            .catch((err) => {
+              console.error("Lỗi upload:", err);
+              error("Upload thất bại");
             });
-            if(linkedType==="Course"){
-              queryClient.invalidateQueries({
-                queryKey: getCourseAssetQueryKey({
-                  path: {
-                    courseId: linkedId,
-                  },
-                }),
-              });
-            }
-            onUploaded?.();
-            return response;
-          },
+
+          return {
+            abort: () => {
+              abort();
+            },
+          };
         },
         revert: null,
         restore: null,

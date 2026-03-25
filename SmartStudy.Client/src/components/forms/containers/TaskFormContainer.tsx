@@ -9,10 +9,11 @@ import { taskFormMapper } from "@/utils/mapper.ts/formMapper";
 
 export default function TaskFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { taskId, defaultValues } =
+  const { courseId, taskId, defaultValues } =
     data as DialogDataMap["TASK_FORM"];
 
   const isEditMode = !!taskId;
+  const showCourseField = !courseId;
   const { getTaskById, createTask, updateTaskInfo } = useTask();
 
   // NẾU LÀ EDIT: Fetch data ngầm.
@@ -36,6 +37,7 @@ export default function TaskFormContainer() {
         ...defaultValues,
         name: defaultValues?.name || "",
         type: defaultValues?.type || "SelfStudy",
+        courseId: courseId || defaultValues?.courseId,
       };
 
       
@@ -65,6 +67,7 @@ export default function TaskFormContainer() {
 
   return (
     <TaskForm
+      showCourseField={showCourseField}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
       onSubmit={handleSubmit}

@@ -40,8 +40,7 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto)
         {
             var userId = _currentUserService.UserId;
-            var studyPlan = _context.StudyPlans.FirstOrDefault(sp => sp.Id == RoutineDto.StudyPlanId && sp.UserId == userId);
-            if (studyPlan == null) throw new KeyNotFoundException("Không tìm thấy kế hoạch học tập");
+            var course = _context.Courses.Include(c=>c.StudyPlan).FirstOrDefault(c => c.Id == RoutineDto.CourseId);
 
             // 1. Mapster tự động map luôn cả Routine VÀ danh sách Schedules bên trong
             var Routine = _mapper.Map<Entities.Routine>(RoutineDto);
@@ -57,7 +56,7 @@ namespace SmartStudy.Server.Services
             }
             else
             {
-                Routine.StartDate = studyPlan.StartDate > now ? studyPlan.StartDate : now;
+                Routine.StartDate = course.StudyPlan.StartDate > now ? course.StudyPlan.StartDate : now;
             }
 
 // 2. LOGIC TÍNH END DATE:
@@ -69,10 +68,10 @@ namespace SmartStudy.Server.Services
             }
             else
             {
-                Routine.EndDate = studyPlan.EndDate;
+                Routine.EndDate = course.StudyPlan.EndDate;
             }
 
-// 3. (Tùy chọn nhưng RẤT NÊN CÓ) Validate chống ngáo: 
+// 3. (Tùy chọn nhưng RẤT NÊN CÓ) Validate: 
 // StartDate không được lớn hơn EndDate
             if (Routine.EndDate.HasValue && Routine.StartDate > Routine.EndDate.Value)
             {

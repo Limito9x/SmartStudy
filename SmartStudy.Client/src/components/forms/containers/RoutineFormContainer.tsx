@@ -9,9 +9,10 @@ import { routineFormMapper } from "@/utils/mapper.ts/formMapper";
 
 export default function RoutineFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { routineId, defaultValues } =
+  const { courseId, routineId, defaultValues } =
     data as DialogDataMap["ROUTINE_FORM"];
 
+  const showCourseField = !courseId;
   const isEditMode = !!routineId;
   const { getRoutineById, createRoutine, updateRoutine } = useRoutine();
 
@@ -36,6 +37,7 @@ export default function RoutineFormContainer() {
         ...defaultValues,
         name: defaultValues?.name || "",
         type: defaultValues?.type || "SelfStudy",
+        courseId: courseId || defaultValues?.courseId,
       };
 
       
@@ -65,6 +67,7 @@ export default function RoutineFormContainer() {
 
   return (
     <RoutineForm
+      showCourseField={showCourseField}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
       onSubmit={handleSubmit}
