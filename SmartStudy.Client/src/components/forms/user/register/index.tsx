@@ -4,7 +4,9 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { FormInput } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
-import { register } from "@/services/api";
+import { useMutation } from "@tanstack/react-query";
+import { registerMutation } from "@/services/api/@tanstack/react-query.gen";
+import { toast } from "sonner";
 
 export const RegisterForm = () => {
   const form = useForm<RegisterFormValues>({
@@ -18,17 +20,23 @@ export const RegisterForm = () => {
     },
   });
 
+  const registerMutationInstance = useMutation({
+    ...registerMutation(),
+    onSuccess: () => {
+      toast.success("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.");
+      form.reset();
+    },
+    onError: (error) => {
+      console.error("Đăng ký thất bại:", error);
+      toast.error("Đăng ký thất bại. Vui lòng thử lại.");
+    },
+  });
+
   const onSubmit = async (data: RegisterFormValues) => {
     try {
-      await register({
-        body: {
-          email: data.email,
-          userName: data.userName,
-          fullName: data.fullName,
-          password: data.password,
-        },
+      await registerMutationInstance.mutateAsync({
+        body: data,
       });
-      alert("Đăng ký thành công! Bạn có thể đăng nhập ngay bây giờ.");
       form.reset();
     } catch (error) {
       console.error("Đăng ký thất bại:", error);

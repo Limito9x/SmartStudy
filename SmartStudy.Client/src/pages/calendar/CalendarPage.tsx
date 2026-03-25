@@ -1,11 +1,10 @@
 import DraggableCalendar from "@/components/features/calendar/DraggableCalendar";
 import { useCalendar } from "@/hooks/entities/useCalendar";
-import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 import { useTask } from "@/hooks/entities/useTask";
 import { useRoutine } from "@/hooks/entities/useRoutine";
 import { useSchedule } from "@/hooks/entities/useSchedule";
 import { useDialogStore } from "@/stores/useDialogStore";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import UnscheduledList from "@/components/features/calendar/UnscheduledList";
 import type { UnscheduledItemDto } from "@/services/api";
 import { Menu, X } from "lucide-react"; // Icon cái nút Hamburger và nút Đóng
@@ -39,29 +38,18 @@ export default function CalendarPage() {
   const { openDialog } = useDialogStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const { getAllStudyPlans } = useStudyPlan();
-  const { data: studyPlans } = getAllStudyPlans;
-
-  const { getCalendar, getUnscheduledItems } = useCalendar();
+  const { getCalendar, getUnscheduledItems, rescheduleCalendar } = useCalendar({
+    from: currentRange.from,
+    to: currentRange.to,
+  });
 
   const { updateTaskInfo, deleteTaskById } = useTask();
   const { deleteRoutine } = useRoutine();
   const { confirmTaskOnOccurrence } = useSchedule();
 
-  const { data: calendarEvents } = getCalendar({
-    from: currentRange.from,
-    to: currentRange.to,
-  });
+  const { data: calendarEvents } = getCalendar();
 
   const { data: unscheduledItems } = getUnscheduledItems;
-
-  const selectedStudyPlanId = useMemo(() => {
-    const activePlan = studyPlans?.find((plan) => plan.status === "Active");
-    const fallback = studyPlans?.[0];
-    const value = activePlan?.id ?? fallback?.id;
-
-    return typeof value === "number" ? value : Number(value);
-  }, [studyPlans]);
 
   const handleRangeChange = (from: string, to: string) => {
     setCurrentRange({ from, to });
@@ -93,22 +81,19 @@ export default function CalendarPage() {
           startTime: format(new Date(start), "HH:mm:ss"),
           duration: Math.ceil(
             (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60),
-          ), // duration tính bằng phút
+          ),
         },
       });
     } else if (draggedItem.entityType === "Task") {
-      updateTaskInfo.mutate({
+      rescheduleCalendar.mutate({
         body: {
-          name: draggedItem.name || "",
-          description: draggedItem.description || "",
-          taskDate: format(new Date(start), "yyyy-MM-dd"),
-          startTime: format(new Date(start), "HH:mm:ss"),
-          plannedDuration: Number(draggedItem.plannedDuration) || 60, // ← dùng duration gốc
-          type: draggedItem.type || "SelfStudy",
-          courseId: draggedItem.courseId || null,
-          studyPlanId: Number(draggedItem.studyPlanId) || selectedStudyPlanId,
-        },
-        path: { taskId: Number(draggedItem.id) },
+          taskId: Number(draggedItem.id),
+          newDate: format(new Date(start), "yyyy-MM-dd"),
+          newStartTime: format(new Date(start), "HH:mm:ss"),
+          newDuration: Math.ceil(
+            (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60),
+          ),
+        }
       });
     }
   };
@@ -116,7 +101,6 @@ export default function CalendarPage() {
   const handleSelectSlot = useCallback(
     ({ start, end }: { start: Date; end: Date }) => {
       openDialog("TASK_FORM", {
-        studyPlanId: selectedStudyPlanId,
         defaultValues: {
           taskDate: format(start, "yyyy-MM-dd"),
           startTime: format(start, "HH:mm:ss"),
@@ -128,32 +112,25 @@ export default function CalendarPage() {
         },
       });
     },
-    [openDialog, selectedStudyPlanId],
+    [openDialog],
   );
 
   const handleEventChange = useCallback(
     ({ event, start, end }: { event: MyTask; start: Date; end: Date }) => {
       if (event.entityType === "Task") {
-        updateTaskInfo.mutate({
+        rescheduleCalendar.mutate({
           body: {
-            name: event.title,
-            description: "", // Không có description trong calendar event, nên tạm để trống
-            taskDate: format(new Date(start), "yyyy-MM-dd"),
-            startTime: format(new Date(start), "HH:mm:ss"),
-            plannedDuration: Math.ceil(
+            taskId: Number(event.entityId),
+            newDate: format(start, "yyyy-MM-dd"),
+            newStartTime: format(start, "HH:mm:ss"),
+            newDuration: Math.ceil(
               (end.getTime() - start.getTime()) / (1000 * 60),
             ), // duration tính bằng phút
-            type: "SelfStudy", // Không có type trong calendar event, nên tạm để SelfStudy
-            courseId: null, // Không có courseId trong calendar event, nên tạm để null
-            studyPlanId: Number(selectedStudyPlanId),
-          },
-          path: {
-            taskId: Number(event.entityId),
-          },
-        });
+          }
+        })
       }
     },
-    [updateTaskInfo, selectedStudyPlanId],
+    [updateTaskInfo],
   );
 
   const handleEventAction = useCallback(
@@ -227,12 +204,11 @@ export default function CalendarPage() {
         if (!event.routineId) return;
 
         openDialog("ROUTINE_FORM", {
-          studyPlanId: selectedStudyPlanId,
           routineId: Number(event.routineId),
         });
       }
     },
-    [confirmTaskOnOccurrence, deleteTaskById, openDialog, selectedStudyPlanId],
+    [confirmTaskOnOccurrence, deleteTaskById, openDialog],
   );
 
   const handleDeleteUnscheduledItem = (item: UnscheduledItemDto) => {

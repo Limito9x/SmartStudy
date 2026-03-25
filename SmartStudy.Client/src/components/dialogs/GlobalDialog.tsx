@@ -77,7 +77,7 @@ const DIALOG_SIZES: { [K in DialogType]: string } = {
   TASK_FORM: "sm:max-w-lg", // Form tạo Task vừa vừa (512px)
   COURSE_FORM: "sm:max-w-md", // Form tạo môn học (448px)
   SCHEDULE_FORM: "sm:max-w-md", // Form xếp lịch lẻ
-  LOG_WORK_FORM: "sm:max-w-lg", // Form log work (512px)
+  LOG_WORK_FORM: "sm:max-w-3xl",
   PLAN_TEMPLATE_EDIT: "sm:max-w-lg",
   PLAN_TEMPLATE_SELECT_PLAN: "sm:max-w-lg",
   EVENT_FORM: "sm:max-w-lg", // Form tạo sự kiện (512px)

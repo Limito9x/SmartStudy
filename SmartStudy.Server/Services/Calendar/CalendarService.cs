@@ -10,6 +10,7 @@ public interface ICalendarService
 {
     Task<List<CalendarEventDto>> GetCalendarAsync(DateOnly fromDate, DateOnly toDate);
     Task<List<UnscheduledItemDto>> GetUnscheduledItemsAsync();
+    Task RescheduleTaskAsync(RescheduleTaskDto dto);
 }
 
 public class CalendarService: ICalendarService
@@ -159,5 +160,22 @@ public async Task<List<UnscheduledItemDto>> GetUnscheduledItemsAsync()
     unscheduledList.AddRange(_mapper.Map<List<UnscheduledItemDto>>(unscheduledRoutines));
 
     return unscheduledList;
+}
+
+public async Task RescheduleTaskAsync(RescheduleTaskDto dto)
+{
+    var userId = _currentUserService.UserId;
+    var task = await _context.Tasks
+        .Where(t => t.UserId == userId && t.Id == dto.TaskId)
+        .FirstOrDefaultAsync();
+
+    if (task == null)
+        throw new KeyNotFoundException("Task không tồn tại!");
+
+    task.TaskDate = dto.NewDate;
+    task.StartTime = dto.NewStartTime;
+    task.PlannedDuration = dto.NewDuration;
+
+    await _context.SaveChangesAsync();
 }
 }

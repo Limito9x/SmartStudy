@@ -60,10 +60,9 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpPost("{taskId}/logs", Name = "CreateTaskLogWork")]
-        public async Task<ActionResult<ResponseTaskDto>> LogWork(int taskId, [FromBody] LogWorkDto dto)
+        public async Task<ActionResult<LogDto>> LogWork(int taskId, [FromBody] LogWorkDto dto)
         {
             var executed = await _TaskService.LogWorkAsync(taskId, dto);
-            if (executed == null) return NotFound();
             return Ok(executed);
         }
 

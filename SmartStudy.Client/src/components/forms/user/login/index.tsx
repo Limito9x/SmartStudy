@@ -4,9 +4,11 @@ import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { FormInput } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
-import { login as loginApi } from "@/services/api";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { loginMutation } from "@/services/api/@tanstack/react-query.gen";
+import { toast } from "sonner";
 
 export const LoginForm = () => {
   const navigate = useNavigate();
@@ -18,13 +20,23 @@ export const LoginForm = () => {
     },
   });
 
+  const mutation = useMutation({
+    ...loginMutation(),
+    onSuccess: (data) => {
+      useAuthStore.getState().login(data);
+      navigate("/app");
+    },
+    onError: (error) => {
+      console.error("Đăng nhập thất bại:", error);
+      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+    },
+  });
+
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      const response = await loginApi({ body: data });
-      if (response.data) {
-        useAuthStore.getState().login(response.data);
-          navigate("/app");
-      }
+      await mutation.mutateAsync({
+        body: data,
+      });
     } catch (error) {
       console.error("Đăng nhập thất bại:", error);
     }

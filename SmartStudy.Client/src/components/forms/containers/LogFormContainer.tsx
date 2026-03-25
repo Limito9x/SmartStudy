@@ -7,6 +7,9 @@ import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { LogFormValues } from "../log/schema";
 import { logApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { logFormMapper } from "@/utils/mapper.ts/formMapper";
+import { useMutation } from "@tanstack/react-query";
+import { uploadAssetsMutation } from "@/services/api/@tanstack/react-query.gen";
+import { formDataBodySerializer } from "@/services/api/client";
 
 export default function LogFormContainer() {
   const { data, closeDialog } = useDialogStore();
@@ -30,6 +33,15 @@ export default function LogFormContainer() {
     );
   }
 
+  const uploadAssets = useMutation({
+    ...uploadAssetsMutation({
+      ...formDataBodySerializer,
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }),
+  });
+
   const task = getTaskById(taskId).data; // Dùng để lấy thông tin task, nếu cần thiết cho form
 
   // Chập data mồi (Create) hoặc data fetch được (Edit) vào form
@@ -42,31 +54,50 @@ export default function LogFormContainer() {
           actualDuration: Number(task?.plannedDuration) || 60,
         };
 
-  const handleSubmit = (values: LogFormValues) => {
+  const handleSubmit = async (values: LogFormValues) => {
+    const handleUploadFiles = (id: number) => {
+      const logId = id;
+      const filesToUpload = values.files?.filter(
+        (file) => file instanceof File,
+      );
+      if (filesToUpload && filesToUpload.length > 0) {
+        uploadAssets.mutate(
+          {
+            body: {
+              file: filesToUpload,
+              linkedId: logId,
+              linkedType: "Log",
+            },
+          },
+          {
+            onSuccess: () => {
+              closeDialog();
+            },
+          },
+        );
+      } else {
+        closeDialog();
+      }
+    };
+
     if (isEditMode) {
-      updateLog(logId).mutate(
-        {
-          path: {
-            taskLogId: logId!,
-          },
-          body: logApiMapper.toLogWorkDto(values),
+      await updateLog(logId).mutateAsync({
+        path: {
+          taskLogId: logId!,
         },
-        {
-          onSuccess: () => closeDialog(),
-        },
-      );
+        body: logApiMapper.toLogWorkDto(values),
+      });
+
+      handleUploadFiles(logId);
     } else {
-      createTaskLogWork.mutate(
-        {
-          body: logApiMapper.toLogWorkDto(values),
-          path: {
-            taskId,
-          },
+      const res = await createTaskLogWork.mutateAsync({
+        body: logApiMapper.toLogWorkDto(values),
+        path: {
+          taskId,
         },
-        {
-          onSuccess: () => closeDialog(),
-        },
-      );
+      });
+
+      handleUploadFiles(Number(res.id));
     }
   };
 

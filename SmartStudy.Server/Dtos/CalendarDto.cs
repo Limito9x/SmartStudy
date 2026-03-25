@@ -53,3 +53,11 @@ public enum CalendarEntityType
     TimelineEvent,
     Schedule
 }
+
+public record RescheduleTaskDto
+(
+    int TaskId,
+    DateOnly NewDate,
+    TimeOnly NewStartTime,
+    int NewDuration
+);

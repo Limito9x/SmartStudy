@@ -9,7 +9,6 @@ import type {
 import WorkloadsTab from "@/components/features/course-workloads/WorkloadsTab";
 import OverviewTab from "@/components/features/course-tabs/OverviewTab";
 import AssetsVaultTab from "@/components/features/course-tabs/AssetsVaultTab";
-import { useDialogStore } from "@/stores/useDialogStore";
 
 interface CourseDetailTabsProps {
   course: ResponseCourseDto | null | undefined;
@@ -24,38 +23,26 @@ export default function CourseDetailTabs({
   workloads,
   assets,
 }: CourseDetailTabsProps) {
-  const { openDialog } = useDialogStore();
-  const handleOpenCreateRoutine = () => {
-    openDialog("ROUTINE_FORM",{
-      courseId: Number(course?.id ?? 0),
-    })
-  };
-
-  const handleOpenCreateTask = () => {
-    openDialog("TASK_FORM", {
-      courseId: Number(course?.id ?? 0),
-    })
-  };
 
   return (
     <Tabs defaultValue="overview" className="w-full">
       <div className="flex flex-col gap-3 border-b pb-0 md:flex-row md:items-end md:justify-between">
-        <TabsList className="h-auto w-full justify-start gap-0 rounded-none bg-transparent p-0 md:w-auto">
+        <TabsList className="h-auto w-full justify-start gap-0 bg-transparent p-0 md:w-auto">
           <TabsTrigger
             value="overview"
-            className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Tổng quan
           </TabsTrigger>
           <TabsTrigger
             value="workloads"
-            className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Tiến độ & Công việc
           </TabsTrigger>
           <TabsTrigger
             value="assets"
-            className="rounded-none border-b-2 border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Tài liệu
           </TabsTrigger>

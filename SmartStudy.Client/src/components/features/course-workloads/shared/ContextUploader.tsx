@@ -24,7 +24,6 @@ export default function ContextUploader({
   buttonText = "Đính kèm tài liệu",
 }: ContextUploaderProps) {
   const [open, setOpen] = useState(false);
-  console.log("ContextUploader props:", { linkedId, linkedType });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

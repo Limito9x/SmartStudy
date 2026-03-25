@@ -32,6 +32,13 @@ namespace SmartStudy.Server.Controllers
             var items = await _calendarService.GetUnscheduledItemsAsync();
             return Ok(items);
         }
+        
+        [HttpPatch("Reschedule", Name = "RescheduleCalendar")]
+        public async Task<ActionResult> RescheduleCalendar([FromBody] RescheduleTaskDto rescheduleDto)
+        {
+            await _calendarService.RescheduleTaskAsync(rescheduleDto);
+            return NoContent();
+        }
     }
 }
 

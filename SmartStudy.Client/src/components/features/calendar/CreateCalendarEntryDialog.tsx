@@ -64,20 +64,6 @@ export default function CreateCalendarEntryDialog({
     [selectedStart],
   );
 
-  if (!studyPlanId) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-muted-foreground">
-          Chưa xác định được kế hoạch học tập đang dùng. Vui lòng tạo hoặc kích
-          hoạt một kế hoạch trước khi thêm nhiệm vụ.
-        </p>
-        <Button type="button" onClick={closeDialog}>
-          Đóng
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex gap-2">
@@ -101,7 +87,6 @@ export default function CreateCalendarEntryDialog({
 
       {mode === "task" ? (
         <TaskForm
-          studyPlanId={studyPlanId}
           defaultValues={taskDefaultValues}
           onSubmit={(values) => {
             createTask.mutate(
@@ -125,7 +110,6 @@ export default function CreateCalendarEntryDialog({
         />
       ) : (
         <RoutineForm
-          studyPlanId={studyPlanId}
           defaultValues={routineDefaultValues}
           onSubmit={(values) => {
             createRoutine.mutate(

@@ -337,6 +337,13 @@ export type RequestTimelineEventDto = {
 
 export type RequirementStrategy = 'Additive' | 'Averaging' | 'MaxValue' | 'TaskBased';
 
+export type RescheduleTaskDto = {
+    taskId: number | string;
+    newDate: string;
+    newStartTime: string;
+    newDuration: number | string;
+};
+
 export type ResponseCourseDto = {
     id?: number | string;
     studyPlanId?: number | string;
@@ -840,6 +847,20 @@ export type GetUnscheduledItemsResponses = {
 };
 
 export type GetUnscheduledItemsResponse = GetUnscheduledItemsResponses[keyof GetUnscheduledItemsResponses];
+
+export type RescheduleCalendarData = {
+    body: RescheduleTaskDto;
+    path?: never;
+    query?: never;
+    url: '/api/calendar/Reschedule';
+};
+
+export type RescheduleCalendarResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetChatSessionByIdData = {
     body?: never;
@@ -1840,7 +1861,7 @@ export type CreateTaskLogWorkResponses = {
     /**
      * OK
      */
-    200: ResponseTaskDto;
+    200: LogDto;
 };
 
 export type CreateTaskLogWorkResponse = CreateTaskLogWorkResponses[keyof CreateTaskLogWorkResponses];

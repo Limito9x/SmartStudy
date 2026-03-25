@@ -14,7 +14,7 @@ namespace SmartStudy.Server.Services
         Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status);
         Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
-        Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto dto);
+        Task<LogDto> LogWorkAsync(int taskId, LogWorkDto dto);
         Task<bool> DeleteTaskByIdAsync(int taskId);
     }
     public class TaskService: ITaskService
@@ -110,7 +110,7 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseTaskDto>(existingTaskItem);
         }
 
-        public async Task<ResponseTaskDto> LogWorkAsync(int taskId, LogWorkDto logWorkDto)
+        public async Task<LogDto> LogWorkAsync(int taskId, LogWorkDto logWorkDto)
         {
             var userId = _currentUserService.UserId;
             var transaction = await _context.Database.BeginTransactionAsync();
@@ -150,7 +150,7 @@ namespace SmartStudy.Server.Services
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
-                return _mapper.Map<ResponseTaskDto>(existingTaskItem);
+                return _mapper.Map<LogDto>(log);
             }
             catch
             {
@@ -168,8 +168,15 @@ namespace SmartStudy.Server.Services
                 return false;
             }
             await _assetLinkService.RemoveAssetLinkByAsync(taskId, AssetLinkType.Task);
-            _context.Tasks.Remove(existingTaskItem);
-            await _context.SaveChangesAsync();
+            if (existingTaskItem.Status == TaskStatus.Pending)
+            {
+                await _context.Tasks.Where(t => t.Id == taskId).ExecuteDeleteAsync();
+            }
+            else
+            {
+                _context.Tasks.Remove(existingTaskItem);
+                await _context.SaveChangesAsync();
+            }
             return true;
         }
     }
