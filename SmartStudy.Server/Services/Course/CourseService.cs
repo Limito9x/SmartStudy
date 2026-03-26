@@ -27,8 +27,6 @@ namespace SmartStudy.Server.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IAssetLinkService _assetLinkService;
-        private readonly ISubjectService _subjectService;
         private readonly IStudyPlanService _studyPlanService;
         private readonly IMapper _mapper;
 
@@ -38,15 +36,11 @@ namespace SmartStudy.Server.Services
             IAssetLinkService assetLinkService,
             ISubjectService subjectService,
             IStudyPlanService studyPlanService,
-            IRoutineService routineService,
-            ITimelineEventService timelineEventService,
             IMapper mapper
             )
         {
             _context = context;
             _currentUserService = currentUserService;
-            _assetLinkService = assetLinkService;
-            _subjectService = subjectService;
             _studyPlanService = studyPlanService;
             _mapper = mapper;
         }
@@ -176,8 +170,25 @@ namespace SmartStudy.Server.Services
                 .FirstOrDefaultAsync(c => c.Id == courseId);
             if (existingCourse == null) return false;
             if (existingCourse.StudyPlan == null || existingCourse.StudyPlan.UserId != userId) return false;
+            
+            var taskIds = await _context.Tasks.Where(t => t.CourseId == courseId).Select(t => t.Id).ToListAsync();
+            var logIds = await _context.Logs.Where(l => taskIds.Contains(l.TaskId)).Select(l => l.Id).ToListAsync();
+            
+            await _context.CascadeSoftDeleteLinkAsync(logIds, AssetLinkType.Log);
+            await _context.CascadeSoftDeleteLinkAsync(taskIds, AssetLinkType.Task);
+
+            if (logIds.Any())
+            {
+                _context.Logs.Where(l => logIds.Contains(l.Id)).SoftDeleteBulkAsync();
+            }
+            if(taskIds.Any())
+            {
+                _context.Tasks.Where(t => taskIds.Contains(t.Id)).SoftDeleteBulkAsync();
+            }
+            
+            await _context.CascadeSoftDeleteLinkAsync(courseId, AssetLinkType.Course);
             _context.Remove(existingCourse);
-            await _assetLinkService.RemoveAssetLinkByAsync(courseId, Entities.Enums.AssetLinkType.Course);
+            
             await _context.SaveChangesAsync();
             return true;
         }

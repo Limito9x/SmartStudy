@@ -20,21 +20,18 @@ namespace SmartStudy.Server.Services
     public class TaskService: ITaskService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IAssetLinkService _assetLinkService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly ILogService _logService;
 
         public TaskService(
             ApplicationDbContext context,
-            IAssetLinkService assetLinkService,
             ICurrentUserService currentUserService,
             IMapper mapper,
             ILogService logService
             )
         {
             _context = context;
-            _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
             _mapper = mapper;
             _logService = logService;
@@ -167,7 +164,17 @@ namespace SmartStudy.Server.Services
             {
                 return false;
             }
-            await _assetLinkService.RemoveAssetLinkByAsync(taskId, AssetLinkType.Task);
+            
+            var logIds = await _context.Logs.Where(l => l.TaskId == taskId).Select(l => l.Id).ToListAsync();
+            
+            await _context.CascadeSoftDeleteLinkAsync(logIds, AssetLinkType.Log);
+            await _context.CascadeSoftDeleteLinkAsync(taskId, AssetLinkType.Task);
+            
+            if (logIds.Any())
+            {
+                await _context.Logs.Where(l => logIds.Contains(l.Id)).SoftDeleteBulkAsync();
+            }
+            
             if (existingTaskItem.Status == TaskStatus.Pending)
             {
                 await _context.Tasks.Where(t => t.Id == taskId).ExecuteDeleteAsync();

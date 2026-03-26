@@ -15,6 +15,7 @@ namespace SmartStudy.Server.Services
         public Task<List<AssetResponseDto>> UploadAssetsAsync(UploadAssetDto uploadAssetDto);
         public Task<List<AssetResponseDto>?> GetAssetsAsync(RequestQueryAssetDto queryDto);
         public Task<List<CourseAssetResponseDto>> GetCourseAssetsAsync(int courseId);
+        public Task<int> CleanupSoftDeletedAssetsAsync(CancellationToken cancellationToken = default);
     }
     public class AssetService: IAssetService
     {
@@ -23,22 +24,24 @@ namespace SmartStudy.Server.Services
         private readonly IAssetLinkService _assetLinkService;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
+        private readonly ILogger<AssetService> _logger;
 
         public AssetService(ICloudService cloudinaryService,
             ApplicationDbContext context,
             IMapper mapper, 
             IAssetLinkService assetLinkService,
-            ICurrentUserService currentUserService
-            )
+            ICurrentUserService currentUserService,
+            ILogger<AssetService> logger)
         {
             _cloudinaryService = cloudinaryService;
             _context = context;
             _mapper = mapper;
             _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
+            _logger = logger;
         }
 
-        public async System.Threading.Tasks.Task DeleteAssetAsync(string assetId)
+        public async Task DeleteAssetAsync(string assetId)
         {
             var asset = await _context.Assets.FindAsync(int.Parse(assetId)) ??
                 throw new Exception("Asset not found");
@@ -194,5 +197,60 @@ namespace SmartStudy.Server.Services
 
             return result;
         }
+        
+        public async Task<int> CleanupSoftDeletedAssetsAsync(CancellationToken cancellationToken = default)
+    {
+        // 1. Tìm rác đã "ôi thiu" qua 24h
+        var cutoffTime = DateTime.UtcNow.AddDays(-1);
+
+        var trashAssets = await _context.Assets
+            .IgnoreQueryFilters() // Bỏ qua global filter
+            .Include(a => a.AssetLinks.Where(al => al.DeletedAt == null)) // Chỉ lấy link còn sống
+            .Where(a => 
+                // ĐK 1: File bị xóa trực tiếp
+                (a.DeletedAt != null && a.DeletedAt < cutoffTime) 
+                ||
+                // ĐK 2: File mồ côi (Sống qua 24h nhưng chả có cái link nào nhận nuôi)
+                (a.DeletedAt == null && a.CreatedAt < cutoffTime && a.AssetLinks.Count == 0)
+            )
+            // Chỉ Select những cột cần thiết cho nhẹ RAM
+            .Select(a => new { a.Id, a.PublicId, a.Type }) 
+            .ToListAsync(cancellationToken);
+
+        if (!trashAssets.Any()) return 0;
+
+        var successfullyDeletedIds = new List<int>();
+
+        // 2. Xóa trên Cloudinary trước
+        foreach (var asset in trashAssets)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(asset.PublicId))
+                {
+                    await _cloudinaryService.DeleteFileAsync(asset.PublicId, asset.Type);
+                }
+                successfullyDeletedIds.Add(asset.Id); // Xóa Cloud thành công mới đưa vào list
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi khi xóa file {AssetId} trên Cloudinary", asset.Id);
+                // Lỗi mạng thì bỏ qua, ngày mai xe rác chạy lại xóa tiếp
+            }
+        }
+
+        // 3. HARD DELETE khỏi Database
+        if (successfullyDeletedIds.Any())
+        {
+            // Dùng ExecuteDeleteAsync để lách cái bẫy SoftDelete trong DbContext
+            // DB sẽ tự động Cascade chém bay luôn AssetLink và DocumentChunk
+            await _context.Assets
+                .IgnoreQueryFilters()
+                .Where(a => successfullyDeletedIds.Contains(a.Id))
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        return successfullyDeletedIds.Count;
+    }
     }
 }

@@ -26,6 +26,14 @@ namespace SmartStudy.Server.Data.Configurations
                 .IsRequired();
             builder.Property(a => a.CreatedAt)
                 .IsRequired();
+            builder.HasMany(a=>a.AssetLinks)
+                .WithOne(al=>al.Asset)
+                .HasForeignKey(al=>al.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
+             builder.HasMany(a=>a.DocumentChunks)
+                .WithOne(dc=>dc.Asset)
+                .HasForeignKey(dc=>dc.AssetId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

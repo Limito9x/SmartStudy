@@ -9,7 +9,6 @@ using Microsoft.SemanticKernel;
 using Npgsql;
 using Scalar.AspNetCore;
 using SmartStudy.Server.Data;
-using SmartStudy.Server.Data.Interceptors;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Plugins;
 using SmartStudy.Server.Services;
@@ -18,6 +17,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using SmartStudy.Server.Middlewares;
+using SmartStudy.Server.Services.AI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -126,7 +126,6 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<ITaskService, TaskService>()
                 .AddScoped<ICloudService, CloudinaryService>()
                 .AddScoped<IAssetService, AssetService>()
-                .AddScoped<IAIService, SemanticAIService>()
                 .AddScoped<IAssetLinkService, AssetLinkService>()
                 .AddScoped<IRoutineService, RoutineService>()
                 .AddScoped<ILogService, LogService>()
@@ -141,27 +140,34 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IMeaningfulSeeder,MeaningfulSeeder>()
                 .AddScoped<IPlanTemplateService, PlanTemplateService>()
                 .AddScoped<ICalendarService, CalendarService>()
+                .AddScoped<IDocumentChunkService,DocumentChunkService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<StudyPlugin>()
                 .AddScoped<IMapper, ServiceMapper>();
 
-// Đăng ký Interceptor để xóa file trên Cloudinary khi xóa bản ghi Asset
-builder.Services.AddScoped<CloudinaryDeleteInterceptor>();
+// Background job dọn các asset 
+builder.Services.AddHostedService<GarbageCollectorJob>();
+
+// Http client giao tiếp 3rd-party
+builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>();
+builder.Services.AddHttpClient<IEmbeddingService, GeminiEmbeddingService>();
 
 // Enable dynamic JSON serialization cho Npgsql
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 dataSourceBuilder.EnableDynamicJson();
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+dataSourceBuilder.UseVector();
+
 var dataSource = dataSourceBuilder.Build();
 
 // Cấu hình DbContext với PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
-{
-    var interceptor = serviceProvider.GetRequiredService<CloudinaryDeleteInterceptor>();
-    options.UseNpgsql(dataSource)
-              .AddInterceptors(interceptor);
-}
+    {
+        options.UseNpgsql(dataSource,
+            o => o.UseVector());
+    }
 );
 
 // Sau khi cấu hình xong mới bắt đầu build ứng dụng

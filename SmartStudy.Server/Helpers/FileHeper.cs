@@ -1,4 +1,6 @@
-﻿using SmartStudy.Server.Entities.Enums;
+﻿using Microsoft.EntityFrameworkCore;
+using SmartStudy.Server.Data;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Helpers
 {

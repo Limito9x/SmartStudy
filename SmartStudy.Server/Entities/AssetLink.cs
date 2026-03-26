@@ -2,7 +2,7 @@
 
 namespace SmartStudy.Server.Entities
 {
-    public class AssetLink: BaseSimpleEntity
+    public class AssetLink: BaseEntity
     {
         public required int AssetId { get; set; }
         public Asset? Asset { get; set; }

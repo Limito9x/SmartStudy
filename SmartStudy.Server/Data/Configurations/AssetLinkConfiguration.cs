@@ -12,9 +12,6 @@ namespace SmartStudy.Server.Data.Configurations
             builder.HasKey(al => al.Id);
             builder.Property(al => al.LinkedType)
                 .HasConversion<string>();
-            builder.HasOne(al => al.Asset)
-                .WithMany(a => a.AssetLinks)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -3,9 +3,9 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Pgvector;
 using SmartStudy.Server.Data;
 
 #nullable disable
@@ -13,9 +13,11 @@ using SmartStudy.Server.Data;
 namespace SmartStudy.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260326005717_AddPgVectorExtension")]
+    partial class AddPgVectorExtension
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -466,9 +468,6 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -520,9 +519,6 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
-
-                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("LinkedId")
@@ -663,32 +659,6 @@ namespace SmartStudy.Server.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("SmartStudy.Server.Entities.DocumentChunk", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AssetId")
-                        .HasColumnType("integer");
-
-                    b.Property<Vector>("Embedding")
-                        .IsRequired()
-                        .HasColumnType("vector(768)");
-
-                    b.Property<string>("TextContent")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssetId");
-
-                    b.ToTable("DocumentChunks");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.EventRequirement", b =>
@@ -1427,17 +1397,6 @@ namespace SmartStudy.Server.Migrations
                     b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("SmartStudy.Server.Entities.DocumentChunk", b =>
-                {
-                    b.HasOne("SmartStudy.Server.Entities.Asset", "Asset")
-                        .WithMany("DocumentChunks")
-                        .HasForeignKey("AssetId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Asset");
-                });
-
             modelBuilder.Entity("SmartStudy.Server.Entities.EventRequirement", b =>
                 {
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
@@ -1634,8 +1593,6 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("SmartStudy.Server.Entities.Asset", b =>
                 {
                     b.Navigation("AssetLinks");
-
-                    b.Navigation("DocumentChunks");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>

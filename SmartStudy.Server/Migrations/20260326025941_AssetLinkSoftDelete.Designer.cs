@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -13,9 +14,11 @@ using SmartStudy.Server.Data;
 namespace SmartStudy.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260326025941_AssetLinkSoftDelete")]
+    partial class AssetLinkSoftDelete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1430,7 +1433,7 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("SmartStudy.Server.Entities.DocumentChunk", b =>
                 {
                     b.HasOne("SmartStudy.Server.Entities.Asset", "Asset")
-                        .WithMany("DocumentChunks")
+                        .WithMany()
                         .HasForeignKey("AssetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1634,8 +1637,6 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("SmartStudy.Server.Entities.Asset", b =>
                 {
                     b.Navigation("AssetLinks");
-
-                    b.Navigation("DocumentChunks");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>
