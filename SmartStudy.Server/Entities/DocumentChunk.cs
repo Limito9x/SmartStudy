@@ -13,7 +13,8 @@ namespace SmartStudy.Server.Entities
         // Khóa ngoại trỏ về cái File gốc
         public int AssetId { get; set; }
         public Asset Asset { get; set; }
-
+        
+        public int PageNumber { get; set; }
         // Lưu chữ để đưa cho AI đọc
         [Required]
         public string TextContent { get; set; } 

@@ -446,11 +446,13 @@ export type ScheduleDto = {
 
 export type SessionDto = {
     title: string;
+    courseId: null | number | string;
 };
 
 export type SessionResponseDto = {
     id: number | string;
     title: string;
+    courseId: null | number | string;
 };
 
 export type SimpleResponseRoutineDto = {
@@ -883,7 +885,9 @@ export type GetChatSessionByIdResponse = GetChatSessionByIdResponses[keyof GetCh
 export type GetAllChatSessionsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        courseId?: number | string;
+    };
     url: '/api/Chat/sessions';
 };
 
@@ -915,9 +919,7 @@ export type PostApiChatSessionsBySessionIdStreamData = {
     path: {
         sessionId: number | string;
     };
-    query?: {
-        studyPlanId?: number | string;
-    };
+    query?: never;
     url: '/api/Chat/sessions/{sessionId}/stream';
 };
 
@@ -1118,6 +1120,54 @@ export type PostApiDevResetData = {
 };
 
 export type PostApiDevResetResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiDevTriggerGarbageCollectorData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/dev/trigger-garbage-collector';
+};
+
+export type PostApiDevTriggerGarbageCollectorResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiDevTestLlamaparseData = {
+    body: {
+        file?: IFormFile;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/dev/test-llamaparse';
+};
+
+export type PostApiDevTestLlamaparseResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiDevFullRagPipelineTestData = {
+    body: {
+        file?: IFormFile;
+    };
+    path?: never;
+    query?: {
+        assetId?: number | string;
+    };
+    url: '/api/dev/full-RAG-pipeline-test';
+};
+
+export type PostApiDevFullRagPipelineTestResponses = {
     /**
      * OK
      */

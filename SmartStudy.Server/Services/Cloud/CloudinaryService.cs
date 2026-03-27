@@ -34,7 +34,7 @@ namespace SmartStudy.Server.Services
             return new[] { ".mp4", ".mov", ".avi", ".webm" }.Contains(ext);
         }
 
-        public async System.Threading.Tasks.Task DeleteFileAsync(string publicId, FileType fileType)
+        public async Task DeleteFileAsync(string publicId, FileType fileType)
         {
             var resourceType = fileType switch
             {

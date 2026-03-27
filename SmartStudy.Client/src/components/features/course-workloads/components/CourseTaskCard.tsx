@@ -69,18 +69,12 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
       <CollapsibleContent className="border-t px-4 py-4">
         <div className="space-y-4">
           <section className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Đầu vào
-            </p>
             <TaskInput taskId={taskId} docs={taskData.docs ?? []} />
           </section>
 
           <hr className="my-4 border-border/70" />
 
           <section className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Đầu ra
-            </p>
             <TaskOutput taskId={taskId} logs={taskData.logs ?? []} />
           </section>
         </div>

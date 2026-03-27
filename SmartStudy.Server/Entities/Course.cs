@@ -17,5 +17,6 @@ namespace SmartStudy.Server.Entities
         public ICollection<TimelineEvent> TimelineEvents { get; set; } = new List<TimelineEvent>();
         public ICollection<TaskItem>? Tasks { get; set; } = new List<TaskItem>();
         public ICollection<Routine>? Routines { get; set; } = new List<Routine>();
+        public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
     }
 }

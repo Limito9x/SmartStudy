@@ -2,21 +2,11 @@ import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Textarea } from "@/components/ui/textarea";
 import type { LogDoc } from "@/services/api";
 import { NotebookPen } from "lucide-react";
 import AssetListItem from "../shared/AssetListItem";
-import ContextUploader from "../shared/ContextUploader";
+import { useDialogStore } from "@/stores/useDialogStore";
 
 interface TaskOutputProps {
   logs: LogDoc[];
@@ -24,7 +14,7 @@ interface TaskOutputProps {
 }
 
 export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
-  const [open, setOpen] = useState(false);
+  const { openDialog } = useDialogStore();
 
   return (
     <Card>
@@ -34,42 +24,17 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
             <NotebookPen size={16} />
             Nhật ký và bài làm
           </CardTitle>
-
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="h-8">
-                Viết nhật ký
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Tạo nhanh nhật ký học tập</DialogTitle>
-                <DialogDescription>
-                  Biểu mẫu tạm thời để thử nghiệm quy trình ghi log và đính kèm
-                  tệp.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <Textarea
-                  rows={6}
-                  placeholder="Mô tả kết quả học tập, khó khăn và hướng cải thiện..."
-                />
-                <ContextUploader
-                  linkedId={taskId}
-                  linkedType="Log"
-                  buttonText="Đính kèm tệp cho log"
-                />
-              </div>
-
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>
-                  Đóng
-                </Button>
-                <Button disabled>Lưu nháp</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button
+            size="sm"
+            className="h-8"
+            onClick={() =>
+              openDialog("LOG_WORK_FORM", {
+                taskId,
+              })
+            }
+          >
+            Ghi nhận công việc
+          </Button>
         </div>
       </CardHeader>
 

@@ -25,13 +25,15 @@ namespace SmartStudy.Server.Services
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetService> _logger;
+        private readonly AssetQueueService _assetQueueService;
 
         public AssetService(ICloudService cloudinaryService,
             ApplicationDbContext context,
             IMapper mapper, 
             IAssetLinkService assetLinkService,
             ICurrentUserService currentUserService,
-            ILogger<AssetService> logger)
+            ILogger<AssetService> logger,
+            AssetQueueService assetQueueService)
         {
             _cloudinaryService = cloudinaryService;
             _context = context;
@@ -39,6 +41,7 @@ namespace SmartStudy.Server.Services
             _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
             _logger = logger;
+            _assetQueueService = assetQueueService;
         }
 
         public async Task DeleteAssetAsync(string assetId)
@@ -85,9 +88,16 @@ namespace SmartStudy.Server.Services
             // ==========================================
             var uploadTasks = files.Select(async file => 
             {
-                // ⚡ Có chữ await ở đây, các file sẽ đua nhau up lên mây cùng lúc!
-                var cloudResult = await _cloudinaryService.UploadFileAsync(file); 
-                return new { File = file, CloudResult = cloudResult };
+                try
+                {
+                    var cloudResult = await _cloudinaryService.UploadFileAsync(file); 
+                    return new { File = file, CloudResult = cloudResult, Success = true };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"[Asset Upload] Lỗi khi upload file {file.FileName} lên Cloudinary.");
+                    return new { File = file, CloudResult = new CloudinaryDto(){PublicId = null,Url = null}, Success = false }; // Tùy kiểu trả về của bác mà ép kiểu null cho đúng
+                }
             });
 
             // Chờ tất cả các file up xong
@@ -100,6 +110,12 @@ namespace SmartStudy.Server.Services
             // 2.1 Chuẩn bị list Asset
             foreach(var item in cloudResults)
             {
+                if (!item.Success || string.IsNullOrEmpty(item.CloudResult.Url))
+                {
+                    _logger.LogWarning($"[Asset Upload] Bỏ qua file {item.File.FileName} vì upload Cloudinary thất bại.");
+                    continue; 
+                }
+                
                 uploadedAssets.Add(new Asset
                 {
                     FileName = item.File.FileName,
@@ -111,6 +127,12 @@ namespace SmartStudy.Server.Services
                     CreatedAt = DateTime.UtcNow,
                     UserId = userId
                 });
+            }
+            
+            if(uploadedAssets.Count == 0)
+            {
+                _logger.LogError("[Asset Upload] Không có file nào được upload thành công, abort việc lưu database.");
+                throw new Exception("Không có file nào được upload thành công!");
             }
 
             // Lưu cục Asset vào DB (1 phát ăn ngay)
@@ -132,6 +154,12 @@ namespace SmartStudy.Server.Services
             // Lưu cục AssetLink vào DB (Phát thứ 2)
             _context.AssetLinks.AddRange(assetLinks);
             await _context.SaveChangesAsync();
+            
+            // RAG Pipeline -> Truyền assetId đến channel
+            foreach (var asset in uploadedAssets)
+            {
+                await _assetQueueService.QueueAssetForProcessingAsync(asset.Id);
+            }
 
             // ==========================================
             // PHASE 3: TRẢ VỀ DTO CHO UI HIỂN THỊ

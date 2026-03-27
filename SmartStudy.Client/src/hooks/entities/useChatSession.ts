@@ -2,14 +2,19 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getChatSessionByIdOptions,
   getAllChatSessionsOptions,
+  getAllChatSessionsQueryKey,
   createChatSessionMutation,
 } from "@/services/api/@tanstack/react-query.gen";
 
 export const useChatSession = () => {
   const queryClient = useQueryClient();
 
-  const getAllChatSessions = useQuery({
-    ...getAllChatSessionsOptions(),
+  const getAllChatSessions = (courseId?: number) => useQuery({
+    ...getAllChatSessionsOptions({
+      query: {
+        courseId
+      }
+    }),
   });
 
   const getChatSessionById = (id: number) =>
@@ -24,7 +29,7 @@ export const useChatSession = () => {
     ...createChatSessionMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: getAllChatSessionsOptions().queryKey,
+        queryKey: getAllChatSessionsQueryKey(),
       });
     },
   });

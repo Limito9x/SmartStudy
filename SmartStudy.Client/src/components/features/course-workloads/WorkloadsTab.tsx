@@ -11,7 +11,6 @@ interface WorkloadsTabProps {
 }
 
 export default function WorkloadsTab({ courseId, data }: WorkloadsTabProps) {
-  console.log(data);
   const { openDialog } = useDialogStore();
   const handleOpenCreateRoutine = () => {
     openDialog("ROUTINE_FORM", {
@@ -66,7 +65,7 @@ export default function WorkloadsTab({ courseId, data }: WorkloadsTabProps) {
           </p>
           <Button
             className="mt-5"
-            onClick={() => console.log("Tạo công việc đầu tiên")}
+            onClick={() => handleOpenCreateTask()}
           >
             Tạo công việc đầu tiên
           </Button>

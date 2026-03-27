@@ -11,6 +11,7 @@ namespace SmartStudy.Server.Entities
         public ICollection<TaskItem>? Tasks { get; set; }
         public ICollection<Routine>? Routines { get; set; }
         public ICollection<Subject>? Subjects { get; set; }
+        public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
         public virtual StudentInfo StudentInfo { get; set; }
     }
 }

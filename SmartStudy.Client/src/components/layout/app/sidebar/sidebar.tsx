@@ -58,7 +58,7 @@ export function Sidebar() {
           </SidebarMenu>
         </SidebarGroup>
 
-        <Separator className="mx-4 my-2 w-auto" />
+        <Separator className="mx-4 w-auto" />
 
         {/* Khu vực Chọn KHHT + Danh sách khóa học sẽ nằm hết ở đây */}
         <Workspace />

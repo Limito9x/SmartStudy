@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Pgvector;
@@ -13,9 +14,11 @@ using SmartStudy.Server.Data;
 namespace SmartStudy.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260327004551_DocumentChunkPageNumber")]
+    partial class DocumentChunkPageNumber
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -593,9 +596,6 @@ namespace SmartStudy.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("CourseId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -613,10 +613,6 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("ChatSessions");
                 });
@@ -1420,23 +1416,6 @@ namespace SmartStudy.Server.Migrations
                     b.Navigation("Session");
                 });
 
-            modelBuilder.Entity("SmartStudy.Server.Entities.ChatSession", b =>
-                {
-                    b.HasOne("SmartStudy.Server.Entities.Course", "Course")
-                        .WithMany("ChatSessions")
-                        .HasForeignKey("CourseId");
-
-                    b.HasOne("SmartStudy.Server.Entities.User", "User")
-                        .WithMany("ChatSessions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>
                 {
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
@@ -1667,8 +1646,6 @@ namespace SmartStudy.Server.Migrations
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>
                 {
-                    b.Navigation("ChatSessions");
-
                     b.Navigation("Routines");
 
                     b.Navigation("Tasks");
@@ -1710,8 +1687,6 @@ namespace SmartStudy.Server.Migrations
 
             modelBuilder.Entity("SmartStudy.Server.Entities.User", b =>
                 {
-                    b.Navigation("ChatSessions");
-
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("Routines");

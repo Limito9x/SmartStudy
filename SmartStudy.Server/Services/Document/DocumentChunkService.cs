@@ -11,7 +11,7 @@ namespace SmartStudy.Server.Services;
 public interface IDocumentChunkService
 {
     List<string> SplitMarkdownIntoChunks(string text, int maxTokensPerChunk = 500, int overlapTokens = 50);
-    Task SaveChunksToDatabaseAsync(int assetId, List<string> chunks);
+    Task SaveChunksToDatabaseAsync(int assetId, List<ParsedPage> pages);
 }
 
 public class DocumentChunkService: IDocumentChunkService
@@ -40,32 +40,38 @@ public class DocumentChunkService: IDocumentChunkService
         return chunks;
     }
 
-    public async Task SaveChunksToDatabaseAsync(int assetId, List<string> chunks)
+    public async Task SaveChunksToDatabaseAsync(int assetId, List<ParsedPage> pages)
     {
-        if (chunks == null||chunks.Count == 0) 
+        if (pages == null || pages.Count == 0) 
             return;
-        
-            var documentChunks = new List<DocumentChunk>();
-            for (int i = 0; i < chunks.Count; i++)
+        var documentChunks = new List<DocumentChunk>();
+        foreach (var page in pages)
+        {
+            // 2. KHÂU CHUNK NẰM Ở ĐÂY: Băm riêng cái text của trang này thôi!
+            var pageChunks = SplitMarkdownIntoChunks(page.Markdown);
+
+            // 3. Xử lý từng chunk của trang đó
+            for (int i = 0; i < pageChunks.Count; i++)
             {
-                var textChunk = chunks[i];
-                
+                var textChunk = pageChunks[i];
+
+                // Đi xin Gemini 768 con số
                 var embeddingArray = await _embeddingService.GenerateEmbeddingAsync(textChunk);
 
+                // Đóng gói Entity (CÓ KÈM SỐ TRANG)
                 var entity = new DocumentChunk
                 {
                     AssetId = assetId,
+                    PageNumber = page.PageNumber, // <--- BÍ KÍP RAG ĐỈNH CAO Ở ĐÂY
                     TextContent = textChunk,
-                    Embedding = new Vector(embeddingArray),
+                    Embedding = new Vector(embeddingArray) 
                 };
-                
-                documentChunks.Add(entity);
 
-                if (i < chunks.Count - 1)
-                {
-                    await Task.Delay(500);
-                }
+                documentChunks.Add(entity);
+                await Task.Delay(500); // Ngủ nửa giây chống spam API
             }
+        }
+
             await _dbContext.DocumentChunks.AddRangeAsync(documentChunks);
             await _dbContext.SaveChangesAsync();
     }

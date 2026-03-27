@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   CourseWorkloadDto,
@@ -23,10 +22,12 @@ export default function CourseDetailTabs({
   workloads,
   assets,
 }: CourseDetailTabsProps) {
-
   return (
-    <Tabs defaultValue="overview" className="w-full">
-      <div className="flex flex-col gap-3 border-b pb-0 md:flex-row md:items-end md:justify-between">
+    <Tabs
+      defaultValue="overview"
+      className="flex h-full min-h-0 w-full flex-col"
+    >
+      <div className="shrink-0 flex flex-col gap-3 border-b pb-0 md:flex-row md:items-end md:justify-between">
         <TabsList className="h-auto w-full justify-start gap-0 bg-transparent p-0 md:w-auto">
           <TabsTrigger
             value="overview"
@@ -49,17 +50,19 @@ export default function CourseDetailTabs({
         </TabsList>
       </div>
 
-      <TabsContent value="overview" className="mt-6">
-        <OverviewTab course={course} routines={routines} />
-      </TabsContent>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <TabsContent value="overview" className="mt-6">
+          <OverviewTab course={course} routines={routines} />
+        </TabsContent>
 
-      <TabsContent value="workloads" className="mt-6">
-        <WorkloadsTab data={workloads} courseId={Number(course?.id)}/>
-      </TabsContent>
+        <TabsContent value="workloads" className="mt-6">
+          <WorkloadsTab data={workloads} courseId={Number(course?.id)} />
+        </TabsContent>
 
-      <TabsContent value="assets" className="mt-6">
-        <AssetsVaultTab assets={assets} courseId={Number(course?.id ?? 0)} />
-      </TabsContent>
+        <TabsContent value="assets" className="mt-6">
+          <AssetsVaultTab assets={assets} courseId={Number(course?.id ?? 0)} />
+        </TabsContent>
+      </div>
     </Tabs>
   );
 }

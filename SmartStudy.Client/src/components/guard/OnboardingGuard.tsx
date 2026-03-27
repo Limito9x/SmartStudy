@@ -1,10 +1,11 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useQuery } from "@tanstack/react-query";
 import { getProfileOptions } from "@/services/api/@tanstack/react-query.gen";
 
 export function OnboardingGuard() {
   const user = useAuthStore((s) => s.user);
+  const location = useLocation();
 
   const { data: profileData, isLoading } = useQuery({
     ...getProfileOptions(),
@@ -24,8 +25,11 @@ export function OnboardingGuard() {
 
   if (user && !isAdmin)
   {
-    if (!hasStudentProfile) {
+    if (!hasStudentProfile && location.pathname !== "/onboarding") {
       return <Navigate to="/onboarding" replace />;
+    }
+    if(hasStudentProfile && location.pathname === "/onboarding") {
+      return <Navigate to="/app" replace />;
     }
     return <Outlet />;
   }

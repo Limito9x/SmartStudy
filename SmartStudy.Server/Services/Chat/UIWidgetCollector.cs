@@ -4,10 +4,10 @@ namespace SmartStudy.Server.Services
 {
     public class UIWidgetCollector
     {
-        public event Func<string, object , System.Threading.Tasks.Task>? OnWidgetReceived;
+        public event Func<string, object , Task>? OnWidgetReceived;
         public List<object> CapturedData { get; private set; } = new();
 
-        public async System.Threading.Tasks.Task PushWidgetAsync(string widgetType, object data)
+        public async Task PushWidgetAsync(string widgetType, object data)
         {
             CapturedData.Add(data);
             if (OnWidgetReceived != null)

@@ -144,7 +144,7 @@ body {
   @apply cursor-pointer transition-all hover:bg-accent hover:shadow-sm;
 }
 
-@utility list-grid{
+@utility list-grid {
   @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
 }
 
@@ -156,10 +156,20 @@ body {
   @apply bg-blue-400 text-primary-foreground ring-2 ring-primary shadow-md;
 }
 
-#calendar, .sx__wrapper {
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+#calendar,
+.sx__wrapper {
   height: 100% !important;
   max-height: 100% !important;
-  z-index: -999999!important;
+  z-index: -999999 !important;
 }
 
 .sx__calendar-wrapper * {
@@ -174,7 +184,6 @@ body {
 .sx__time-grid-day:hover {
   background-color: rgba(0, 0, 0, 0.05);
 }
-
 
 .sx__week-grid > div {
   cursor: pointer !important;
@@ -199,14 +208,14 @@ body {
 .custom-rbc-event {
   transition: all 0.2s ease-in-out;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
 .custom-rbc-event:hover {
   filter: brightness(1.1);
   transform: scale(1.02);
   z-index: 50; /* Hover lên thì nổi lên trên */
-  box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* Hiệu ứng hover cho lưới trống (khi chuẩn bị kéo thả chọn giờ) */

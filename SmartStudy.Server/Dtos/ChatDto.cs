@@ -16,11 +16,13 @@
 
     public record SessionDto
     (
-        string Title
+        string Title,
+        int? CourseId
     );
 
     public record SessionResponseDto(
         int Id,
-        string Title
+        string Title,
+        int? CourseId
     );
 }

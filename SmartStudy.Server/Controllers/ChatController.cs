@@ -26,9 +26,10 @@ namespace SmartStudy.Server.Controllers
         }
 
         [HttpGet("sessions", Name = "GetAllChatSessions")]
-        public async Task<ActionResult<List<SessionResponseDto>>> GetAllSessions()
+        public async Task<ActionResult<List<SessionResponseDto>>> GetAllSessions(
+            [FromQuery] int? courseId)
         {
-            var sessions = await _chatService.GetSessions();
+            var sessions = await _chatService.GetSessions(courseId);
             return Ok(sessions);
         }
 
@@ -36,7 +37,7 @@ namespace SmartStudy.Server.Controllers
         /// Stream chat response với SSE (Server-Sent Events)
         /// </summary>
         [HttpPost("sessions/{sessionId}/stream")]
-        public async Task StreamChat(int sessionId, [FromBody] ChatDto chatDto, [FromQuery] int? studyPlanId)
+        public async Task StreamChat(int sessionId, [FromBody] ChatDto chatDto)
         {
             // Set headers cho SSE
             Response.Headers.Append("Content-Type", "text/event-stream");
@@ -62,7 +63,7 @@ namespace SmartStudy.Server.Controllers
                     await Response.WriteAsync(sseWidgetMessage);
                     await Response.Body.FlushAsync();
                 };
-                await foreach (var text in _chatService.StreamChatAsync(sessionId, chatDto.prompt, studyPlanId))
+                await foreach (var text in _chatService.StreamChatAsync(sessionId, chatDto.prompt))
                 {
                     // Serialize chunk thành JSON
                     var chunk = new AiResponseChunk
@@ -112,8 +113,12 @@ namespace SmartStudy.Server.Controllers
         [HttpPost("sessions", Name = "CreateChatSession")]
         public async Task<IActionResult> CreateSession([FromBody] SessionDto sessionDto)
         {
-            await _chatService.CreateSession(sessionDto);
-            return Ok(new { message = "Chat session created successfully." });
+            var sessionId = await _chatService.CreateSession(sessionDto);
+            return Ok(new
+            {
+                id = sessionId,
+                message = "Create session successfully!"
+            });
         }
     }
 }

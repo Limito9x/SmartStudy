@@ -4,8 +4,11 @@ import { Sidebar } from "../components/layout/app/sidebar/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import AppHeader from "@/components/layout/app/app-header";
 import ChatDrawer from "@/components/chats/ChatDrawer";
+import { useLocation } from "react-router-dom";
 
 export default function DashboardLayout() {
+  const location = useLocation();
+  const showGlobalChat = !location.pathname.includes("/courses/");
 
   return (
     <div className="dashboard-layout h-screen w-full overflow-hidden">
@@ -18,7 +21,7 @@ export default function DashboardLayout() {
             <div className="flex-1 min-h-0 min-w-0 overflow-hidden">
               <Outlet />
             </div>
-            <ChatDrawer />
+            {showGlobalChat && <ChatDrawer />}
           </div>
         </SidebarProvider>
       </div>

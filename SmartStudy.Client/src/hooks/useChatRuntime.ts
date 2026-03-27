@@ -1,43 +1,57 @@
+// useChatRuntime.ts
 import {
   useExternalStoreRuntime,
   type ThreadMessageLike,
   type AppendMessage,
 } from "@assistant-ui/react";
-import { useRef, useState, useCallback } from "react";
-import { useStudyPlanStore } from "@/stores/studyPlanStore";
+import { useRef, useState, useCallback, useEffect } from "react";
 
-export function useChatRuntime(sessionId: number) {
+interface UseChatRuntimeProps {
+  sessionId?: number; // Có thể truyền vào sessionId để load lịch sử, hoặc không truyền để bắt đầu mới
+  courseId?: number; // ID khóa học, dùng khi tạo session mới
+  onSessionCreated?: (sessionId: number) => void; // Callback khi session mới được tạo
+}
+
+export function useChatRuntime({
+  sessionId,
+  courseId,
+  onSessionCreated,
+}: UseChatRuntimeProps) {
   const [isRunning, setIsRunning] = useState(false);
-  const messagesRef = useRef<ThreadMessageLike[]>([]);
   const [messages, setMessages] = useState<ThreadMessageLike[]>([]);
+  const messagesRef = useRef<ThreadMessageLike[]>([]);
   const token = localStorage.getItem("token");
-  const historyLoadedRef = useRef<number | null>(null);
-  const { activePlanId } = useStudyPlanStore();
 
-  // Load history (using ref to avoid duplicate loads)
-  if (sessionId && historyLoadedRef.current !== sessionId) {
-    historyLoadedRef.current = sessionId;
+  // Load history khi có sessionId
+  useEffect(() => {
+    if (!sessionId) {
+      setMessages([]);
+      messagesRef.current = [];
+      return;
+    }
+
     fetch(`http://localhost:5037/api/chat/sessions/${sessionId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((history: { role: string; content: string }[]) => {
-        const mapped: ThreadMessageLike[] = history.map((m) => ({
-          role: m.role as "user" | "assistant",
-          content: [{ type: "text" as const, text: m.content }],
+      .then((history) => {
+        const mapped = history.map((m: any) => ({
+          role: m.role,
+          content: [{ type: "text", text: m.content }],
         }));
         messagesRef.current = mapped;
         setMessages(mapped);
       });
-  }
+  }, [sessionId, token]);
 
   const onNew = useCallback(
     async (message: AppendMessage) => {
       const userText = message.content
         .filter((c) => c.type === "text")
-        .map((c) => (c as { type: "text"; text: string }).text)
+        .map((c: any) => c.text)
         .join("");
 
+      // Cập nhật UI ngay lập tức cho user thấy
       const userMsg: ThreadMessageLike = {
         role: "user",
         content: [{ type: "text", text: userText }],
@@ -46,11 +60,30 @@ export function useChatRuntime(sessionId: number) {
       setMessages([...messagesRef.current]);
       setIsRunning(true);
 
-      let aiText = "";
+      let targetSessionId = sessionId;
 
       try {
+        // MA THUẬT Ở ĐÂY: NẾU CHƯA CÓ SESSION, TẠO MỚI NGAY LẬP TỨC
+        if (!targetSessionId) {
+          const createRes = await fetch(
+            `http://localhost:5037/api/chat/sessions`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ title: "New Chat", courseId: courseId }),
+            },
+          );
+          const createData = await createRes.json();
+          targetSessionId = createData.id;
+          onSessionCreated?.(Number(targetSessionId));
+        }
+
+        // Bắt đầu Stream với ID vừa có (hoặc ID cũ)
         const response = await fetch(
-          `http://localhost:5037/api/chat/sessions/${sessionId}/stream?studyPlanId=${activePlanId}`,
+          `http://localhost:5037/api/chat/sessions/${targetSessionId}/stream`,
           {
             method: "POST",
             headers: {
@@ -64,6 +97,7 @@ export function useChatRuntime(sessionId: number) {
         const reader = response.body!.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let aiText = "";
 
         while (true) {
           const { done, value } = await reader.read();
@@ -82,13 +116,11 @@ export function useChatRuntime(sessionId: number) {
               const chunk = JSON.parse(data);
               if (chunk.Type === "Text" && chunk.Content) {
                 aiText += chunk.Content;
-
                 const assistantMsg: ThreadMessageLike = {
                   role: "assistant",
                   content: [{ type: "text", text: aiText }],
                 };
 
-                // Replace last assistant message or append new one
                 const prev = messagesRef.current;
                 const last = prev[prev.length - 1];
                 if (last?.role === "assistant") {
@@ -105,18 +137,13 @@ export function useChatRuntime(sessionId: number) {
         setIsRunning(false);
       }
     },
-    [sessionId, token],
-  );
-
-  const convertMessage = useCallback(
-    (msg: ThreadMessageLike): ThreadMessageLike => msg,
-    [],
+    [sessionId, courseId, token],
   );
 
   return useExternalStoreRuntime({
     messages,
     isRunning,
     onNew,
-    convertMessage,
+    convertMessage: useCallback((msg: ThreadMessageLike) => msg, []),
   });
 }

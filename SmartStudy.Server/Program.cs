@@ -100,10 +100,7 @@ builder.Services.AddScoped<Kernel>(sp =>
     builder.AddGoogleAIGeminiChatCompletion(
         modelId: "gemini-2.5-flash",
         apiKey: geminiApiKey);
-
-    // QUAN TRỌNG: Lấy UIPlugin từ DI và nạp vào Kernel
-    // var uiPlugin = sp.GetRequiredService<UIPlugin>();
-    // builder.Plugins.AddFromObject(uiPlugin, "UIPlugin");
+    
     var kernel = builder.Build();
     kernel.Plugins.AddFromObject(sp.GetRequiredService<UIPlugin>(), "UIPlugin");
     kernel.Plugins.AddFromObject(sp.GetRequiredService<StudyPlugin>(), "StudyPlugin");
@@ -116,6 +113,7 @@ var config = TypeAdapterConfig.GlobalSettings;
 config.Scan(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton(config);
+builder.Services.AddSingleton<AssetQueueService>();
 
 // Đăng ký dịch vụ tùy chỉnh
 builder.Services.AddScoped<IAuthService, AuthService>()
@@ -148,6 +146,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
 
 // Background job dọn các asset 
 builder.Services.AddHostedService<GarbageCollectorJob>();
+builder.Services.AddHostedService<RagProcessingWorker>();
 
 // Http client giao tiếp 3rd-party
 builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>();

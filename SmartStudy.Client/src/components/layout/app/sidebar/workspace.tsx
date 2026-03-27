@@ -102,7 +102,7 @@ export default function Workspace() {
           courses={academicCourses}
           isLoadingCourses={isLoadingAcademicCourses}
         />
-        <Separator className="my-2" />
+        <Separator />
         <div className="flex justify-between items-center p-2">
           <SidebarGroupLabel>KẾ HOẠCH HỌC TẬP CÁ NHÂN</SidebarGroupLabel>
           <Button
@@ -132,7 +132,6 @@ export default function Workspace() {
           >
             <SelectTrigger className="w-full h-8 mb-2 bg-transparent border-gray-200">
               <SelectValue
-                // Đổi câu Placeholder nếu mảng rỗng
                 placeholder={
                   personalPlans.length === 0
                     ? "Chưa có KHHT cá nhân"

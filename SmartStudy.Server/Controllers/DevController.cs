@@ -105,8 +105,8 @@ public class DevController : ControllerBase
                 
             // Gọi con LlamaParse đi làm việc
             var markdown = await _parser.ParseDocumentToMarkdownAsync(stream, file.FileName);
-
-            var chunks = _chunkService.SplitMarkdownIntoChunks(markdown);
+            var firstPageMarkdown = markdown[0].Markdown;
+            var chunks = _chunkService.SplitMarkdownIntoChunks(firstPageMarkdown);
             
             var firstChunk = chunks.First();
             var firstEmbedding = await _embeddingService.GenerateEmbeddingAsync(firstChunk);
@@ -134,17 +134,12 @@ public class DevController : ControllerBase
             using var stream = file.OpenReadStream();
         
             // 2. LlamaParse bóc text
-            var markdown = await _parser.ParseDocumentToMarkdownAsync(stream, file.FileName);
-        
-            // 3. Máy xay thịt băm chunk
-            var chunks = _chunkService.SplitMarkdownIntoChunks(markdown);
-
-            if (chunks.Count == 0) return BadRequest("File rỗng!");
+            var parsedPages = await _parser.ParseDocumentToMarkdownAsync(stream, file.FileName);
 
             // 4. Nhúng Vector và cắm xuống DB (CÚ CHỐT)
-            await _chunkService.SaveChunksToDatabaseAsync(assetId, chunks);
+            await _chunkService.SaveChunksToDatabaseAsync(assetId, parsedPages);
 
-            return Ok($"Tuyệt vời! Đã băm và cắm thành công {chunks.Count} chunks có chứa Vector vào Database cho Asset {assetId}.");
+            return Ok($"Tuyệt vời! Đã băm và cắm thành công {parsedPages.Count} pages có chứa Vector vào Database cho Asset {assetId}.");
         }
         catch (Exception ex)
         {
