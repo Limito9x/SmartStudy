@@ -63,6 +63,14 @@ public class StudentDashboardService: IStudentDashboardService
                  && t.Status != Entities.Enums.TaskStatus.Completed
                  && t.Status != Entities.Enums.TaskStatus.Cancelled)
         .ToListAsync();
+    
+    var completedTasks = await _context.Tasks
+        .Where(t => t.UserId == userId
+                 && t.TaskDate.HasValue
+                 && t.StatusUpdatedAt.HasValue
+                 && DateOnly.FromDateTime(t.StatusUpdatedAt.Value) == todayOnly
+                 && t.Status == Entities.Enums.TaskStatus.Completed)
+        .ToListAsync();
 
     // Tasks tuần này để tính completion rate
     var weekTasks = await _context.Tasks
@@ -124,6 +132,7 @@ public class StudentDashboardService: IStudentDashboardService
         CurrentPlanName       = currentPlan?.Name,
         TodayTasks            = todayTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
         OverdueTasks          = overdueTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
+        CompletedTasks = completedTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
         UpcomingEvents = upcomingEvents.Select(e => {
             var dto = e.Adapt<UpcomingEventDto>();
             dto.DaysUntil = e.DueDate.HasValue 

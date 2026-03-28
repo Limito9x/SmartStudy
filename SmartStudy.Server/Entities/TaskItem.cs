@@ -15,6 +15,7 @@ namespace SmartStudy.Server.Entities
         // --- PHÂN LOẠI & TRẠNG THÁI ---
         public Enums.TaskStatus Status { get; set; } = Enums.TaskStatus.Pending;
         public TaskType Type { get; set; } = TaskType.SelfStudy;
+        public DateTime? StatusUpdatedAt { get; set; }
 
         // --- KHÓA NGOẠI ---
         public int UserId { get; set; }

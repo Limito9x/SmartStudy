@@ -102,6 +102,7 @@ namespace SmartStudy.Server.Services
                 throw new KeyNotFoundException("Không tìm thấy công việc");
             }
             existingTaskItem.Status = taskStatusDto.Status;
+            existingTaskItem.StatusUpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseTaskDto>(existingTaskItem);

@@ -132,6 +132,7 @@ export type DashboardSummaryDto = {
     currentPlanName?: null | string;
     overdueTasks?: Array<TodayTaskDto>;
     todayTasks?: Array<TodayTaskDto>;
+    completedTasks?: Array<TodayTaskDto>;
     upcomingEvents?: Array<UpcomingEventDto>;
 };
 

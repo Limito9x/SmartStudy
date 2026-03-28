@@ -17,6 +17,7 @@ public class DashboardSummaryDto
     // Lists — đã nhóm sẵn ở backend
     public List<TodayTaskDto> OverdueTasks { get; set; } = [];
     public List<TodayTaskDto> TodayTasks { get; set; } = [];
+    public List<TodayTaskDto> CompletedTasks { get; set; } = [];
     public List<UpcomingEventDto> UpcomingEvents { get; set; } = [];
 }
 
