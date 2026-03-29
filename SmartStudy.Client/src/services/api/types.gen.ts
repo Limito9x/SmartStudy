@@ -300,7 +300,7 @@ export type RequestScheduleDto = {
 };
 
 export type RequestStudyPlanDto = {
-    name: string;
+    name: null | string;
     startDate: string;
     endDate: string;
     type: StudyPlanType;
@@ -477,6 +477,16 @@ export type StudentInfoDto = {
     yearId: number | string;
     startDate: string;
     endDate: string;
+};
+
+export type StudyPlanStatsDto = {
+    totalTasks?: number | string;
+    completedTasks?: number | string;
+    inProgressTasks?: number | string;
+    overdueTasks?: number | string;
+    pendingTasks?: number | string;
+    daysLeft?: number | string;
+    totalStudyHours?: number | string;
 };
 
 export type StudyPlanStatus = 'Active' | 'Completed' | 'Archived';
@@ -1688,6 +1698,24 @@ export type UpdateStudyPlanStatusResponses = {
      */
     200: unknown;
 };
+
+export type GetStudyPlanStatsData = {
+    body?: never;
+    path: {
+        planId: number;
+    };
+    query?: never;
+    url: '/api/study-plans/{planId}/stats';
+};
+
+export type GetStudyPlanStatsResponses = {
+    /**
+     * OK
+     */
+    200: StudyPlanStatsDto;
+};
+
+export type GetStudyPlanStatsResponse = GetStudyPlanStatsResponses[keyof GetStudyPlanStatsResponses];
 
 export type GetSubjectsData = {
     body?: never;

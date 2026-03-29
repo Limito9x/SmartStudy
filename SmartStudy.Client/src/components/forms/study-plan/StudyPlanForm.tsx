@@ -3,6 +3,8 @@ import { studyPlanSchema } from "./schema";
 import { FormInput, FormDatePicker } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
 import { type StudyPlanFormValues } from "./schema";
+import AcademicContext from "@/components/features/plan/AcademicContext";
+import {  useWatch } from "react-hook-form";
 
 interface StudyPlanFormProps {
   defaultValues?: Partial<StudyPlanFormValues>;
@@ -21,16 +23,35 @@ export default function StudyPlanForm({
       onSubmit={onSubmit}
       schema={studyPlanSchema}
       children={(methods) => {
+        const type = useWatch({
+          control: methods.control,
+          name: "type",
+        });
+
         return (
           <div className="space-y-4">
-            <FormInput
-              name="name"
-              control={methods.control}
-              label="Tên kế hoạch học tập"
-              placeholder="Nhập tên kế hoạch học tập"
-            />
+            {type === "Personal" && (
+              <FormInput
+                name="name"
+                control={methods.control}
+                label="Tên kế hoạch học tập"
+                placeholder="Nhập tên kế hoạch học tập"
+              />
+            )}
+            {type === "Academic" && (
+              <AcademicContext
+                selectedTerm={methods.watch("termId")?.toString() || null}
+                onTermChange={(value) =>
+                  methods.setValue("termId", Number(value))
+                }
+                selectedYear={methods.watch("yearId")?.toString() || null}
+                onYearChange={(value) =>
+                  methods.setValue("yearId", Number(value))
+                }
+              />
+            )}
             <FormDatePicker
-             name="startDate"
+              name="startDate"
               control={methods.control}
               label="Ngày bắt đầu"
               placeholder="Chọn ngày bắt đầu"
@@ -44,7 +65,7 @@ export default function StudyPlanForm({
             <Button type="submit" className="mt-4">
               {isEditMode ? "Cập nhật" : "Tạo mới"}
             </Button>
-            </div>
+          </div>
         );
       }}
     />

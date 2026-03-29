@@ -96,12 +96,15 @@ export default function Workspace() {
         )}
       </div>
       <SidebarMenu>
-        <PlanNav
-          type="Academic"
-          planId={Number(academicPlan?.id) || null}
-          courses={academicCourses}
-          isLoadingCourses={isLoadingAcademicCourses}
-        />
+        {academicPlan && (
+          <PlanNav
+            type="Academic"
+            planId={Number(academicPlan?.id) || null}
+            courses={academicCourses}
+            isLoadingCourses={isLoadingAcademicCourses}
+          />
+        )}
+
         <Separator />
         <div className="flex justify-between items-center p-2">
           <SidebarGroupLabel>KẾ HOẠCH HỌC TẬP CÁ NHÂN</SidebarGroupLabel>
@@ -126,7 +129,9 @@ export default function Workspace() {
 
         <SidebarMenuItem>
           <Select
-            value={selectedPersonalPlanId ? String(selectedPersonalPlan?.id) : ""}
+            value={
+              selectedPersonalPlanId ? String(selectedPersonalPlan?.id) : ""
+            }
             onValueChange={(value) => setSelectedPersonalPlanId(Number(value))}
             disabled={personalPlans.length === 0}
           >

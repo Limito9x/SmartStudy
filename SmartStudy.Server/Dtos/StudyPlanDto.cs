@@ -11,7 +11,7 @@ namespace SmartStudy.Server.Dtos
     }
     public record RequestStudyPlanDto
     (
-        string Name,
+        string? Name,
         DateTime StartDate,
         DateTime EndDate,
         StudyPlanType Type,
@@ -61,5 +61,19 @@ namespace SmartStudy.Server.Dtos
     );
 
     public record UpdateStudyPlanStatusDto(StudyPlanStatus Status);
+    
+    public class StudyPlanStatsDto
+    {
+        // Donut chart
+        public int TotalTasks { get; set; }
+        public int CompletedTasks { get; set; }
+        public int InProgressTasks { get; set; }
+        public int OverdueTasks { get; set; }
+        public int PendingTasks { get; set; }
+
+        // Stat cards
+        public int DaysLeft { get; set; }        // từ plan end date
+        public double TotalStudyHours { get; set; } // sum actual duration từ logs
+    }
 }
 

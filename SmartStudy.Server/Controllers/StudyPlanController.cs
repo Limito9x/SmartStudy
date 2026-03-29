@@ -90,6 +90,13 @@ namespace SmartStudy.Server.Controllers
             await _studyPlanService.UpdateStudyPlanStatusAsync(planId, dto);
             return NoContent();
         }
+
+        [HttpGet("{planId:int}/stats", Name = "GetStudyPlanStats")]
+        public async Task<ActionResult<StudyPlanStatsDto>> GetStudyPlanStats(int planId)
+        {
+            var stats = await _studyPlanService.GetStudyPlanStatsAsync(planId);
+            return Ok(stats);
+        }
     }
 }
 

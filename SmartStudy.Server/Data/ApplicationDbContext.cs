@@ -49,9 +49,9 @@ namespace SmartStudy.Server.Data
             );
             
             builder.Entity<AcademicTerm>().HasData(
-                new AcademicTerm { Id = 1, Name = "Học kỳ I" },
-                new AcademicTerm { Id = 2, Name = "Học kỳ II" },
-                new AcademicTerm { Id = 3, Name = "Học kỳ III" }
+                new AcademicTerm { Id = 1, TermNumber = 1,Name = "Học kỳ I" },
+                new AcademicTerm { Id = 2, TermNumber = 2,Name = "Học kỳ II" },
+                new AcademicTerm { Id = 3, TermNumber = 3,Name = "Học kỳ III" }
             );
 
             var years = new List<AcademicYear>();

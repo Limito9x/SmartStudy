@@ -5,7 +5,7 @@ import { FormColorPicker } from "@/components/form-controls/FormColorPicket";
 import { Button } from "@/components/ui/button";
 import type { ResponseSubjectDto, StudyPlanType } from "@/services/api";
 import { useSubject } from "@/hooks/entities/useSubject";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useWatch } from "react-hook-form";
 
@@ -22,7 +22,6 @@ export default function CourseForm({
   isEditMode = false,
   onSubmit,
 }: CourseFormProps) {
-
   return (
     <BaseForm
       defaultValues={defaultValues}
@@ -45,12 +44,17 @@ export default function CourseForm({
           control: courseForm.control,
           name: "subjectId",
         });
-        const selectedSubject = subjectsOptions?.find(
-          (subject) => Number(subject.id) === Number(selectedSubjectId),
-        );
 
-        const courseName = selectedSubject ? selectedSubject.name : "";
-        courseForm.setValue("name", courseName, { shouldDirty: true });
+        useEffect(() => {
+          const selectedSubject = subjectsOptions?.find(
+            (s) => Number(s.id) === Number(selectedSubjectId),
+          );
+          if (selectedSubjectId && selectedSubject) {
+            courseForm.setValue("name", selectedSubject.name, {
+              shouldDirty: true,
+            });
+          }
+        }, [selectedSubjectId, subjectsOptions, courseForm]);
 
         return (
           <>
@@ -65,12 +69,12 @@ export default function CourseForm({
               onSearchChange={(value) => {
                 setSearach(value);
               }}
-              notFoundContent={(text)=>{
-                return(
+              notFoundContent={(text) => {
+                return (
                   <>
-                  <span>Không tìm thấy môn "{text}"</span>
+                    <span>Không tìm thấy môn "{text}"</span>
                   </>
-                )
+                );
               }}
             />
             <FormInput

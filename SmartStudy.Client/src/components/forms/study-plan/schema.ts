@@ -2,7 +2,7 @@ import z from "zod";
 
 export const studyPlanSchema = z
   .object({
-    name: z.string().min(1, "Tên kế hoạch học tập không được để trống"),
+    name: z.string(),
     startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
     endDate: z.string().min(1, "Ngày kết thúc không được để trống"),
     termId: z.coerce.number().nullable(),
@@ -39,6 +39,17 @@ export const studyPlanSchema = z
       message: "Vui lòng chọn Năm học cho kế hoạch Đại học",
       path: ["yearId"], // Bắn lỗi đỏ chót ngay dưới ô chọn Năm học
     },
+  )
+  .refine(
+    (data) => {
+      if (data.type === "Personal") {
+        return data.name.trim().length > 0; // Tên KHHT cá nhân không được để trống
+      }
+      return true; // Nếu là Academic thì không cần check, cho qua luôn
+    },
+    {
+      message: "Tên kế hoạch học tập không được để trống",
+    }
   );
 
 export type StudyPlanFormValues = z.infer<typeof studyPlanSchema>;

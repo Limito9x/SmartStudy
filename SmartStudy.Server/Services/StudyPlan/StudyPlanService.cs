@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
+using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Services
 {
@@ -17,6 +18,7 @@ namespace SmartStudy.Server.Services
         //Task SyncDraftCoursesAsync(int planId, SyncDraftCoursesDto dto);
         //Task CommitStudyPlanAsync(int planId);
         Task UpdateStudyPlanStatusAsync(int planId, UpdateStudyPlanStatusDto dto);
+        Task<StudyPlanStatsDto> GetStudyPlanStatsAsync(int planId);
     }
 
     public class StudyPlanService : IStudyPlanService
@@ -45,8 +47,24 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseStudyPlanDto> CreateStudyPlanAsync(RequestStudyPlanDto studyPlanDto)
         {
             var userId = _currentUserService.UserId;
+            
+            if(studyPlanDto.Type==StudyPlanType.Personal&&studyPlanDto.Name==null)
+                throw new ArgumentException("Name không được để trống cho KHHT cá nhân");
 
             var studyPlan = _mapper.Map<Entities.StudyPlan>(studyPlanDto);
+
+            if (studyPlan.Type == StudyPlanType.Academic)
+            {
+                if(studyPlanDto.TermId == null ||  studyPlanDto.YearId == null)
+                    throw new ArgumentException("TermId và YearId không được để trống cho KHHT học thuật");
+                
+                var term = await _context.AcademicTerms.FindAsync(studyPlanDto.TermId.Value);
+                var year = await _context.AcademicYears.FindAsync(studyPlanDto.YearId.Value);
+                
+                var name = $"HK {term.TermNumber} {year.StartYear} - {year.EndYear}";
+                studyPlan.Name = name;
+            }
+            
             studyPlan.UserId = userId;
             _context.StudyPlans.Add(studyPlan);
             await _context.SaveChangesAsync();
@@ -203,7 +221,50 @@ namespace SmartStudy.Server.Services
                 }
             }
 
+            studyPlan.Status = dto.Status;
+
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<StudyPlanStatsDto> GetStudyPlanStatsAsync(int planId)
+        {
+            var userId = _currentUserService.UserId;
+            var plan = await _context.StudyPlans
+                .Include(p => p.Courses)
+                .Where(p => p.Id == planId && p.UserId == userId)
+                .FirstOrDefaultAsync()
+                ?? throw new KeyNotFoundException("Không tìm thấy KHHT");
+            
+            var now = DateTime.UtcNow.AddHours(7);
+            var today = DateOnly.FromDateTime(now);
+            
+            var tasks = await _context.Tasks
+                .Where(t => t.Course.StudyPlanId == planId)
+                .ToListAsync();
+
+            var overdueTasks = tasks.Count(t => t.TaskDate.HasValue
+                                                && t.TaskDate < today
+                                                && t.Status != TaskStatus.Completed
+                                                && t.Status != TaskStatus.Cancelled);
+
+            var pendingTasks = tasks.Count(t => t.Status == TaskStatus.Pending
+                                                && t.TaskDate >= today);
+            
+            return new StudyPlanStatsDto()
+            {
+                TotalTasks = tasks.Count,
+                CompletedTasks = tasks.Count(t => t.Status == TaskStatus.Completed),
+                OverdueTasks = overdueTasks,
+                PendingTasks = pendingTasks,
+                InProgressTasks = tasks.Count(t => t.Status == TaskStatus.InProgress),
+                DaysLeft = plan.EndDate.HasValue 
+                    ? Math.Max(0, (plan.EndDate.Value-now).Days )
+                    : 0,
+                TotalStudyHours = await _context.Logs
+                    .Where(l => l.Task.Course.StudyPlanId == planId)
+                    .SumAsync(l => (double?)l.ActualDuration ?? 0) / 60.0
+                
+            };
         }
 
         // private async Task PurgeDraftCoursesAsync(int planId)

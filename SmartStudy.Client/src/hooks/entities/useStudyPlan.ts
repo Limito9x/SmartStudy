@@ -3,11 +3,15 @@ import {
   getStudyPlansOptions,
   getStudyPlansQueryKey,
   getStudyPlanByIdOptions,
+  getStudyPlanByIdQueryKey,
   createStudyPlanMutation,
   updateStudyPlanMutation,
   bulkCreateStudyPlansMutation,
   deleteStudyPlanMutation,
-  getAcademicContextOptions
+  getAcademicContextOptions,
+  updateStudyPlanStatusMutation,
+  getStudyPlanStatsOptions,
+  getStudyPlanStatsQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 
@@ -18,16 +22,26 @@ export const useStudyPlan = () => {
     ...getAcademicContextOptions(),
   });
 
-  const getAllStudyPlans = (isActive?:boolean) => useQuery({
-    ...getStudyPlansOptions({
-      query: { isActive }
-    }),
-  });
+  const getAllStudyPlans = (isActive?: boolean) =>
+    useQuery({
+      ...getStudyPlansOptions({
+        query: { isActive },
+      }),
+    });
 
   const getStudyPlanById = (id: number) => {
     return useQuery({
       ...getStudyPlanByIdOptions({
         path: { studyPlanId: id },
+      }),
+      enabled: !!id, // Chỉ gọi API khi có ID
+    });
+  };
+
+  const getStudyPlanStats = (id: number) => {
+    return useQuery({
+      ...getStudyPlanStatsOptions({
+        path: { planId: id },
       }),
       enabled: !!id, // Chỉ gọi API khi có ID
     });
@@ -63,6 +77,32 @@ export const useStudyPlan = () => {
     },
   });
 
+  const updateStudyPlanStatus = useMutation({
+    ...updateStudyPlanStatusMutation(),
+    onSuccess: (_data, variables) => {
+      const planId = Number(variables.path?.planId);
+
+      queryClient.invalidateQueries({
+        queryKey: getStudyPlansQueryKey(),
+      });
+
+      if (planId) {
+        queryClient.invalidateQueries({
+          queryKey: getStudyPlanByIdQueryKey({
+            path: { studyPlanId: planId },
+          }),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getStudyPlanStatsQueryKey({
+            path: { planId },
+          }),
+        });
+      }
+
+      toast.success("Cập nhật trạng thái kế hoạch học tập thành công");
+    },
+  });
+
   const deleteStudyPlan = useMutation({
     ...deleteStudyPlanMutation(),
     onSuccess: () => {
@@ -77,6 +117,8 @@ export const useStudyPlan = () => {
     getAcademicContext,
     getAllStudyPlans,
     getStudyPlanById,
+    getStudyPlanStats,
+    updateStudyPlanStatus,
     createStudyPlan,
     bulkCreateStudyPlans,
     updateStudyPlan,

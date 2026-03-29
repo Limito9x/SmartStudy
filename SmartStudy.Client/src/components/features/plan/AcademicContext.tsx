@@ -1,7 +1,9 @@
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectGroup,
   SelectLabel,
   SelectTrigger,
   SelectValue,
@@ -30,50 +32,48 @@ export default function AcademicContext({
 
   useEffect(() => {
     if (terms.length > 0 && !selectedTerm) {
-      onTermChange(terms[0].termNumber?.toString() || "");
+      onTermChange(terms[0].id?.toString() || "");
     }
     if (years.length > 0 && !selectedYear) {
-      onYearChange(years[0].startYear?.toString() || "");
+      onYearChange(years[0].id?.toString() || "");
     }
   }, [terms, years, selectedTerm, selectedYear, onTermChange, onYearChange]);
 
   return (
-    <div className="p-4 flex gap-2 items-center justify-between border-b">
+    <div className="flex w-full gap-4 items-start">
       {/* SELECT HỌC KỲ */}
-      <Select value={selectedTerm||""} onValueChange={onTermChange}>
-        <SelectTrigger className="w-full h-8 bg-transparent border-gray-200">
-          <SelectValue placeholder="Chọn học kỳ" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectLabel>Học kỳ</SelectLabel>
-          {terms.map((term) => (
-            <SelectItem
-              key={term.termNumber}
-              value={term.termNumber?.toString() || ""}
-            >
-              {term.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex-1">
+        <Label className="text-sm">Học kỳ</Label>
+        <Select value={selectedTerm || ""} onValueChange={onTermChange}>
+          <SelectTrigger className="w-full h-8 bg-transparent border-gray-200">
+            <SelectValue placeholder="Chọn học kỳ" />
+          </SelectTrigger>
+          <SelectContent>
+              {terms.map((term) => (
+                <SelectItem key={term.id} value={term.id?.toString() || ""}>
+                  {term.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
 
+      <div className="flex-1">
+        <Label className="text-sm">Năm học</Label>
+        <Select value={selectedYear || ""} onValueChange={onYearChange}>
+          <SelectTrigger className="w-full h-8 bg-transparent border-gray-200">
+            <SelectValue placeholder="Chọn năm học" />
+          </SelectTrigger>
+          <SelectContent>
+              {years.map((year) => (
+                <SelectItem key={year.id} value={year.id?.toString() || ""}>
+                  {year.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </div>
       {/* SELECT NĂM HỌC */}
-      <Select value={selectedYear||""} onValueChange={onYearChange}>
-        <SelectTrigger className="w-full h-8 bg-transparent border-gray-200">
-          <SelectValue placeholder="Chọn năm học" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectLabel>Năm học</SelectLabel>
-          {years.map((year) => (
-            <SelectItem
-              key={year.startYear}
-              value={year.startYear?.toString() || ""}
-            >
-              {year.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
     </div>
   );
 }

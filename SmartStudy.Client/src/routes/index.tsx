@@ -16,6 +16,7 @@ import AdminOverviewPage from "@/pages/admin/AdminOverviewPage";
 import TemplateGalleryPage from "@/pages/school-study/template/TemplateGalleryPage";
 import TemplateDetailPage from "@/pages/school-study/template/TemplateDetailPage";
 import AdminTemplatePage from "@/pages/admin/templates/AdminTemplatePage";
+import ArchivePage from "@/pages/school-study/study-plan/ArchivePage";
 
 export default function AppRoutes() {
   const routes: RouteObject[] = [
@@ -79,6 +80,10 @@ export default function AppRoutes() {
                 {
                   path: "templates/:templateId",
                   element: <TemplateDetailPage />,
+                },
+                {
+                  path: "archive",
+                  element: <ArchivePage />,
                 },
               ],
             },

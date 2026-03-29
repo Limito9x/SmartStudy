@@ -110,7 +110,6 @@ namespace SmartStudy.Server.Services
 
         public async Task<LogDto> LogWorkAsync(int taskId, LogWorkDto logWorkDto)
         {
-            var userId = _currentUserService.UserId;
             var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -142,9 +141,15 @@ namespace SmartStudy.Server.Services
 
                 if (logWorkDto.markAsCompleted)
                 {
-                    existingTaskItem.Status = Entities.Enums.TaskStatus.Completed;
-                    _context.Tasks.Update(existingTaskItem);
+                    existingTaskItem.Status = TaskStatus.Completed;
                 }
+                else
+                {
+                    existingTaskItem.Status = TaskStatus.InProgress;
+                }
+                existingTaskItem.StatusUpdatedAt = DateTime.UtcNow;
+                _context.Tasks.Update(existingTaskItem);
+                
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();

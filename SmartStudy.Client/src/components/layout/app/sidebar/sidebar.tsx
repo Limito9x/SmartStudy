@@ -12,11 +12,18 @@ import {
 import UserNav from "./user-nav";
 import Workspace from "./workspace";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Calendar, LayoutDashboard, FileStack, BookOpen } from "lucide-react";
+import {
+  Archive,
+  Calendar,
+  LayoutDashboard,
+  FileStack,
+  BookOpen,
+} from "lucide-react";
 
 const navigationItems = [
   { label: "Hôm nay", path: "/", icon: LayoutDashboard },
   { label: "Lịch trình", path: "/calendar", icon: Calendar },
+  { label: "Kho lưu trữ", path: "/archive", icon: Archive },
   { label: "Template", path: "/templates", icon: FileStack },
   { label: "Môn học", path: "/subjects", icon: BookOpen },
 ];
