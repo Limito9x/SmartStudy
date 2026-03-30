@@ -505,6 +505,7 @@ export type TemplateCourse = {
     name?: string;
     goal?: null | string;
     targetScore?: null | number | string;
+    subject?: null | TemplateSubject;
     routines?: Array<TemplateRoutine>;
 };
 
@@ -527,6 +528,12 @@ export type TemplateSchedule = {
     startTime?: null | string;
     duration?: null | number | string;
     location?: null | string;
+};
+
+export type TemplateSubject = {
+    name?: string;
+    code?: null | string;
+    credits?: null | number | string;
 };
 
 export type TodayTaskDto = {

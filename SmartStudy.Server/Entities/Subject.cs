@@ -11,6 +11,8 @@ namespace SmartStudy.Server.Entities
         public StudyPlanType Type { get; set; } = StudyPlanType.Academic;
         public int? Credits { get; set; }
         public ICollection<Course> Courses { get; set; } = new List<Course>();
+        public int UserId { get; set; }
+        public User User { get; set; }
     }
 }
 

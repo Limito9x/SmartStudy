@@ -10,7 +10,12 @@ namespace SmartStudy.Server.Data.Configurations
         {
             builder.Property(x => x.Name).HasMaxLength(300).IsRequired();
 
-            builder.HasIndex(x => x.Name).IsUnique();
+            builder.HasIndex(x => new
+            {
+                Name = x.Name,
+                Type = x.Type,
+                UserId = x.UserId
+            }).IsUnique();
         }
     }
 }

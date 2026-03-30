@@ -44,11 +44,13 @@ public class PlanTemplateService: IPlanTemplateService
     {
         var plan = await _context.StudyPlans
                        .Include(p => p.Courses)
-                       .ThenInclude(c => c.Routines)
-                       .ThenInclude(r => r.Schedules)
+                           .ThenInclude(c => c.Routines)
+                           .ThenInclude(r => r.Schedules)
+                       .Include(p => p.Courses)
+                           .ThenInclude(c => c.Subject)
                        .FirstOrDefaultAsync(p => p.Id == sourcePlanId)
                    ?? throw new KeyNotFoundException("Không tìm thấy kế hoạch học tập");
-
+        
         var planStart = plan.StartDate;
         var planDurationDays = plan.EndDate.HasValue
             ? (int)(plan.EndDate.Value - planStart).TotalDays
@@ -64,6 +66,12 @@ public class PlanTemplateService: IPlanTemplateService
                     Name = c.Name,
                     Goal = c.Goal,
                     TargetScore = c.TargetScore,
+                    Subject = c.Subject != null ? new TemplateSubject
+                    {
+                        Name = c.Subject.Name,
+                        Code = c.Subject.Code,
+                        Credits = c.Subject.Credits,
+                    } : null,
                     Routines = c.Routines?
                         .Where(r => !r.IsDeleted)
                         .Select(r => new TemplateRoutine
@@ -107,14 +115,19 @@ public class PlanTemplateService: IPlanTemplateService
         else
         {
             // Lấy tên plan gốc nếu không truyền name
-            var planName = await _context.StudyPlans
+            var plan = await _context.StudyPlans
                 .Where(p => p.Id == dto.SourcePlanId)
-                .Select(p => p.Name)
+                .Select(p => new
+                {
+                    Name = p.Name,
+                    Type = p.Type
+                })
                 .FirstOrDefaultAsync();
 
             var template = new PlanTemplate
             {
-                Name = dto.Name ?? planName ?? "Template mới",
+                Name = dto.Name ?? plan.Name ?? "Template mới",
+                Type = plan.Type,
                 Description = dto.Description,
                 IsPublic = dto.IsPublic,
                 CreatedById = userId,
@@ -152,9 +165,22 @@ public class PlanTemplateService: IPlanTemplateService
             .Include(t => t.SourcePlan)
             .FirstOrDefault(t => t.Id == templateId)
             ?? throw new KeyNotFoundException("Không tìm thấy template");
+        
+        
 
         var dto = new PlanTemplateDetailDto()
         {
+            Id = templateId,
+            Name = template.Name,
+            Description = template.Description,
+            IsPublic = template.IsPublic,
+            CreatedAt = template.CreatedAt,
+            CreatedByName = (await _context.Users.FindAsync(template.CreatedById))?.FullName,
+            SourcePlanId = template.SourcePlanId,
+            CourseCount = template.Payload?.Courses?.Count ?? 0,
+            RoutineCount = template.Payload?.Courses?
+                .Sum(c => c.Routines?.Count ?? 0) ?? 0,
+            DurationDays = template.Payload?.DurationDays,
             Payload = template.Payload
         };
         
@@ -269,7 +295,43 @@ public class PlanTemplateService: IPlanTemplateService
 
     var startDate = DateTime.SpecifyKind(dto.StartDate, DateTimeKind.Utc);
     var endDate = startDate.AddDays(payload.DurationDays);
+    
+    var templateSubjects = payload.Courses
+        .Where(c => c.Subject != null)
+        .Select(c => c.Subject!)
+        .GroupBy(s => s.Name)
+        .Select(g => g.First())
+        .ToList();
+    
+    var subjectNames = templateSubjects.Select(s => s.Name).ToList();
+    
+    var subjectDictionary = await _context.Subjects
+        .Where(s=>s.UserId==userId && subjectNames.Contains(s.Name))
+        .ToDictionaryAsync(s => s.Name, s => s);
 
+    var subjectsToCreate = templateSubjects
+        .Where(ts => !subjectDictionary.ContainsKey(ts.Name))
+        .Select(ts => new Subject()
+        {
+            Name = ts.Name,
+            Code = ts.Code,
+            Credits = ts.Credits,
+            UserId = userId
+        })
+        .ToList();
+    
+    if (subjectsToCreate.Any())
+    {
+        _context.Subjects.AddRange(subjectsToCreate);
+        await _context.SaveChangesAsync(); // Kịch! Tụi nó đã có ID mới.
+
+        // Bổ sung mấy cái mới này vào Dictionary luôn
+        foreach (var newSub in subjectsToCreate)
+        {
+            subjectDictionary[newSub.Name] = newSub;
+        }
+    }
+    
     // Bước 1 — Tạo plan + courses trước, chưa có routines
     var plan = new StudyPlan
     {
@@ -282,6 +344,9 @@ public class PlanTemplateService: IPlanTemplateService
             .CountAsync(p => p.UserId == userId) + 1,
         Courses = payload.Courses.Select(c => new Course
         {
+            SubjectId = c.Subject != null && subjectDictionary.ContainsKey(c.Subject.Name)
+                ? subjectDictionary[c.Subject.Name].Id
+                : null,
             Name = c.Name,
             Goal = c.Goal,
             TargetScore = c.TargetScore,

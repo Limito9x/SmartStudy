@@ -61,7 +61,7 @@ export default function Workspace() {
 
   // 3. ZERO-CLICK AUTO SELECT
   useEffect(() => {
-    if (personalPlans.length > 0) {
+    if (personalPlans.length > 0 && !selectedPersonalPlanId) {
       const defaultPlan = getAutoDefaultPlan(personalPlans);
       setSelectedPersonalPlanId(Number(defaultPlan?.id) || null);
     }
@@ -129,9 +129,7 @@ export default function Workspace() {
 
         <SidebarMenuItem>
           <Select
-            value={
-              selectedPersonalPlanId ? String(selectedPersonalPlan?.id) : ""
-            }
+            value={selectedPersonalPlanId ? String(selectedPersonalPlanId) : ""}
             onValueChange={(value) => setSelectedPersonalPlanId(Number(value))}
             disabled={personalPlans.length === 0}
           >

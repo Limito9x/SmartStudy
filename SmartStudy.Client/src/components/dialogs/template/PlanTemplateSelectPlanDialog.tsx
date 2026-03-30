@@ -12,10 +12,7 @@ export default function PlanTemplateSelectPlanDialog() {
   const { getAllStudyPlans } = useStudyPlan();
   const { createTemplate, createPlanTemplate } = usePlanTemplate();
 
-  const studyPlans = useMemo(
-    () => getAllStudyPlans.data ?? [],
-    [getAllStudyPlans.data],
-  );
+  const { data: studyPlans = [], isLoading } = getAllStudyPlans(true);
 
   const [sourcePlanId, setSourcePlanId] = useState<number | null>(
     studyPlans.length > 0 ? Number(studyPlans[0].id) : null,
@@ -42,7 +39,7 @@ export default function PlanTemplateSelectPlanDialog() {
     closeDialog();
   };
 
-  if (getAllStudyPlans.isLoading) {
+  if (isLoading) {
     return (
       <p className="text-sm text-muted-foreground">
         Đang tải danh sách kế hoạch...

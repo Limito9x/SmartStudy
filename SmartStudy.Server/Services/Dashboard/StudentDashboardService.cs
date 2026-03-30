@@ -27,7 +27,7 @@ public class StudentDashboardService: IStudentDashboardService
     public async Task<DashboardSummaryDto> GetSummary()
 {
     var userId = _currentUserService.UserId;
-    var now = DateTime.UtcNow;
+    var now = DateTime.UtcNow.AddHours(7);
     var today = now.Date;
     var dayOfWeek = (int)today.DayOfWeek;
 // Chuyển Sunday(0) thành 7 để tính đúng

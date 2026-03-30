@@ -33,5 +33,6 @@ export function OnboardingGuard() {
     }
     return <Outlet />;
   }
+  return <Outlet />;
   
 }

@@ -2,14 +2,13 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useGetPlanTemplateById } from "@/hooks/entities/usePlanTemplate.ts";
 import CloneTemplateDialog from "@/components/features/plan/CloneTemplateDialog";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -83,37 +82,42 @@ export default function TemplateDetailPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="space-y-2">
-              <CardTitle className="text-2xl">{data.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {data.description || "Không có mô tả"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {data.createdByName && `Tạo bởi ${data.createdByName}`}&nbsp;
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={data.isPublic ? "default" : "secondary"}>
-                {data.isPublic ? "Public" : "Private"}
-              </Badge>
-              <Badge variant="outline">{courseCount} môn</Badge>
-              <Badge variant="outline">{routineCount} routine</Badge>
-              <Badge variant="outline">{durationDays} ngày</Badge>
-            </div>
+      <div className="rounded-xl border bg-slate-50 p-8">
+        <div className="flex flex-col items-start justify-between gap-6 md:flex-row">
+          <div className="space-y-4">
+            <h1 className="text-3xl font-bold">{data.name}</h1>
+            <p className="text-lg text-slate-600">
+              {data.description || "Không có mô tả"}
+            </p>
+            <p className="text-sm font-medium text-slate-700">
+              {data.createdByName
+                ? `Tạo bởi ${data.createdByName}`
+                : "Tác giả chưa cập nhật"}
+            </p>
           </div>
 
-          {!isAdmin ? (
-            <div>
-              <Button onClick={() => setIsCloneDialogOpen(true)}>
+          <div className="w-full space-y-3 md:w-[320px]">
+            {!isAdmin ? (
+              <Button
+                size="lg"
+                className="w-full"
+                onClick={() => setIsCloneDialogOpen(true)}
+              >
                 Dùng template này
               </Button>
+            ) : null}
+
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline">
+                {data.isPublic ? "Public" : "Private"}
+              </Badge>
+              <Badge variant="secondary">{courseCount} môn học</Badge>
+              <Badge variant="secondary">{routineCount} routines</Badge>
+              <Badge variant="secondary">{durationDays} ngày</Badge>
             </div>
-          ) : null}
-        </CardHeader>
-      </Card>
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-3">
         {courses.length === 0 ? (
@@ -121,77 +125,99 @@ export default function TemplateDetailPage() {
             Template này chưa có dữ liệu môn học.
           </div>
         ) : (
-          courses.map((course, courseIndex) => (
-            <Collapsible
-              key={`${course.name || "course"}-${courseIndex}`}
-              defaultOpen
-            >
-              <Card>
-                <CardHeader>
-                  <CollapsibleTrigger className="flex w-full items-center justify-between text-left">
-                    <div className="space-y-1">
-                      <h3 className="font-semibold">
-                        {course.name || `Môn ${courseIndex + 1}`}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {course.goal || "Không có mục tiêu"}
-                      </p>
-                    </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </CollapsibleTrigger>
-                </CardHeader>
-                <CollapsibleContent>
-                  <CardContent className="space-y-3">
-                    {(course.routines ?? []).map((routine, routineIndex) => (
-                      <div
-                        key={`${routine.name || "routine"}-${routineIndex}`}
-                        className="rounded border p-3"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="font-medium">
-                            {routine.name || `Routine ${routineIndex + 1}`}
-                          </p>
-                          <Badge variant="outline">
-                            {routine.type || "N/A"}
-                          </Badge>
-                        </div>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {routine.instructor && `Giảng viên: ${routine.instructor}`}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Từ ngày {routine.startDayOffset ?? 0} đến{" "}
-                          {routine.endDayOffset ?? "?"}
-                        </p>
-                        <div className="mt-2 space-y-1 text-sm">
-                          {(routine.schedules ?? []).length === 0 ? (
-                            <p className="text-muted-foreground">
-                              Không có lịch cố định.
-                            </p>
-                          ) : (
-                            (routine.schedules ?? []).map(
-                              (schedule, scheduleIndex) => (
-                                <p
-                                  key={`${routine.name || "routine"}-schedule-${scheduleIndex}`}
-                                >
-                                  {dayOfWeekMap[Number(schedule.dayOfWeek)] ||
-                                    "Không rõ thứ"}{" "}
-                                  - {schedule.startTime || "--:--"} (
-                                  {schedule.duration ?? 0} phút)
-                                  {schedule.location
-                                    ? ` - ${schedule.location}`
-                                    : ""}
-                                </p>
-                              ),
-                            )
-                          )}
-                        </div>
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue={`course-0`}
+            className="space-y-3"
+          >
+            {courses.map((course, courseIndex) => (
+              <AccordionItem
+                key={`${course.name || "course"}-${courseIndex}`}
+                value={`course-${courseIndex}`}
+                className="rounded-lg border bg-background px-4"
+              >
+                <AccordionTrigger className="hover:no-underline">
+                  <div className="space-y-1 text-left">
+                    <h3 className="text-base font-semibold">
+                      {course.name || `Môn ${courseIndex + 1}`}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {course.goal || "Không có mục tiêu"}
+                    </p>
+                  </div>
+                </AccordionTrigger>
+
+                <AccordionContent className="pb-4 pt-2">
+                  <div className="space-y-3">
+                    {(course.routines ?? []).length === 0 ? (
+                      <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                        Môn học này chưa có routine.
                       </div>
-                    ))}
-                  </CardContent>
-                </CollapsibleContent>
-              </Card>
-            </Collapsible>
-          ))
+                    ) : (
+                      (course.routines ?? []).map((routine, routineIndex) => (
+                        <div
+                          key={`${routine.name || "routine"}-${routineIndex}`}
+                          className="rounded-r-md border-l-4 border-primary bg-slate-50 p-4"
+                        >
+                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                            <div className="space-y-1">
+                              <p className="font-semibold">
+                                {routine.name || `Routine ${routineIndex + 1}`}
+                              </p>
+                              <p className="text-sm text-slate-600">
+                                {routine.instructor
+                                  ? `Giảng viên: ${routine.instructor}`
+                                  : "Giảng viên: Chưa cập nhật"}
+                              </p>
+                              <p className="text-sm text-slate-600">
+                                Ngày học: {routine.startDayOffset ?? 0} -{" "}
+                                {routine.endDayOffset ?? "?"}
+                              </p>
+                            </div>
+
+                            <Badge variant="outline" className="w-fit">
+                              {routine.type || "N/A"}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-3 space-y-2">
+                            {(routine.schedules ?? []).length === 0 ? (
+                              <p className="text-sm text-muted-foreground">
+                                Không có lịch cố định.
+                              </p>
+                            ) : (
+                              (routine.schedules ?? []).map(
+                                (schedule, scheduleIndex) => (
+                                  <div
+                                    key={`${routine.name || "routine"}-schedule-${scheduleIndex}`}
+                                    className="flex flex-col gap-1 rounded-md border border-slate-200 bg-white p-3 text-sm md:flex-row md:items-center md:justify-between"
+                                  >
+                                    <p className="font-medium text-slate-700">
+                                      {dayOfWeekMap[
+                                        Number(schedule.dayOfWeek)
+                                      ] || "Không rõ thứ"}
+                                    </p>
+                                    <p className="text-slate-600">
+                                      {schedule.startTime?.slice(0,5) || "--:--"} ·{" "}
+                                      {schedule.duration ?? 0} phút
+                                    </p>
+                                    <p className="text-slate-600">
+                                      {schedule.location || "Không có địa điểm"}
+                                    </p>
+                                  </div>
+                                ),
+                              )
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         )}
       </div>
 

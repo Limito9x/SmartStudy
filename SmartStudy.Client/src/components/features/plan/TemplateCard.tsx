@@ -1,6 +1,12 @@
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { PlanTemplateDto } from "@/services/api";
 
@@ -17,10 +23,13 @@ export default function TemplateCard({
   actionSlot,
   className,
 }: TemplateCardProps) {
+  const durationDays = Number(template.durationDays ?? 0);
+  const durationWeeks = Math.max(1, Math.ceil(durationDays / 7));
+
   return (
     <Card
       className={cn(
-        "relative transition-shadow hover:shadow-md",
+        "relative flex h-full cursor-pointer flex-col justify-between border transition-all hover:border-primary/50 hover:shadow-md",
         onClick ? "cursor-pointer" : "",
         className,
       )}
@@ -32,10 +41,10 @@ export default function TemplateCard({
 
       <CardHeader className="pb-2 pr-10">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="line-clamp-2 text-base">
+          <CardTitle className="line-clamp-1 text-lg font-bold">
             {template.name || "Template chưa đặt tên"}
           </CardTitle>
-          <Badge variant={template.isPublic ? "default" : "secondary"}>
+          <Badge variant="outline">
             {template.isPublic ? "Public" : "Private"}
           </Badge>
         </div>
@@ -45,13 +54,13 @@ export default function TemplateCard({
         <p className="line-clamp-2 text-sm text-muted-foreground">
           {template.description || "Không có mô tả"}
         </p>
-
-        <div className="flex flex-wrap gap-2 text-xs">
-          <Badge variant="outline">{template.courseCount ?? 0} môn</Badge>
-          <Badge variant="outline">{template.routineCount ?? 0} routine</Badge>
-          <Badge variant="outline">{template.durationDays ?? 0} ngày</Badge>
-        </div>
       </CardContent>
+
+      <CardFooter className="mt-auto flex flex-wrap gap-2 pt-0 text-xs">
+        <Badge variant="secondary">{template.courseCount ?? 0} môn</Badge>
+        <Badge variant="secondary">{durationWeeks} tuần</Badge>
+        <Badge variant="secondary">{template.routineCount ?? 0} routines</Badge>
+      </CardFooter>
     </Card>
   );
 }
