@@ -12,14 +12,19 @@ namespace SmartStudy.Server.Data.Configurations
                 .WithMany(s => s.Courses)
                 .HasForeignKey(c => c.StudyPlanId)
                 .OnDelete(DeleteBehavior.Cascade);
-
             
-
             builder.HasMany(c => c.Routines)
                 .WithOne(r => r.Course)
                 .HasForeignKey(r => r.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(c => new { c.Name, c.StudyPlanId })
+                .IsUnique()
+                .HasFilter("\"DeletedAt\" IS NULL");
             
+            builder.HasIndex(c => new { c.SubjectId, c.StudyPlanId })
+                .IsUnique()
+                .HasFilter("\"SubjectId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
         }
     }
 }

@@ -1,4 +1,5 @@
 using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos;
 

@@ -5,6 +5,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Exceptions;
 
@@ -17,6 +18,7 @@ namespace SmartStudy.Server.Services
 
         // Đăng nhập người dùng
         Task<LoginResponseDto> LoginAsync(UserLoginDto model);
+        Task<LoginResponseDto> GoogleLoginAsync(string credential);
 
         // Lấy thông tin người dùng từ token JWT (nếu cần) --> check token
         Task<UserResponseDto> GetUserProfileAsync(int userId);
@@ -28,6 +30,7 @@ namespace SmartStudy.Server.Services
         private readonly SignInManager<User> _signInManager; 
         private readonly IConfiguration _configuration; // Đọc appsettings.json --> để lấy cấu hình JWT
         private readonly string _secondSecretKey;
+        private readonly string _googleAuthClientId;
 
         public AuthService(UserManager<User> userManager, SignInManager<User> signInManager, IConfiguration configuration)
         {
@@ -35,6 +38,8 @@ namespace SmartStudy.Server.Services
             _signInManager = signInManager;
             _configuration = configuration;
             _secondSecretKey = "SecondCustomSecretThatIsVeryLongAndHas256Bits!@#";
+            _googleAuthClientId = _configuration["OAuth:Google:ClientId"] ??
+                                  throw new AppException("GoogleAuth:ClientId is not configured in appsettings.json");
         }
 
         // Phương thức đăng ký người dùng mới
@@ -103,6 +108,55 @@ namespace SmartStudy.Server.Services
                 HasCompletedOnboarding = user.StudentInfo?.University != null // Giả sử onboarding hoàn thành khi đã có ngày nhập học
             };
 
+        }
+        
+        public async Task<LoginResponseDto> GoogleLoginAsync(string credential)
+        {
+            // 1. Xác thực token với Google
+            var settings = new GoogleJsonWebSignature.ValidationSettings()
+            {
+                Audience = new List<string> { _googleAuthClientId }
+            };
+            var payload = await GoogleJsonWebSignature.ValidateAsync(credential, settings);
+            if (payload == null)
+            {
+                throw new AppException("Google token không hợp lệ!");
+            }
+
+            // 2. Kiểm tra xem người dùng đã tồn tại chưa, nếu chưa thì tạo mới
+            var user = await _userManager.Users
+                .Include(u => u.StudentInfo)
+                .FirstOrDefaultAsync(u => u.Email == payload.Email);
+            if (user == null)
+            {
+                user = new User
+                {
+                    Email = payload.Email,
+                    UserName = payload.Email,
+                    FullName = payload.Name,
+                    StudentInfo = new StudentInfo()
+                };
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join("\n", createResult.Errors.Select(e => e.Description));
+                    throw new AppException($"Tạo tài khoản mới thất bại:\n{errors}");
+                }
+                await _userManager.AddToRoleAsync(user, "Student");
+            }
+
+            // 3. Tạo JWT token cho người dùng
+            var tokenString = await GenerateJwtToken(user);
+            var role = (await _userManager.GetRolesAsync(user)).FirstOrDefault() ?? "Student";
+            return new LoginResponseDto
+            {
+                Email = user.Email,
+                Role = role,
+                UserName = user.UserName,
+                FullName = user.FullName,
+                Token = tokenString,
+                HasCompletedOnboarding = user.StudentInfo?.University != null
+            };
         }
 
         // Hàm tiện ích để tạo JWT, đặt là private vì chỉ sử dụng bên trong AuthService

@@ -2,7 +2,9 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Exceptions;
+using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Services;
 
@@ -43,7 +45,8 @@ public class CalendarService: ICalendarService
         .Include(t => t.Routine)
         .Where(t => t.UserId == userId
                  && t.TaskDate >= fromDate
-                 && t.TaskDate <= toDate)
+                 && t.TaskDate <= toDate
+                 && t.Status!= TaskStatus.Archived)
         .ToListAsync();
 
     // Task IDs đã có thật — để lọc trùng với occurrence
@@ -76,9 +79,10 @@ public class CalendarService: ICalendarService
     var routines = await _context.Routines
         .Include(r => r.Schedules)
         .Include(r => r.Course)
-        .Where(r => r.UserId == userId
-                 && r.StartDate <= toDateTime
-                 && (r.EndDate == null || r.EndDate >= fromDateTime))
+        .Where(r => r.UserId == userId 
+                    && r.Course.Status == CourseStatus.Enrolled
+                    && r.StartDate <= toDateTime
+                    && (r.EndDate == null || r.EndDate >= fromDateTime))
         .ToListAsync();
 
     for (var date = fromDate; date <= toDate; date = date.AddDays(1))

@@ -250,7 +250,8 @@ namespace SmartStudy.Server.Services
                         Status = Entities.Enums.TaskStatus.Pending,
                         Type = Routine.Type,
                         TimelineEventId = Routine.TimelineEventId,
-                        StudyPlanId = Routine.StudyPlanId
+                        StudyPlanId = Routine.StudyPlanId,
+                        CourseId = Routine.CourseId
                     };
                     tasksToInsert.Add(task);
                 }

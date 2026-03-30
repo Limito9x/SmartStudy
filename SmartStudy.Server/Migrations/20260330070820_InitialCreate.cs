@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Pgvector;
 
 #nullable disable
 
@@ -15,6 +16,38 @@ namespace SmartStudy.Server.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:PostgresExtension:vector", ",,");
+
+            migrationBuilder.CreateTable(
+                name: "AcademicTerms",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    TermNumber = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademicTerms", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AcademicYears",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    StartYear = table.Column<int>(type: "integer", nullable: false),
+                    EndYear = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AcademicYears", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -37,6 +70,7 @@ namespace SmartStudy.Server.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     FullName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "NOW()"),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -55,41 +89,6 @@ namespace SmartStudy.Server.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChatSessions",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChatSessions", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Subjects",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Code = table.Column<string>(type: "text", nullable: false),
-                    Name = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
-                    Credits = table.Column<int>(type: "integer", nullable: false),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subjects", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,8 +210,9 @@ namespace SmartStudy.Server.Migrations
                     Extension = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: false),
                     FileSize = table.Column<long>(type: "bigint", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -233,9 +233,9 @@ namespace SmartStudy.Server.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     TokenHash = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    RevokedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    RevokedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     ReplacedByTokenHash = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -270,54 +270,26 @@ namespace SmartStudy.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StudyPlans",
+                name: "Subjects",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Order = table.Column<int>(type: "integer", nullable: false),
+                    Code = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Credits = table.Column<int>(type: "integer", nullable: true),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ActualStartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ActualEndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StudyPlans", x => x.Id);
+                    table.PrimaryKey("PK_Subjects", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_StudyPlans_AspNetUsers_UserId",
+                        name: "FK_Subjects_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ChatMessages",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    SessionId = table.Column<int>(type: "integer", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false),
-                    Content = table.Column<string>(type: "text", nullable: false),
-                    Data = table.Column<JsonElement>(type: "jsonb", nullable: true),
-                    Type = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ChatMessages_ChatSessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "ChatSessions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -331,11 +303,10 @@ namespace SmartStudy.Server.Migrations
                     AssetId = table.Column<int>(type: "integer", nullable: false),
                     LinkedId = table.Column<int>(type: "integer", nullable: false),
                     LinkedType = table.Column<string>(type: "text", nullable: false),
-                    Category = table.Column<string>(type: "text", nullable: false),
-                    FormFieldKey = table.Column<string>(type: "text", nullable: true),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -355,31 +326,91 @@ namespace SmartStudy.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "DocumentChunks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    AssetId = table.Column<int>(type: "integer", nullable: false),
+                    PageNumber = table.Column<int>(type: "integer", nullable: false),
+                    TextContent = table.Column<string>(type: "text", nullable: false),
+                    Embedding = table.Column<Vector>(type: "vector(768)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DocumentChunks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DocumentChunks_Assets_AssetId",
+                        column: x => x.AssetId,
+                        principalTable: "Assets",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChatMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    SessionId = table.Column<int>(type: "integer", nullable: false),
+                    Role = table.Column<string>(type: "text", nullable: false),
+                    Content = table.Column<string>(type: "text", nullable: false),
+                    Data = table.Column<JsonElement>(type: "jsonb", nullable: true),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ChatSessions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    CourseId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatSessions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ChatSessions_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Courses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
+                    Color = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     TargetScore = table.Column<double>(type: "double precision", nullable: true),
                     FinalScore = table.Column<double>(type: "double precision", nullable: true),
                     Goal = table.Column<string>(type: "text", nullable: true),
-                    StudyPlanId = table.Column<int>(type: "integer", nullable: false),
                     SubjectId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    StudyPlanId = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Courses", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Courses_StudyPlans_StudyPlanId",
-                        column: x => x.StudyPlanId,
-                        principalTable: "StudyPlans",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Courses_Subjects_SubjectId",
                         column: x => x.SubjectId,
@@ -394,15 +425,16 @@ namespace SmartStudy.Server.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     CourseId = table.Column<int>(type: "integer", nullable: false),
+                    IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
                     Title = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
-                    DueDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    DueDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
                     Priority = table.Column<int>(type: "integer", nullable: false),
                     Location = table.Column<string>(type: "text", nullable: true),
                     Notes = table.Column<string>(type: "text", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -426,9 +458,9 @@ namespace SmartStudy.Server.Migrations
                     Unit = table.Column<string>(type: "text", nullable: false),
                     Strategy = table.Column<int>(type: "integer", nullable: false),
                     TimelineEventId = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -442,6 +474,107 @@ namespace SmartStudy.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Logs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Note = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ActualDuration = table.Column<int>(type: "integer", nullable: false),
+                    ComprehensionLevel = table.Column<int>(type: "integer", nullable: true),
+                    DifficultyLevel = table.Column<int>(type: "integer", nullable: true),
+                    TimerStartAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    TimerEndAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    TaskId = table.Column<int>(type: "integer", nullable: false),
+                    EventRequirementId = table.Column<int>(type: "integer", nullable: true),
+                    EarnedValue = table.Column<float>(type: "real", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Logs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlanTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    IsPublic = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedById = table.Column<int>(type: "integer", nullable: true),
+                    Payload = table.Column<string>(type: "jsonb", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    SourcePlanId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlanTemplates", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlanTemplates_AspNetUsers_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StudyPlans",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    Order = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    TemplateId = table.Column<int>(type: "integer", nullable: true),
+                    TermId = table.Column<int>(type: "integer", nullable: true),
+                    YearId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ActualStartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ActualEndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudyPlans", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_StudyPlans_AcademicTerms_TermId",
+                        column: x => x.TermId,
+                        principalTable: "AcademicTerms",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_StudyPlans_AcademicYears_YearId",
+                        column: x => x.YearId,
+                        principalTable: "AcademicYears",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_StudyPlans_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudyPlans_PlanTemplates_TemplateId",
+                        column: x => x.TemplateId,
+                        principalTable: "PlanTemplates",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Routines",
                 columns: table => new
                 {
@@ -451,16 +584,16 @@ namespace SmartStudy.Server.Migrations
                     Description = table.Column<string>(type: "text", nullable: true),
                     Instructor = table.Column<string>(type: "text", nullable: true),
                     Type = table.Column<int>(type: "integer", nullable: false),
-                    StartDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    NextOccurrence = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    NextOccurrence = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    StudyPlanId = table.Column<int>(type: "integer", nullable: false),
+                    StudyPlanId = table.Column<int>(type: "integer", nullable: true),
                     CourseId = table.Column<int>(type: "integer", nullable: true),
                     TimelineEventId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -481,8 +614,7 @@ namespace SmartStudy.Server.Migrations
                         name: "FK_Routines_StudyPlans_StudyPlanId",
                         column: x => x.StudyPlanId,
                         principalTable: "StudyPlans",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Routines_TimelineEvents_TimelineEventId",
                         column: x => x.TimelineEventId,
@@ -501,9 +633,9 @@ namespace SmartStudy.Server.Migrations
                     Duration = table.Column<int>(type: "integer", nullable: true),
                     Location = table.Column<string>(type: "text", nullable: true),
                     RoutineId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -530,16 +662,17 @@ namespace SmartStudy.Server.Migrations
                     Location = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
+                    StatusUpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     RoutineId = table.Column<int>(type: "integer", nullable: true),
                     ScheduleId = table.Column<int>(type: "integer", nullable: true),
                     CourseId = table.Column<int>(type: "integer", nullable: true),
-                    StudyPlanId = table.Column<int>(type: "integer", nullable: false),
+                    StudyPlanId = table.Column<int>(type: "integer", nullable: true),
                     TimelineEventId = table.Column<int>(type: "integer", nullable: true),
                     EventRequirementId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -574,8 +707,7 @@ namespace SmartStudy.Server.Migrations
                         name: "FK_Tasks_StudyPlans_StudyPlanId",
                         column: x => x.StudyPlanId,
                         principalTable: "StudyPlans",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Tasks_TimelineEvents_TimelineEventId",
                         column: x => x.TimelineEventId,
@@ -583,36 +715,52 @@ namespace SmartStudy.Server.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Logs",
-                columns: table => new
+            migrationBuilder.InsertData(
+                table: "AcademicTerms",
+                columns: new[] { "Id", "Name", "TermNumber" },
+                values: new object[,]
                 {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Note = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: true),
-                    CompletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    ActualDuration = table.Column<int>(type: "integer", nullable: false),
-                    ProductivityScore = table.Column<int>(type: "integer", nullable: true),
-                    ComprehensionLevel = table.Column<int>(type: "integer", nullable: true),
-                    DifficultyLevel = table.Column<int>(type: "integer", nullable: true),
-                    TimerStartAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TimerEndAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    TaskId = table.Column<int>(type: "integer", nullable: false),
-                    EventRequirementId = table.Column<int>(type: "integer", nullable: true),
-                    EarnedValue = table.Column<float>(type: "real", nullable: true),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    DeletedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
+                    { 1, "Học kỳ I", 1 },
+                    { 2, "Học kỳ II", 2 },
+                    { 3, "Học kỳ III", 3 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "AcademicYears",
+                columns: new[] { "Id", "EndYear", "Name", "StartYear" },
+                values: new object[,]
                 {
-                    table.PrimaryKey("PK_Logs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Logs_Tasks_TaskId",
-                        column: x => x.TaskId,
-                        principalTable: "Tasks",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    { 2010, 2011, "Niên khóa 2010 - 2011", 2010 },
+                    { 2011, 2012, "Niên khóa 2011 - 2012", 2011 },
+                    { 2012, 2013, "Niên khóa 2012 - 2013", 2012 },
+                    { 2013, 2014, "Niên khóa 2013 - 2014", 2013 },
+                    { 2014, 2015, "Niên khóa 2014 - 2015", 2014 },
+                    { 2015, 2016, "Niên khóa 2015 - 2016", 2015 },
+                    { 2016, 2017, "Niên khóa 2016 - 2017", 2016 },
+                    { 2017, 2018, "Niên khóa 2017 - 2018", 2017 },
+                    { 2018, 2019, "Niên khóa 2018 - 2019", 2018 },
+                    { 2019, 2020, "Niên khóa 2019 - 2020", 2019 },
+                    { 2020, 2021, "Niên khóa 2020 - 2021", 2020 },
+                    { 2021, 2022, "Niên khóa 2021 - 2022", 2021 },
+                    { 2022, 2023, "Niên khóa 2022 - 2023", 2022 },
+                    { 2023, 2024, "Niên khóa 2023 - 2024", 2023 },
+                    { 2024, 2025, "Niên khóa 2024 - 2025", 2024 },
+                    { 2025, 2026, "Niên khóa 2025 - 2026", 2025 },
+                    { 2026, 2027, "Niên khóa 2026 - 2027", 2026 },
+                    { 2027, 2028, "Niên khóa 2027 - 2028", 2027 },
+                    { 2028, 2029, "Niên khóa 2028 - 2029", 2028 },
+                    { 2029, 2030, "Niên khóa 2029 - 2030", 2029 },
+                    { 2030, 2031, "Niên khóa 2030 - 2031", 2030 },
+                    { 2031, 2032, "Niên khóa 2031 - 2032", 2031 },
+                    { 2032, 2033, "Niên khóa 2032 - 2033", 2032 },
+                    { 2033, 2034, "Niên khóa 2033 - 2034", 2033 },
+                    { 2034, 2035, "Niên khóa 2034 - 2035", 2034 },
+                    { 2035, 2036, "Niên khóa 2035 - 2036", 2035 },
+                    { 2036, 2037, "Niên khóa 2036 - 2037", 2036 },
+                    { 2037, 2038, "Niên khóa 2037 - 2038", 2037 },
+                    { 2038, 2039, "Niên khóa 2038 - 2039", 2038 },
+                    { 2039, 2040, "Niên khóa 2039 - 2040", 2039 },
+                    { 2040, 2041, "Niên khóa 2040 - 2041", 2040 }
                 });
 
             migrationBuilder.InsertData(
@@ -682,14 +830,38 @@ namespace SmartStudy.Server.Migrations
                 column: "SessionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChatSessions_CourseId",
+                table: "ChatSessions",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ChatSessions_UserId",
+                table: "ChatSessions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Courses_Name_StudyPlanId",
+                table: "Courses",
+                columns: new[] { "Name", "StudyPlanId" },
+                unique: true,
+                filter: "\"DeletedAt\" IS NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Courses_StudyPlanId",
                 table: "Courses",
                 column: "StudyPlanId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Courses_SubjectId",
+                name: "IX_Courses_SubjectId_StudyPlanId",
                 table: "Courses",
-                column: "SubjectId");
+                columns: new[] { "SubjectId", "StudyPlanId" },
+                unique: true,
+                filter: "\"SubjectId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DocumentChunks_AssetId",
+                table: "DocumentChunks",
+                column: "AssetId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventRequirements_TimelineEventId",
@@ -702,6 +874,16 @@ namespace SmartStudy.Server.Migrations
                 column: "TaskId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlanTemplates_CreatedById",
+                table: "PlanTemplates",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PlanTemplates_SourcePlanId",
+                table: "PlanTemplates",
+                column: "SourcePlanId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_UserId",
                 table: "RefreshTokens",
                 column: "UserId");
@@ -712,11 +894,18 @@ namespace SmartStudy.Server.Migrations
                 column: "CourseId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Routines_Name_CourseId",
+                table: "Routines",
+                columns: new[] { "Name", "CourseId" },
+                unique: true,
+                filter: "\"DeletedAt\" IS NULL AND \"CourseId\" IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Routines_Name_UserId",
                 table: "Routines",
                 columns: new[] { "Name", "UserId" },
                 unique: true,
-                filter: "\"DeletedAt\" IS NULL");
+                filter: "\"DeletedAt\" IS NULL AND \"CourseId\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Routines_StudyPlanId",
@@ -739,15 +928,35 @@ namespace SmartStudy.Server.Migrations
                 column: "RoutineId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_StudyPlans_TemplateId",
+                table: "StudyPlans",
+                column: "TemplateId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudyPlans_TermId",
+                table: "StudyPlans",
+                column: "TermId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_StudyPlans_UserId",
                 table: "StudyPlans",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Subjects_Name",
+                name: "IX_StudyPlans_YearId",
+                table: "StudyPlans",
+                column: "YearId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Subjects_Name_Type_UserId",
                 table: "Subjects",
-                column: "Name",
+                columns: new[] { "Name", "Type", "UserId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Subjects_UserId",
+                table: "Subjects",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tasks_CourseId",
@@ -789,11 +998,62 @@ namespace SmartStudy.Server.Migrations
                 name: "IX_TimelineEvents_CourseId_DueDate",
                 table: "TimelineEvents",
                 columns: new[] { "CourseId", "DueDate" });
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ChatMessages_ChatSessions_SessionId",
+                table: "ChatMessages",
+                column: "SessionId",
+                principalTable: "ChatSessions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_ChatSessions_Courses_CourseId",
+                table: "ChatSessions",
+                column: "CourseId",
+                principalTable: "Courses",
+                principalColumn: "Id");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Courses_StudyPlans_StudyPlanId",
+                table: "Courses",
+                column: "StudyPlanId",
+                principalTable: "StudyPlans",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Logs_Tasks_TaskId",
+                table: "Logs",
+                column: "TaskId",
+                principalTable: "Tasks",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_PlanTemplates_StudyPlans_SourcePlanId",
+                table: "PlanTemplates",
+                column: "SourcePlanId",
+                principalTable: "StudyPlans",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.SetNull);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_PlanTemplates_AspNetUsers_CreatedById",
+                table: "PlanTemplates");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_StudyPlans_AspNetUsers_UserId",
+                table: "StudyPlans");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_PlanTemplates_StudyPlans_SourcePlanId",
+                table: "PlanTemplates");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -816,6 +1076,9 @@ namespace SmartStudy.Server.Migrations
                 name: "ChatMessages");
 
             migrationBuilder.DropTable(
+                name: "DocumentChunks");
+
+            migrationBuilder.DropTable(
                 name: "Logs");
 
             migrationBuilder.DropTable(
@@ -828,10 +1091,10 @@ namespace SmartStudy.Server.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Assets");
+                name: "ChatSessions");
 
             migrationBuilder.DropTable(
-                name: "ChatSessions");
+                name: "Assets");
 
             migrationBuilder.DropTable(
                 name: "Tasks");
@@ -852,13 +1115,22 @@ namespace SmartStudy.Server.Migrations
                 name: "Courses");
 
             migrationBuilder.DropTable(
-                name: "StudyPlans");
-
-            migrationBuilder.DropTable(
                 name: "Subjects");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "StudyPlans");
+
+            migrationBuilder.DropTable(
+                name: "AcademicTerms");
+
+            migrationBuilder.DropTable(
+                name: "AcademicYears");
+
+            migrationBuilder.DropTable(
+                name: "PlanTemplates");
         }
     }
 }

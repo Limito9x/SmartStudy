@@ -493,7 +493,7 @@ export type StudyPlanStatus = 'Active' | 'Completed' | 'Archived';
 
 export type StudyPlanType = 'Academic' | 'Personal';
 
-export type TaskStatus = 'Pending' | 'InProgress' | 'Completed' | 'Cancelled';
+export type TaskStatus = 'Pending' | 'InProgress' | 'Completed' | 'Cancelled' | 'Archived';
 
 export type TaskStatusDto = {
     status: TaskStatus;
@@ -816,6 +816,22 @@ export type LoginResponses = {
 };
 
 export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type GoogleLoginData = {
+    body: string;
+    path?: never;
+    query?: never;
+    url: '/api/auth/google-response';
+};
+
+export type GoogleLoginResponses = {
+    /**
+     * OK
+     */
+    200: LoginResponseDto;
+};
+
+export type GoogleLoginResponse = GoogleLoginResponses[keyof GoogleLoginResponses];
 
 export type GetProfileData = {
     body?: never;

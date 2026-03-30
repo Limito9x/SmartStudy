@@ -213,12 +213,20 @@ namespace SmartStudy.Server.Services
             if (studyPlan == null) return;
             _currentUserService.CheckAuthorized(studyPlan.UserId, nameof(Entities.StudyPlan));
 
-            if (studyPlan.Courses != null)
+            if (dto.Status != StudyPlanStatus.Active)
             {
-                foreach (var course in studyPlan.Courses.Where(c => c.Status == CourseStatus.Enrolled))
+                if (studyPlan.Courses != null)
                 {
-                    course.Status = CourseStatus.Completed;
+                    var courseStatusToUpdate = CourseStatus.Completed;
+                    if(dto.Status==StudyPlanStatus.Archived)
+                        courseStatusToUpdate = CourseStatus.Dropped;
+                    foreach (var course in studyPlan.Courses.Where(c => c.Status == CourseStatus.Enrolled))
+                    {
+                        course.Status = courseStatusToUpdate;
+                    }
                 }
+                
+                await DisableAllTasksAsync(planId);
             }
 
             studyPlan.Status = dto.Status;
@@ -294,6 +302,28 @@ namespace SmartStudy.Server.Services
             
         //    return null;
         //}
+
+        private async Task DisableAllTasksAsync(int studyPlanId)
+        {
+            // 1. Lấy danh sách ID của các khóa học thuộc Plan này
+            var courseIds = await _context.Courses
+                .Where(c => c.StudyPlanId == studyPlanId)
+                .Select(c => c.Id)
+                .ToListAsync();
+
+            if (!courseIds.Any()) return; // Không có môn nào thì thôi, khỏi update
+
+            // 2. Quét TẤT CẢ các Task thuộc các môn này mà CHƯA đóng
+            var tasksToArchive = _context.Tasks
+                .Where(t => t.CourseId != null 
+                            && courseIds.Contains(t.CourseId.Value) // Lọc qua mảng ID (cực kỳ an toàn)
+                            && t.Status != TaskStatus.Completed 
+                            && t.Status != TaskStatus.Cancelled
+                            && t.Status != TaskStatus.Archived);
+
+            // 3. Update siêu tốc
+            await tasksToArchive.ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, TaskStatus.Archived));
+        }
     }
 }
 

@@ -30,6 +30,13 @@ namespace SmartStudy.Server.Controllers
             var result = await _authService.LoginAsync(model);
             return Ok(result);
         }
+        
+        [HttpPost("google-response",Name="GoogleLogin")]
+        public async Task<ActionResult<LoginResponseDto>> GoogleLogin([FromBody] string credential)
+        {
+            var result = await _authService.GoogleLoginAsync(credential);
+            return Ok(result);
+        }
 
         [HttpGet("me",Name ="GetProfile")]
         [Authorize]

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Pgvector;
 using SmartStudy.Server.Data;
 
 #nullable disable
@@ -13,8 +14,8 @@ using SmartStudy.Server.Data;
 namespace SmartStudy.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260324062254_SubjectCodeOptional")]
-    partial class SubjectCodeOptional
+    [Migration("20260330075900_CompleteStudyPlanLogic")]
+    partial class CompleteStudyPlanLogic
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +25,7 @@ namespace SmartStudy.Server.Migrations
                 .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<int>", b =>
@@ -198,19 +200,19 @@ namespace SmartStudy.Server.Migrations
                         {
                             Id = 1,
                             Name = "Học kỳ I",
-                            TermNumber = 0
+                            TermNumber = 1
                         },
                         new
                         {
                             Id = 2,
                             Name = "Học kỳ II",
-                            TermNumber = 0
+                            TermNumber = 2
                         },
                         new
                         {
                             Id = 3,
                             Name = "Học kỳ III",
-                            TermNumber = 0
+                            TermNumber = 3
                         });
                 });
 
@@ -467,6 +469,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -517,15 +522,11 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int>("AssetId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("FormFieldKey")
-                        .HasColumnType("text");
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("LinkedId")
                         .HasColumnType("integer");
@@ -595,6 +596,9 @@ namespace SmartStudy.Server.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -612,6 +616,10 @@ namespace SmartStudy.Server.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("ChatSessions");
                 });
@@ -662,9 +670,44 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("StudyPlanId");
 
-                    b.HasIndex("SubjectId");
+                    b.HasIndex("Name", "StudyPlanId")
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
+                    b.HasIndex("SubjectId", "StudyPlanId")
+                        .IsUnique()
+                        .HasFilter("\"SubjectId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
 
                     b.ToTable("Courses");
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.DocumentChunk", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssetId")
+                        .HasColumnType("integer");
+
+                    b.Property<Vector>("Embedding")
+                        .IsRequired()
+                        .HasColumnType("vector(768)");
+
+                    b.Property<int>("PageNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TextContent")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId");
+
+                    b.ToTable("DocumentChunks");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.EventRequirement", b =>
@@ -797,6 +840,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int?>("SourcePlanId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
@@ -906,9 +952,13 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("Name", "CourseId")
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NOT NULL");
+
                     b.HasIndex("Name", "UserId")
                         .IsUnique()
-                        .HasFilter("\"DeletedAt\" IS NULL");
+                        .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NULL");
 
                     b.ToTable("Routines", (string)null);
                 });
@@ -1069,15 +1119,15 @@ namespace SmartStudy.Server.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Name")
-                        .IsUnique();
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("Name", "Type", "UserId")
+                        .IsUnique();
 
                     b.ToTable("Subjects");
                 });
@@ -1127,6 +1177,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("StatusUpdatedAt")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("StudyPlanId")
                         .HasColumnType("integer");
@@ -1386,6 +1439,23 @@ namespace SmartStudy.Server.Migrations
                     b.Navigation("Session");
                 });
 
+            modelBuilder.Entity("SmartStudy.Server.Entities.ChatSession", b =>
+                {
+                    b.HasOne("SmartStudy.Server.Entities.Course", "Course")
+                        .WithMany("ChatSessions")
+                        .HasForeignKey("CourseId");
+
+                    b.HasOne("SmartStudy.Server.Entities.User", "User")
+                        .WithMany("ChatSessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>
                 {
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
@@ -1401,6 +1471,17 @@ namespace SmartStudy.Server.Migrations
                     b.Navigation("StudyPlan");
 
                     b.Navigation("Subject");
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.DocumentChunk", b =>
+                {
+                    b.HasOne("SmartStudy.Server.Entities.Asset", "Asset")
+                        .WithMany("DocumentChunks")
+                        .HasForeignKey("AssetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Asset");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.EventRequirement", b =>
@@ -1535,9 +1616,13 @@ namespace SmartStudy.Server.Migrations
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Subject", b =>
                 {
-                    b.HasOne("SmartStudy.Server.Entities.User", null)
+                    b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("Subjects")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.TaskItem", b =>
@@ -1599,10 +1684,14 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("SmartStudy.Server.Entities.Asset", b =>
                 {
                     b.Navigation("AssetLinks");
+
+                    b.Navigation("DocumentChunks");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>
                 {
+                    b.Navigation("ChatSessions");
+
                     b.Navigation("Routines");
 
                     b.Navigation("Tasks");
@@ -1644,6 +1733,8 @@ namespace SmartStudy.Server.Migrations
 
             modelBuilder.Entity("SmartStudy.Server.Entities.User", b =>
                 {
+                    b.Navigation("ChatSessions");
+
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("Routines");

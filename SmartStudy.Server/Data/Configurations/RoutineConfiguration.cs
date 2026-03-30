@@ -15,12 +15,15 @@ namespace SmartStudy.Server.Data.Configurations
                 .HasMaxLength(200);
             builder.HasIndex(r => new { r.Name, r.UserId })
                 .IsUnique()
-                .HasFilter("\"DeletedAt\" IS NULL");
+                .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NULL");
+            
+            builder.HasIndex(r => new { r.Name, r.CourseId })
+                .IsUnique()
+                .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NOT NULL");
 
             builder.HasMany(r => r.Schedules)
                 .WithOne(s => s.Routine)
                 .HasForeignKey(s => s.RoutineId)
-                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

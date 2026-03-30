@@ -3,6 +3,7 @@ import { RegisterForm } from "@/components/forms/user/register";
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import OAuthLogin from "./OAuthLogin";
 
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
@@ -65,6 +66,17 @@ export default function LoginPage() {
             <TabsContent value="register" className="mt-6">
               <RegisterForm />
             </TabsContent>
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-muted-foreground/20"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Hoặc
+                </span>
+              </div>
+            </div>
+            <OAuthLogin />
           </Tabs>
         </div>
       </div>

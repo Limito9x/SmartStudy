@@ -18,5 +18,6 @@ namespace SmartStudy.Server.Entities.Enums
         InProgress,
         Completed,
         Cancelled,
+        Archived
     }
 }

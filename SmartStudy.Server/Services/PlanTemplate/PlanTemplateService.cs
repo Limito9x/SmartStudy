@@ -335,6 +335,7 @@ public class PlanTemplateService: IPlanTemplateService
     // Bước 1 — Tạo plan + courses trước, chưa có routines
     var plan = new StudyPlan
     {
+        Type = template.Type,
         Name = dto.Name ?? template.Name,
         UserId = userId,
         TemplateId = template.Id,

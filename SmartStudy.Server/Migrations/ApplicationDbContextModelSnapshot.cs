@@ -667,7 +667,13 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("StudyPlanId");
 
-                    b.HasIndex("SubjectId");
+                    b.HasIndex("Name", "StudyPlanId")
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
+                    b.HasIndex("SubjectId", "StudyPlanId")
+                        .IsUnique()
+                        .HasFilter("\"SubjectId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
 
                     b.ToTable("Courses");
                 });
@@ -943,9 +949,13 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("UserId");
 
+                    b.HasIndex("Name", "CourseId")
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NOT NULL");
+
                     b.HasIndex("Name", "UserId")
                         .IsUnique()
-                        .HasFilter("\"DeletedAt\" IS NULL");
+                        .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NULL");
 
                     b.ToTable("Routines", (string)null);
                 });

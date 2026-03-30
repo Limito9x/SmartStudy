@@ -12,7 +12,7 @@ export default function PlanTemplateSelectPlanDialog() {
   const { getAllStudyPlans } = useStudyPlan();
   const { createTemplate, createPlanTemplate } = usePlanTemplate();
 
-  const { data: studyPlans = [], isLoading } = getAllStudyPlans(true);
+  const { data: studyPlans = [], isLoading } = getAllStudyPlans();
 
   const [sourcePlanId, setSourcePlanId] = useState<number | null>(
     studyPlans.length > 0 ? Number(studyPlans[0].id) : null,
