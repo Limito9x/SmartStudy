@@ -43,7 +43,7 @@ namespace SmartStudy.Server.Services
             var course = _context.Courses.Include(c=>c.StudyPlan).FirstOrDefault(c => c.Id == RoutineDto.CourseId);
 
             // 1. Mapster tự động map luôn cả Routine VÀ danh sách Schedules bên trong
-            var Routine = _mapper.Map<Entities.Routine>(RoutineDto);
+            var Routine = _mapper.Map<Routine>(RoutineDto);
             Routine.UserId = userId;
             var now = DateTime.UtcNow;
             // 1. LOGIC TÍNH START DATE: 

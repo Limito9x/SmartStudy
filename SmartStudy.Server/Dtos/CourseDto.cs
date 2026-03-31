@@ -1,3 +1,4 @@
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
@@ -57,5 +58,37 @@ namespace SmartStudy.Server.Dtos
     {
         public List<CourseRoutineDto> Routines { get; set; }
         public List<CourseTaskDto> SingleTasks { get; set; }
+    }
+
+    public class EventRoutineDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public TaskType Type { get; set; }
+        public int TotalCompletion { get; set; }
+        public int TotalOccurrences { get; set; }
+    }
+    
+    public class EventTaskDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public TaskType Type { get; set; }
+        public Entities.Enums.TaskStatus Status { get; set; }
+    }
+
+    public class CourseEventDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public DateTime? DueDate { get; set; }
+        public EventType EventType { get; set; }
+        public PriorityLevel Priority { get; set; }
+        public string? Location { get; set; }
+        public string? Notes { get; set; }
+        public int CompletedTasks { get; set; }
+        public int TotalTasks { get; set; }
+        public List<EventTaskDto> Tasks { get; set; } = new List<EventTaskDto>();
+        public List<EventRoutineDto> Routines{ get; set; } = new List<EventRoutineDto>();
     }
 }

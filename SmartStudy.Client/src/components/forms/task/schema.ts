@@ -15,6 +15,7 @@ export const taskSchema = z.object({
   }),
   location: z.string().nullable().optional(),
   courseId: z.coerce.number().nullable().optional(),
+  eventId: z.coerce.number().nullable().optional(),
 }) satisfies z.ZodType<Partial<RequestTaskDto>, any, any>;
 
 export type TaskFormValues = z.infer<typeof taskSchema>;

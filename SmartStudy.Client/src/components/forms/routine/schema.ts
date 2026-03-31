@@ -8,6 +8,7 @@ export const routineSchema = z
     description: z.string().optional(),
     type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting"]),
     courseId: z.number().optional(),
+    eventId: z.number().optional(),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
     schedules: z.array(scheduleSchema).optional(),

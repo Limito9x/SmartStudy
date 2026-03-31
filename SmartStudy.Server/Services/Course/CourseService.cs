@@ -22,26 +22,25 @@ namespace SmartStudy.Server.Services
         //Task UpdateCourseProgressAsync(int CourseId);
         Task SyncCourseClassSessions(int courseId, List<ScheduleDto> scheduleDtos);
         Task<CourseWorkloadDto> GetCourseWorkloadAsync(int courseId, string? keyword);
+        Task<List<CourseEventDto>> GetCourseEventsAsync(int courseId);
     }
     public class CourseService : ICourseService
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IStudyPlanService _studyPlanService;
+        private readonly IRoutineService _routineService;
         private readonly IMapper _mapper;
 
         public CourseService(
             ApplicationDbContext context,
             ICurrentUserService currentUserService,
-            IAssetLinkService assetLinkService,
-            ISubjectService subjectService,
-            IStudyPlanService studyPlanService,
+            IRoutineService routineService,
             IMapper mapper
             )
         {
             _context = context;
             _currentUserService = currentUserService;
-            _studyPlanService = studyPlanService;
+            _routineService = routineService;
             _mapper = mapper;
         }
 
@@ -93,43 +92,18 @@ namespace SmartStudy.Server.Services
 
         public async Task<ResponseCourseDto> CreateCourseAsync(RequestCourseDto courseDto)
         {
-            var userId = _currentUserService.UserId;
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var studyPlan = await _studyPlanService.GetStudyPlanByIdAsync(courseDto.StudyPlanId);
 
-                var course = _mapper.Map<Entities.Course>(courseDto);
+                var course = _mapper.Map<Course>(courseDto);
                 course.StudyPlanId = courseDto.StudyPlanId;
 
                 _context.Courses.Add(course);
                 await _context.SaveChangesAsync();
-                
-                // var routineDto = new RequestRoutineDto(
-                //     Name: $"Lịch học {course.Name}",
-                //     Description: $"Lịch học cho môn {course.Name} - HK{term} ({year}-{year + 1})",
-                //     StartDate: studyPlan.StartDate,
-                //     EndDate: studyPlan.EndDate,
-                //     Type: TaskType.ClassSession,
-                //     CourseId: course.Id,
-                //     TimelineEventId: null,
-                //     StudyPlanId: studyPlan.Id
-                // );
-                //
-                // var routine = _mapper.Map<Routine>(routineDto);
-                // routine.UserId = userId;
-                //
-                // _context.Routines.Add(routine);
 
                 await _context.SaveChangesAsync();
-
-                // var autoEvents = GenerateAutoEventsForCourse(course.Id, subject.Type);
-                // if (autoEvents != null && autoEvents.Count > 0)
-                // {
-                //     _context.TimelineEvents.AddRange(autoEvents);
-                //     await _context.SaveChangesAsync();
-                // }
 
                 await transaction.CommitAsync();
 
@@ -369,6 +343,73 @@ namespace SmartStudy.Server.Services
                     };
                 }).ToList()
             };
+        }
+        
+        public async Task<List<CourseEventDto>> GetCourseEventsAsync(int courseId)
+        {
+            var events = await _context.TimelineEvents
+                .AsNoTracking()
+                .AsSplitQuery()
+                .Include(e => e.Tasks)
+                .Include(e => e.Routines)
+                .ThenInclude(r => r.Schedules)
+                .Where(e => e.CourseId == courseId)
+                .ToListAsync();
+
+            var courseEvents = events.Select(e =>
+            {
+                var singleTasks = e.Tasks
+                    .Where(t => t.RoutineId == null)
+                    .Select(t => _mapper.Map<EventTaskDto>(t));
+
+                var routines = e.Routines.Select(r =>
+                {
+                    DateTime endDate;
+
+                    if (r.EndDate.HasValue && e.DueDate.HasValue)
+                    {
+                        // Nếu có cả 2, lấy ngày nào đến trước!
+                        endDate = r.EndDate.Value < e.DueDate.Value ? r.EndDate.Value : e.DueDate.Value;
+                    }
+                    else
+                    {
+                        // Nếu 1 trong 2 bị null, ưu tiên lấy cái có giá trị. Khúc chót mới lấy UtcNow làm fallback
+                        endDate = r.EndDate ?? e.DueDate ?? DateTime.UtcNow;
+                    }
+                    
+                    var totalCompletions = r.Tasks.Count(t => t.Status == TaskStatus.Completed);
+                    var totalOccurrences = RoutineHelper.GetOccurences(r.StartDate, endDate, r).Count();
+                    
+                    return new EventRoutineDto
+                    {
+                        Id = r.Id,
+                        Name = r.Name,
+                        Type = r.Type,
+                        TotalCompletion = totalCompletions,
+                        TotalOccurrences = totalOccurrences
+                    };
+                });
+                
+                var completedTasks = singleTasks.Count(t=>t.Status==TaskStatus.Completed) + routines.Sum(r => r.TotalCompletion);
+                var totalPlanned = singleTasks.Count() + routines.Sum(r => r.TotalOccurrences);
+                
+                return new CourseEventDto
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    DueDate = e.DueDate,
+                    Priority = e.Priority,
+                    EventType = e.Type,
+                    Location = e.Location,
+                    Notes = e.Notes,
+                    Tasks = singleTasks.ToList(),
+                    Routines = routines.ToList(),
+                    CompletedTasks = completedTasks,
+                    TotalTasks = totalPlanned
+                };
+            }).ToList();
+
+            return courseEvents;
         }
         
         private double CalculateProgress(Course course)

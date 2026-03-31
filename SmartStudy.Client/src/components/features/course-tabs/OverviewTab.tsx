@@ -1,18 +1,29 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type {
-  ResponseCourseDto,
-  SimpleResponseRoutineDto,
-} from "@/services/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { ResponseCourseDto } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import { getRoutinesOptions } from "@/services/api/@tanstack/react-query.gen";
 import { weekdayMap } from "@/utils/calendar";
 import { AlertCircle, Clock, MapPin, Target } from "lucide-react";
 
 interface OverviewTabProps {
   course: ResponseCourseDto | null | undefined;
-  routines: SimpleResponseRoutineDto[];
+  courseId: number;
 }
 
-export default function OverviewTab({ course, routines }: OverviewTabProps) {
+export default function OverviewTab({ course, courseId }: OverviewTabProps) {
+  const routinesQuery = useQuery({
+    ...getRoutinesOptions({
+      query: {
+        CourseId: courseId,
+      },
+    }),
+    enabled: !!courseId,
+  });
+
+  const routines = routinesQuery.data ?? [];
+  const isLoading = routinesQuery.isLoading;
   return (
     <div className="space-y-6">
       <Card>
@@ -61,7 +72,13 @@ export default function OverviewTab({ course, routines }: OverviewTabProps) {
 
       <div>
         <h2 className="mb-3 text-md font-semibold">Lịch trình học tập</h2>
-        {routines.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-xl" />
+            ))}
+          </div>
+        ) : routines.length === 0 ? (
           <EmptyState text="Chưa có lịch trình" />
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

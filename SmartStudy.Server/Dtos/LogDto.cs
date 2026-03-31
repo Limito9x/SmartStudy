@@ -25,7 +25,6 @@ namespace SmartStudy.Server.Dtos
         DifficultyLevel? DifficultyLevel,
         DateTime? TimerStartAt,
         DateTime? TimerEndAt,
-        List<int>? AssetIds,
         bool markAsCompleted
     );
 }

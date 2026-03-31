@@ -124,21 +124,6 @@ namespace SmartStudy.Server.Services
                 _context.Logs.Add(log);
                 await _context.SaveChangesAsync();
 
-                if(logWorkDto.AssetIds != null && logWorkDto.AssetIds.Count > 0)
-                {
-                    var assets = await _context.Assets.Where(a => logWorkDto.AssetIds.Contains(a.Id)).ToListAsync();
-                    foreach (var asset in assets)
-                    {
-                        var assetLink = new Entities.AssetLink
-                        {
-                            AssetId = asset.Id,
-                            LinkedId = log.Id,
-                            LinkedType = AssetLinkType.Log
-                        };
-                        _context.AssetLinks.Add(assetLink);
-                    }
-                }
-
                 if (logWorkDto.markAsCompleted)
                 {
                     existingTaskItem.Status = TaskStatus.Completed;

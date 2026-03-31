@@ -13,6 +13,7 @@ namespace SmartStudy.Server.Dtos
         int? PlannedDuration,
         TaskType Type,
         int? CourseId,
+        int? TimelineEventId,
         int? StudyPlanId
     );
 
@@ -36,6 +37,7 @@ namespace SmartStudy.Server.Dtos
         int? RoutineId,
         int? ScheduleId,
         int? CourseId,
+        int? TimelineEventId,
         int? StudyPlanId
     );
 
@@ -52,6 +54,7 @@ namespace SmartStudy.Server.Dtos
         int? RoutineId,
         int? ScheduleId,
         int? CourseId,
+        int? TimelineEventId,
         int StudyPlanId
     );
 }

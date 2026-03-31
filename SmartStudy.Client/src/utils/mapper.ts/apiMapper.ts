@@ -8,7 +8,6 @@ import type {
   LogWorkDto,
   RequestStudyPlanDto,
   RequestSubjectDto,
-  StudyPlanType,
 } from "@/services/api/types.gen";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import type { TaskFormValues } from "@/components/forms/task/schema";
@@ -58,7 +57,7 @@ export const routineApiMapper = {
     type: routineData.type,
     courseId:
       typeof routineData.courseId === "number" ? routineData.courseId : null,
-    timelineEventId: null,
+    timelineEventId: routineData.eventId || null,
     startDate: routineData.startDate || null,
     endDate: routineData.endDate || null,
     schedules:
@@ -119,26 +118,6 @@ const parseDateToYyyyMmDd = (value?: string | null): string | null => {
   return `${year}-${month}-${day}`;
 };
 
-const calculateDurationMinutes = (
-  startAt?: string | null,
-  endAt?: string | null,
-): number | null => {
-  const start = parseTimeToHHmmss(startAt);
-  const end = parseTimeToHHmmss(endAt);
-
-  if (!start || !end) {
-    return null;
-  }
-
-  const [sH, sM] = start.split(":").map(Number);
-  const [eH, eM] = end.split(":").map(Number);
-  const startTotal = sH * 60 + sM;
-  const endTotal = eH * 60 + eM;
-  const duration = endTotal - startTotal;
-
-  return duration > 0 ? duration : null;
-};
-
 export const taskApiMapper = {
   toRequestTaskDto: (
     taskData: TaskFormValues,
@@ -152,6 +131,7 @@ export const taskApiMapper = {
     plannedDuration: taskData.plannedDuration || 60,
     type: taskData.type,
     courseId: typeof taskData.courseId === "number" ? taskData.courseId : null,
+    timelineEventId: taskData.eventId || null
   }),
 };
 
@@ -192,7 +172,6 @@ export const logApiMapper = {
     timerEndAt: parseTimeToHHmmss(logData.timerEndAt) || null,
     difficultyLevel: logData.difficultyLevel || null,
     comprehensionLevel: logData.comprehensionLevel || null,
-    assetIds: logData.assetIds || null,
     markAsCompleted: logData.markAsCompleted,
   }),
 };

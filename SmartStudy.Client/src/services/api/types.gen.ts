@@ -97,6 +97,20 @@ export type CourseAssetResponseDto = {
     sourceName?: string;
 };
 
+export type CourseEventDto = {
+    id?: number | string;
+    title?: string;
+    dueDate?: null | string;
+    eventType?: EventType;
+    priority?: PriorityLevel;
+    location?: null | string;
+    notes?: null | string;
+    completedTasks?: number | string;
+    totalTasks?: number | string;
+    tasks?: Array<EventTaskDto>;
+    routines?: Array<EventRoutineDto>;
+};
+
 export type CourseRoutineDto = {
     routine?: SimpleResponseRoutineDto;
     tasks?: Array<CourseTaskDto>;
@@ -157,6 +171,21 @@ export type EventRequirementResDto = {
     timelineEventId: number | string;
 };
 
+export type EventRoutineDto = {
+    id?: number | string;
+    name?: string;
+    type?: TaskType;
+    totalCompletion?: number | string;
+    totalOccurrences?: number | string;
+};
+
+export type EventTaskDto = {
+    id?: number | string;
+    name?: string;
+    type?: TaskType;
+    status?: TaskStatus;
+};
+
 export type EventType = 'Exam' | 'Assignment' | 'Presentation' | 'ProjectDeadline' | 'Other';
 
 export type FileType = number;
@@ -210,7 +239,6 @@ export type LogWorkDto = {
     difficultyLevel: null | DifficultyLevel;
     timerStartAt: null | string;
     timerEndAt: null | string;
-    assetIds: null | Array<number | string>;
     markAsCompleted: boolean;
 };
 
@@ -328,6 +356,7 @@ export type RequestTaskDto = {
     plannedDuration: null | number | string;
     type: TaskType;
     courseId: null | number | string;
+    timelineEventId: null | number | string;
     studyPlanId: null | number | string;
 };
 
@@ -428,6 +457,7 @@ export type ResponseTaskDto = {
     routineId: null | number | string;
     scheduleId: null | number | string;
     courseId: null | number | string;
+    timelineEventId: null | number | string;
     studyPlanId: null | number | string;
 };
 
@@ -1077,6 +1107,24 @@ export type GetCourseWorkloadResponses = {
 };
 
 export type GetCourseWorkloadResponse = GetCourseWorkloadResponses[keyof GetCourseWorkloadResponses];
+
+export type GetCourseEventsData = {
+    body?: never;
+    path: {
+        courseId: number | string;
+    };
+    query?: never;
+    url: '/api/courses/{courseId}/events';
+};
+
+export type GetCourseEventsResponses = {
+    /**
+     * OK
+     */
+    200: Array<CourseEventDto>;
+};
+
+export type GetCourseEventsResponse = GetCourseEventsResponses[keyof GetCourseEventsResponses];
 
 export type UpdateCourseStatusData = {
     body: UpdateCourseStatusDto;

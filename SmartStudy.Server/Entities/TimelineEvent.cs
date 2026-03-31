@@ -32,7 +32,8 @@ namespace SmartStudy.Server.Entities
         public string? Location { get; set; }
         public string? Notes { get; set; }
         // Breakdown thành các yêu cầu
-        ICollection<EventRequirement> EventRequirements { get; set; } = new List<EventRequirement>();
+        public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
+        public ICollection<Routine> Routines { get; set; } = new List<Routine>();
         }
 }
 

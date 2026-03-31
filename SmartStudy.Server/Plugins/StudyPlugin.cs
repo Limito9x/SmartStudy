@@ -82,7 +82,7 @@ namespace SmartStudy.Server.Plugins
             }
 
             var dto = new RequestTaskDto
-                (name,description, taskDate, startTime, duration, type,null, studyPlanId);
+                (name,description, taskDate, startTime, duration, type,null, null, studyPlanId);
             
             var response = await _taskService.CreateTaskAsync(dto);
             return $"Công việc '{response.Name}' đã được tạo thành công cho ngày {response.TaskDate}.";

@@ -1,17 +1,36 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Plus } from "lucide-react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { getCourseWorkloadOptions } from "@/services/api/@tanstack/react-query.gen";
 import type { CourseWorkloadDto } from "@/services/api";
 import RoutineGroup from "@/components/features/course-workloads/components/RoutineGroup";
 import CourseTaskCard from "@/components/features/course-workloads/components/CourseTaskCard";
 import { useDialogStore } from "@/stores/useDialogStore";
+import { useDebounce } from "@/hooks/useDebounce";
 
 interface WorkloadsTabProps {
-  courseId?: number;
-  data: CourseWorkloadDto | null | undefined;
+  courseId: number;
 }
 
-export default function WorkloadsTab({ courseId, data }: WorkloadsTabProps) {
+export default function WorkloadsTab({ courseId }: WorkloadsTabProps) {
   const { openDialog } = useDialogStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const workloadQuery = useQuery({
+    ...getCourseWorkloadOptions({
+      path: {
+        courseId: courseId,
+      },
+      query: {
+        search: debouncedSearch,
+      },
+    }),
+    enabled: !!courseId,
+  });
   const handleOpenCreateRoutine = () => {
     openDialog("ROUTINE_FORM", {
       courseId: courseId,
@@ -23,56 +42,58 @@ export default function WorkloadsTab({ courseId, data }: WorkloadsTabProps) {
       courseId: courseId,
     });
   };
+
+  const data: CourseWorkloadDto | null = workloadQuery.data ?? null;
   const routines = data?.routines ?? [];
   const singleTasks = data?.singleTasks ?? [];
-
   const isEmpty = routines.length === 0 && singleTasks.length === 0;
+  const isLoading = workloadQuery.isLoading;
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Danh sách Tiến độ & Công việc</h2>
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="flex-1">
+          <h2 className="mb-3 text-lg font-semibold">
+            Danh sách Tiến độ & Công việc
+          </h2>
+          <Input
+            placeholder="Tìm kiếm công việc..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-xs"
+          />
+        </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              handleOpenCreateRoutine();
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={handleOpenCreateRoutine}>
             <Plus size={14} />
             Thêm Lịch học
           </Button>
-          <Button
-            size="sm"
-            onClick={() => {
-              handleOpenCreateTask();
-            }}
-          >
+          <Button size="sm" onClick={handleOpenCreateTask}>
             <Plus size={14} />
             Tạo Công việc
           </Button>
         </div>
       </div>
 
-      {isEmpty ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-lg" />
+          ))}
+        </div>
+      ) : isEmpty ? (
         <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-6 py-10 text-center">
           <AlertCircle className="mb-4 h-14 w-14 text-muted-foreground/60" />
           <p className="text-base font-semibold">Chưa có công việc nào</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Bắt đầu bằng cách tạo công việc đầu tiên cho môn học này.
           </p>
-          <Button
-            className="mt-5"
-            onClick={() => handleOpenCreateTask()}
-          >
+          <Button className="mt-5" onClick={handleOpenCreateTask}>
             Tạo công việc đầu tiên
           </Button>
         </div>
-      ) : null}
-
-      {!isEmpty ? (
+      ) : (
         <>
           <section className="space-y-4">
             <div className="rounded-xl border-l-4 border-primary bg-primary/5 px-4 py-3">
@@ -125,7 +146,7 @@ export default function WorkloadsTab({ courseId, data }: WorkloadsTabProps) {
             )}
           </section>
         </>
-      ) : null}
+      )}
     </div>
   );
 }

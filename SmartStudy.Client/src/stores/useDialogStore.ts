@@ -26,11 +26,13 @@ export interface DialogDataMap {
   TASK_FORM: {
     taskId?: number;
     courseId?: number;
+    eventId?: number;
     defaultValues?: TaskFormValues;
   };
   ROUTINE_FORM: {
     routineId?: number;
     courseId?: number;
+    eventId?: number;
     defaultValues?: RoutineFormValues;
   };
   COURSE_FORM: {

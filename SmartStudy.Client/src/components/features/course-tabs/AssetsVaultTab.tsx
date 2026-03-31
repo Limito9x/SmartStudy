@@ -1,6 +1,9 @@
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { CourseAssetResponseDto } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import { getCourseAssetOptions } from "@/services/api/@tanstack/react-query.gen";
 import AssetUploader from "@/components/files/AssetUploader";
 import {
   AlertCircle,
@@ -11,22 +14,39 @@ import {
 } from "lucide-react";
 
 interface AssetsVaultTabProps {
-  assets: CourseAssetResponseDto[];
   courseId: number;
 }
 
-export default function AssetsVaultTab({
-  assets,
-  courseId,
-}: AssetsVaultTabProps) {
+export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
+  const assetsQuery = useQuery({
+    ...getCourseAssetOptions({
+      path: {
+        courseId: courseId,
+      },
+    }),
+    enabled: !!courseId,
+  });
+
+  const assets = assetsQuery.data ?? [];
+  const isLoading = assetsQuery.isLoading;
   const generalAssets = assets.filter((asset) => asset.linkedType === "Course");
   const lessonAssets = assets.filter((asset) => asset.linkedType === "Task");
 
   return (
     <div className="space-y-6">
       <AssetUploader linkedId={courseId} linkedType="Course" />
-      <AssetGroup title="Tài liệu chung" assets={generalAssets} />
-      <AssetGroup title="Tài liệu từ các buổi học" assets={lessonAssets} />
+      {isLoading ? (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-16 rounded-lg" />
+          ))}
+        </div>
+      ) : (
+        <>
+          <AssetGroup title="Tài liệu chung" assets={generalAssets} />
+          <AssetGroup title="Tài liệu từ các buổi học" assets={lessonAssets} />
+        </>
+      )}
     </div>
   );
 }

@@ -7,13 +7,18 @@ import {
   FormDatePicker,
 } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
-import type { ResponseCourseDto } from "@/services/api";
+import type {
+  ResponseCourseDto,
+  ResponseTimelineEventDto,
+} from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
+import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 
 interface RoutineFormProps {
   showCourseField?: boolean;
+  showEventField?: boolean;
   isEditMode?: boolean;
   defaultValues?: RoutineFormValues;
   onSubmit: (values: RoutineFormValues) => void;
@@ -21,12 +26,13 @@ interface RoutineFormProps {
 
 export default function RoutineForm({
   showCourseField = true,
+  showEventField = true,
   isEditMode = false,
   defaultValues,
   onSubmit,
 }: RoutineFormProps) {
   const { data: courses } = useCourse({
-    studyPlanId: undefined
+    studyPlanId: undefined,
   }).getCourses;
   return (
     <BaseForm
@@ -41,6 +47,9 @@ export default function RoutineForm({
         });
 
         const selectedCourseId = methods.watch("courseId");
+        const { data: events } = useTimelineEvent({
+          courseId: Number(selectedCourseId),
+        }).getEventsByCourse;
 
         return (
           <>
@@ -78,6 +87,19 @@ export default function RoutineForm({
                 getOptionValue={(option) => option.id!.toString()}
                 valueAsNumber
                 emptyText="Không tìm thấy khóa học"
+              />
+            )}
+            {showEventField && selectedCourseId && (
+              <FormCombobox<RoutineFormValues, ResponseTimelineEventDto>
+                name="eventId"
+                control={control}
+                label="Thuộc sự kiện"
+                placeholder="Chọn sự kiện (nếu có)"
+                options={events || []}
+                getOptionLabel={(option) => `${option.title}`}
+                getOptionValue={(option) => option.id!.toString()}
+                valueAsNumber
+                emptyText={"Không tìm thấy sự kiện nào thuộc khóa học đã chọn"}
               />
             )}
             <div className="flex items-center">
@@ -138,7 +160,8 @@ export default function RoutineForm({
                       Chưa có ca học nào.
                     </p>
                     <p className="text-xs text-blue-600 italic mt-1">
-                      💡 Có thể để trống và sắp xếp lịch sau thông qua giao diện "Lịch trình"
+                      💡 Có thể để trống và sắp xếp lịch sau thông qua giao diện
+                      "Lịch trình"
                     </p>
                   </div>
                 )}

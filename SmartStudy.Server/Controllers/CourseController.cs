@@ -39,6 +39,13 @@ namespace SmartStudy.Server.Controllers
             var workload = await _CourseService.GetCourseWorkloadAsync(courseId, search);
             return Ok(workload);
         }
+        
+        [HttpGet("{courseId}/events", Name = "GetCourseEvents")]
+        public async Task<ActionResult<List<CourseEventDto>>> GetCourseEvents(int courseId)
+        {
+            var events = await _CourseService.GetCourseEventsAsync(courseId);
+            return Ok(events);
+        }
 
         [HttpPost(Name = "CreateCourse")]
         public async Task<ActionResult<ResponseCourseDto>> CreateCourse(RequestCourseDto CourseDto)

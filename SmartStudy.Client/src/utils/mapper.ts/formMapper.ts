@@ -68,6 +68,7 @@ export const taskFormMapper = {
     taskDate: taskDto.taskDate || "",
     location: taskDto.location || "",
     courseId: Number(taskDto.courseId),
+    eventId: Number(taskDto.timelineEventId) || null,
   }),
 };
 
@@ -80,6 +81,7 @@ export const routineFormMapper = {
     startDate: routineDto.startDate || "",
     endDate: routineDto.endDate || "",
     courseId: Number(routineDto.courseId),
+    eventId: Number(routineDto.timelineEventId),
     schedules:
       routineDto.schedules?.map((s) => ({
         id: Number(s.id),
@@ -110,7 +112,7 @@ export const logFormMapper = {
         : undefined,
       timerStartAt: logDto.timerStartAt || "",
       timerEndAt: logDto.timerEndAt || "",
-      assetIds: [],
+      files: [],
     };
   },
 };
