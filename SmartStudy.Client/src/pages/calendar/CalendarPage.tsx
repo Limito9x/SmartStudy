@@ -38,7 +38,7 @@ export default function CalendarPage() {
   const { openDialog } = useDialogStore();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const { getCalendar, getUnscheduledItems, rescheduleCalendar } = useCalendar({
+  const { getCalendar, getInboxItems, rescheduleCalendar } = useCalendar({
     from: currentRange.from,
     to: currentRange.to,
   });
@@ -49,7 +49,7 @@ export default function CalendarPage() {
 
   const { data: calendarEvents } = getCalendar();
 
-  const { data: unscheduledItems } = getUnscheduledItems;
+  const { data: inboxItems } = getInboxItems;
 
   const handleRangeChange = (from: string, to: string) => {
     setCurrentRange({ from, to });
@@ -93,7 +93,7 @@ export default function CalendarPage() {
           newDuration: Math.ceil(
             (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60),
           ),
-        }
+        },
       });
     }
   };
@@ -126,8 +126,8 @@ export default function CalendarPage() {
             newDuration: Math.ceil(
               (end.getTime() - start.getTime()) / (1000 * 60),
             ), // duration tính bằng phút
-          }
-        })
+          },
+        });
       }
     },
     [updateTaskInfo],
@@ -146,6 +146,7 @@ export default function CalendarPage() {
               ) || 60,
             note: "",
             markAsCompleted: false,
+            files: [],
           },
         });
         return;
@@ -277,7 +278,7 @@ export default function CalendarPage() {
 
         <div className="h-[calc(100%-60px)]">
           <UnscheduledList
-            items={unscheduledItems}
+            inboxItems={inboxItems}
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
             onDelete={handleDeleteUnscheduledItem} // ← truyền hàm xóa vào đây

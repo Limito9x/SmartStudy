@@ -3,7 +3,7 @@ import { studyPlanSchema } from "./schema";
 import { FormInput, FormDatePicker } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
 import { type StudyPlanFormValues } from "./schema";
-import AcademicContext from "@/components/features/plan/AcademicContext";
+import FormAcademicContext from "@/components/form-controls/FormAcademicContext";
 import {  useWatch } from "react-hook-form";
 
 interface StudyPlanFormProps {
@@ -39,15 +39,11 @@ export default function StudyPlanForm({
               />
             )}
             {type === "Academic" && (
-              <AcademicContext
-                selectedTerm={methods.watch("termId")?.toString() || null}
-                onTermChange={(value) =>
-                  methods.setValue("termId", Number(value))
-                }
-                selectedYear={methods.watch("yearId")?.toString() || null}
-                onYearChange={(value) =>
-                  methods.setValue("yearId", Number(value))
-                }
+              <FormAcademicContext
+                control={methods.control}
+                setValue={methods.setValue}
+                termName="termId"
+                yearName="yearId"
               />
             )}
             <FormDatePicker

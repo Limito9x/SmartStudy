@@ -25,6 +25,7 @@ namespace SmartStudy.Server.Dtos
         string? University,
         string? Major,
         string? Cohort,
+        int AdmissionYear,
         int TermId,
         int YearId,
         DateTime StartDate,

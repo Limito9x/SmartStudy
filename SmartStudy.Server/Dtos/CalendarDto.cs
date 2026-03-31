@@ -12,8 +12,16 @@ public class UnscheduledItemDto
     public string? Description  { get; set; } 
     public TaskType Type  { get; set; }
     public int? CourseId  { get; set; }
+    public string? CourseName { get; set; }
+    public string? CourseColor { get; set; }
     public int StudyPlanId  { get; set; }
     public int PlannedDuration { get; set; }
+}
+
+public class InboxResponseDto
+{
+    public List<UnscheduledItemDto> FloatingTasks { get; set; } = new();
+    public List<UnscheduledItemDto> FixedRoutines { get; set; } = new();
 }
 
 public class CalendarEventDto

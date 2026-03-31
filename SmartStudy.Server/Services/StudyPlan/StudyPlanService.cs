@@ -19,6 +19,7 @@ namespace SmartStudy.Server.Services
         //Task CommitStudyPlanAsync(int planId);
         Task UpdateStudyPlanStatusAsync(int planId, UpdateStudyPlanStatusDto dto);
         Task<StudyPlanStatsDto> GetStudyPlanStatsAsync(int planId);
+        Task<AcademicContextDto> GetAcademicContextAsync();
     }
 
     public class StudyPlanService : IStudyPlanService
@@ -275,33 +276,30 @@ namespace SmartStudy.Server.Services
             };
         }
 
-        // private async Task PurgeDraftCoursesAsync(int planId)
-        // {
-        //     var drafts = await _context.Courses
-        //         .Where(c => c.StudyPlanId == planId && c.Status == CourseStatus.Draft)
-        //         .ExecuteDeleteAsync();
-        // }
-
-        //private List<TimelineEvent>? GenerateAutoEventsForCourseAsync(int courseId, SubjectType subjectType)
-        //{
-        //    // Bí kíp C#: Luôn dùng TryGetValue với Dictionary để không bao giờ bị Crash app
-        //    if (SubjectEventRegistry.Templates.TryGetValue(subjectType, out var templates))
-        //    {
-        //        // Dùng LINQ Select để "đúc" từ Template thành Entity thật
-        //        var timelineEvents = templates.Select(t => new TimelineEvent
-        //        {
-        //            CourseId = courseId,
-        //            Title = t.Title,
-        //            Type = t.Type,
-        //            Priority = t.Priority,
-        //            DueDate = null
-        //        }).ToList();
-                
-        //        return timelineEvents;
-        //    }
+        public async Task<AcademicContextDto> GetAcademicContextAsync()
+        {
+            var userId = _currentUserService.UserId;
+            var studentInfo = await _context.StudentInfos.FirstOrDefaultAsync(s => s.UserId == userId);
             
-        //    return null;
-        //}
+            var terms = await _context.AcademicTerms.OrderBy(t => t.TermNumber).ToListAsync();
+            var yearQuery = _context.AcademicYears
+                .Where(y => y.StartYear <= DateTime.UtcNow.Year);
+            
+            if(studentInfo is { AdmissionYear: not null })
+            {
+                yearQuery = yearQuery.Where(y => y.StartYear >= studentInfo.AdmissionYear.Value);
+            }
+
+            var years = await yearQuery.OrderByDescending(y => y.StartYear).ToListAsync();
+
+            var dto = new AcademicContextDto
+            {
+                Terms = terms,
+                Years = years
+            };
+            
+            return dto;
+        }
 
         private async Task DisableAllTasksAsync(int studyPlanId)
         {

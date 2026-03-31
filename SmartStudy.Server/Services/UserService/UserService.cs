@@ -43,7 +43,7 @@ namespace SmartStudy.Server.Services
             
             var studyPlan = new StudyPlan()
             {
-                Name = $"{term.Name} - {year.Name}",
+                Name = $"HK {term.TermNumber} {year.StartYear} - {year.EndYear}",
                 Type = Entities.Enums.StudyPlanType.Academic,
                 Status = Entities.Enums.StudyPlanStatus.Active,
                 UserId = userId,
@@ -52,6 +52,8 @@ namespace SmartStudy.Server.Services
                 StartDate = settingDto.StartDate,
                 EndDate = settingDto.EndDate
             };
+            
+            
 
             _dbContext.StudyPlans.Add(studyPlan);
 

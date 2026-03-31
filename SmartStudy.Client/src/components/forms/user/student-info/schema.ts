@@ -1,5 +1,4 @@
 import z from "zod";
-import type { StudentInfoDto } from "@/services/api";
 
 export const settingSchema = z.object({
   // 1. Thông tin cá nhân
@@ -10,10 +9,7 @@ export const settingSchema = z.object({
   yearId: z.coerce.number().nullable(),
   startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
   endDate: z.string().min(1, "Ngày kết thúc không được để trống"),
-}) satisfies z.ZodType<
-  Partial<StudentInfoDto>,
-  any,
-  any
->;
+  admissionYear: z.coerce.number().nullable(),
+});
 
 export type SettingFormValues = z.infer<typeof settingSchema>;

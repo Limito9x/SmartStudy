@@ -316,7 +316,8 @@ public class PlanTemplateService: IPlanTemplateService
             Name = ts.Name,
             Code = ts.Code,
             Credits = ts.Credits,
-            UserId = userId
+            UserId = userId,
+            Type = template.Type
         })
         .ToList();
     

@@ -10,5 +10,6 @@
         public string? University { get; set; }  // Trường (vd: Bách Khoa)
         public string? Major { get; set; }       // Ngành (vd: Khoa học Máy tính)
         public string? Cohort { get; set; }      // Khóa (vd: K65)
+        public int? AdmissionYear { get; set; }
     }
 }

@@ -3,8 +3,6 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectGroup,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -41,7 +39,6 @@ export default function AcademicContext({
 
   return (
     <div className="flex w-full gap-4 items-start">
-      {/* SELECT HỌC KỲ */}
       <div className="flex-1">
         <Label className="text-sm">Học kỳ</Label>
         <Select value={selectedTerm || ""} onValueChange={onTermChange}>
@@ -73,7 +70,6 @@ export default function AcademicContext({
           </SelectContent>
         </Select>
       </div>
-      {/* SELECT NĂM HỌC */}
     </div>
   );
 }

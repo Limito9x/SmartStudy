@@ -26,7 +26,7 @@ export default function RoutineForm({
   onSubmit,
 }: RoutineFormProps) {
   const { data: courses } = useCourse({
-    studyPlanId: undefined,
+    studyPlanId: undefined
   }).getCourses;
   return (
     <BaseForm
@@ -39,6 +39,9 @@ export default function RoutineForm({
           control,
           name: "schedules",
         });
+
+        const selectedCourseId = methods.watch("courseId");
+
         return (
           <>
             <FormInput
@@ -94,6 +97,12 @@ export default function RoutineForm({
                 placeholder="Chọn ngày kết thúc"
               />
             </div>
+            {/* Hiện ghi chú nếu user CÓ chọn khóa học nhưng KHÔNG chọn ngày */}
+            {selectedCourseId && (
+              <p className="text-xs text-blue-600 italic mt-1">
+                💡 Bỏ trống ngày nếu lịch trình này kéo dài suốt khóa học.
+              </p>
+            )}
 
             {/* --- KHU VỰC 2: CÁC CA HỌC (SCHEDULES) VỚI FIELD ARRAY --- */}
             <div className="pt-4 mt-6 border-t border-gray-200">
@@ -124,9 +133,14 @@ export default function RoutineForm({
               {/* 4. VÒNG LẶP RENDER CÁC CA HỌC */}
               <div className="space-y-3">
                 {fields.length === 0 && (
-                  <p className="text-xs text-center text-gray-400 italic py-4 bg-gray-50 rounded-md">
-                    Chưa có ca học nào. Vui lòng thêm ít nhất 1 ca.
-                  </p>
+                  <div>
+                    <p className="text-xs text-center text-gray-400 italic py-4 bg-gray-50 rounded-md">
+                      Chưa có ca học nào.
+                    </p>
+                    <p className="text-xs text-blue-600 italic mt-1">
+                      💡 Có thể để trống và sắp xếp lịch sau thông qua giao diện "Lịch trình"
+                    </p>
+                  </div>
                 )}
 
                 {fields.map((field, index) => (

@@ -11,7 +11,7 @@ namespace SmartStudy.Server.Services;
 public interface ICalendarService
 {
     Task<List<CalendarEventDto>> GetCalendarAsync(DateOnly fromDate, DateOnly toDate);
-    Task<List<UnscheduledItemDto>> GetUnscheduledItemsAsync();
+    Task<InboxResponseDto> GetInboxItemsAsync();
     Task RescheduleTaskAsync(RescheduleTaskDto dto);
 }
 
@@ -147,23 +147,30 @@ public class CalendarService: ICalendarService
                  .ToList();
 }
 
-public async Task<List<UnscheduledItemDto>> GetUnscheduledItemsAsync()
+public async Task<InboxResponseDto> GetInboxItemsAsync()
 {
     var userId = _currentUserService.UserId;
-    var unscheduledList = new List<UnscheduledItemDto>();
-    var unscheduledTasks = await _context.Tasks
+    var floatingTasks = await _context.Tasks
+        .Include(t=>t.Course)
+        .AsNoTracking()
         .Where(t => t.UserId == userId
-                    && !t.TaskDate.HasValue).ToListAsync();
-    
-    unscheduledList.AddRange(_mapper.Map<List<UnscheduledItemDto>>(unscheduledTasks));
+                    && t.RoutineId == null
+                    && !t.TaskDate.HasValue
+                    && t.Status != TaskStatus.Cancelled
+                    && t.Status != TaskStatus.Archived)
+        .ToListAsync();
 
-    var unscheduledRoutines = await _context.Routines
-        .Where(r => r.UserId == userId
-                 && !r.Schedules.Any()).ToListAsync();
-    
-    unscheduledList.AddRange(_mapper.Map<List<UnscheduledItemDto>>(unscheduledRoutines));
+    var fixedRoutines = await _context.Routines
+        .Include(r => r.Course)
+        .AsNoTracking()
+        .Where(r => r.UserId == userId)
+        .ToListAsync();
 
-    return unscheduledList;
+    return new InboxResponseDto
+    {
+        FloatingTasks = _mapper.Map<List<UnscheduledItemDto>>(floatingTasks),
+        FixedRoutines = _mapper.Map<List<UnscheduledItemDto>>(fixedRoutines)
+    };
 }
 
 public async Task RescheduleTaskAsync(RescheduleTaskDto dto)

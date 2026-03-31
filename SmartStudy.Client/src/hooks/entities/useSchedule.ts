@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getRoutinesQueryKey,
   getTasksQueryKey,
-  getUnscheduledItemsQueryKey,
+  getInboxItemsQueryKey,
   getStudentDashboardSummaryQueryKey,
   createScheduleMutation,
   deleteScheduleMutation,
@@ -66,7 +66,7 @@ export const useSchedule = () => {
         queryKey: getRoutinesQueryKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: getUnscheduledItemsQueryKey(),
+        queryKey: getInboxItemsQueryKey(),
       });
       queryClient.invalidateQueries({
         queryKey: getStudentDashboardSummaryQueryKey(),

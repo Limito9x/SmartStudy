@@ -12,7 +12,6 @@ import Step1Personal from "./Step1Personal";
 import Step2Program from "./Step2Program";
 import { FormProvider, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 import type { SubmitHandler } from "react-hook-form";
 import { getProfileQueryKey } from "@/services/api/@tanstack/react-query.gen";
 import { useQueryClient } from "@tanstack/react-query";
@@ -22,8 +21,6 @@ const STEPS = ["Thông tin sinh viên", "Học kỳ hiện tại"];
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const { getAcademicContext } = useStudyPlan();
-  const { data: academicContext } = getAcademicContext;
   const queryClient = useQueryClient();
 
   const DEFAULT_FORM_VALUES: SettingFormValues = {
@@ -34,6 +31,7 @@ export default function OnboardingPage() {
     yearId: null,
     startDate: "",
     endDate: "",
+    admissionYear: null,
   };
 
   const formMethods = useForm<SettingFormValues>({
@@ -58,6 +56,7 @@ export default function OnboardingPage() {
           yearId: Number(dto.yearId),
           startDate: dto.startDate,
           endDate: dto.endDate,
+          admissionYear: Number(dto.admissionYear),
         },
       });
       // Sau khi cập nhật thành công, invalidate query để refetch lại thông tin người dùng
@@ -105,7 +104,7 @@ export default function OnboardingPage() {
             {currentStep === 1 && <Step1Personal />}
 
             {currentStep === 2 && (
-              <Step2Program academicContext={academicContext} />
+              <Step2Program />
             )}
 
             <div className="flex justify-between">

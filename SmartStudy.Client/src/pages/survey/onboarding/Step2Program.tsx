@@ -1,40 +1,33 @@
 import { useFormContext } from "react-hook-form";
-import { FormSelect, FormDatePicker } from "@/components/form-controls";
-import type { AcademicContextDto } from "@/services/api";
+import { FormDatePicker } from "@/components/form-controls";
 import type { SettingFormValues } from "@/components/forms/user/student-info/schema";
+import FormAcademicContext from "@/components/form-controls/FormAcademicContext";
+import { Label } from "@/components/ui/label";
+import { guessAcademicDates } from "@/lib/date-utils";
 
-interface Step2ProgramProps {
-  academicContext: AcademicContextDto | undefined;
-}
+export default function Step2Program() {
+  const { control, setValue, watch } = useFormContext<SettingFormValues>();
 
-export default function Step2Program({ academicContext }: Step2ProgramProps) {
-  const { control } = useFormContext<SettingFormValues>();
+  const admissionYear = Number(watch("admissionYear"));
+  
+  const handleTermChange = (termValue: number, yearValue: number) => {
+    // 1. Dựa vào năm nhập học và học kỳ để đoán ngày bắt đầu và kết thúc
+    const { startDate, endDate } = guessAcademicDates(termValue, yearValue);
+    // 2. Cập nhật lại form với ngày bắt đầu và kết thúc đã đoán được
+    setValue("startDate", startDate.toISOString().split("T")[0]);
+    setValue("endDate", endDate.toISOString().split("T")[0]);
+  };
 
   return (
     <div className="space-y-4">
-      <FormSelect
-        name="termId"
+      <Label className="text-lg font-semibold">Thông tin học kỳ hiện tại</Label>
+      <FormAcademicContext
         control={control}
-        label="Học kỳ hiện tại"
-        placeholder="Chọn học kỳ hiện tại"
-        options={
-          academicContext?.terms?.map((term) => ({
-            value: term.id!.toString(),
-            label: term.name || `Học kỳ ${term.termNumber}`,
-          })) || []
-        }
-      />
-      <FormSelect
-        name="yearId"
-        control={control}
-        label="Năm học hiện tại"
-        placeholder="Chọn năm học hiện tại"
-        options={
-          academicContext?.years?.map((year) => ({
-            value: year.id!.toString(),
-            label: `${year.startYear} - ${year.endYear}`,
-          })) || []
-        }
+        setValue={setValue}
+        termName="termId"
+        yearName="yearId"
+        minYear={admissionYear}
+        useAcademicContext={handleTermChange}
       />
       <FormDatePicker
         name="startDate"

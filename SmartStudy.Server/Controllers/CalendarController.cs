@@ -26,10 +26,10 @@ namespace SmartStudy.Server.Controllers
             return Ok(items);
         }
 
-        [HttpGet("Unscheduled", Name = "GetUnscheduledItems")]
-        public async Task<ActionResult<List<UnscheduledItemDto>>> GetUnscheduledItems()
+        [HttpGet("inbox", Name = "GetInboxItems")]
+        public async Task<ActionResult<InboxResponseDto>> GetInboxItems()
         {
-            var items = await _calendarService.GetUnscheduledItemsAsync();
+            var items = await _calendarService.GetInboxItemsAsync();
             return Ok(items);
         }
         

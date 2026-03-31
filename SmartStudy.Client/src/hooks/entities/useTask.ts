@@ -9,7 +9,7 @@ import {
   updateTaskStatusMutation,
   deleteTaskByIdMutation,
   getCalendarQueryKey,
-  getUnscheduledItemsQueryKey,
+  getInboxItemsQueryKey,
   getStudentDashboardSummaryQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskStatus } from "@/services/api";
@@ -17,7 +17,13 @@ import type { TaskStatus } from "@/services/api";
 export const useTask = () => {
   const queryClient = useQueryClient();
 
-  const getTasks = ({ courseId, status }: { courseId?: number, status?: TaskStatus }) =>
+  const getTasks = ({
+    courseId,
+    status,
+  }: {
+    courseId?: number;
+    status?: TaskStatus;
+  }) =>
     useQuery({
       ...getTasksOptions({
         query: {
@@ -47,7 +53,7 @@ export const useTask = () => {
         queryKey: getCalendarQueryKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: getUnscheduledItemsQueryKey(),
+        queryKey: getInboxItemsQueryKey(),
       });
     },
   });
@@ -107,7 +113,7 @@ export const useTask = () => {
         queryKey: getStudentDashboardSummaryQueryKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: getUnscheduledItemsQueryKey(),
+        queryKey: getInboxItemsQueryKey(),
       });
     },
   });

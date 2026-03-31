@@ -14,6 +14,12 @@ export default function Step1Personal() {
       />
       <FormInput control={control} name="major" label="Ngành học" />
       <FormInput control={control} name="cohort" label="Khóa" />
+      <FormInput
+        control={control}
+        name="admissionYear"
+        label="Năm nhập học"
+        type="number"
+      />
     </div>
   );
 }

@@ -6,8 +6,8 @@ import {
   createRoutineMutation,
   updateRoutineMutation,
   getCalendarQueryKey,
-  getUnscheduledItemsQueryKey,
-  deleteRoutineMutation
+  getInboxItemsQueryKey,
+  deleteRoutineMutation,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
 
@@ -53,7 +53,7 @@ export const useRoutine = () => {
         queryKey: getCalendarQueryKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: getUnscheduledItemsQueryKey(),
+        queryKey: getInboxItemsQueryKey(),
       });
       alert("Tạo thói quen thành công");
     },
@@ -82,7 +82,7 @@ export const useRoutine = () => {
         queryKey: getCalendarQueryKey(),
       });
       queryClient.invalidateQueries({
-        queryKey: getUnscheduledItemsQueryKey(),
+        queryKey: getInboxItemsQueryKey(),
       });
       alert("Xóa thói quen thành công");
     },

@@ -51,7 +51,7 @@ export default function Workspace() {
   // (Đảm bảo hook của bác chỉ gọi API khi activePlanId có giá trị)
   const { data: academicCourses, isLoading: isLoadingAcademicCourses } =
     useCourse({
-      studyPlanId: Number(academicPlan?.id),
+      studyPlanId: academicPlan?.id,
     }).getCourses;
 
   const { data: personalCourses, isLoading: isLoadingPersonalCourses } =

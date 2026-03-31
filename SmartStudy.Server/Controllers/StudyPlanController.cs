@@ -71,16 +71,7 @@ namespace SmartStudy.Server.Controllers
         [HttpGet("AcademicContext", Name = "GetAcademicContext")]
         public async Task<ActionResult<AcademicContextDto>> GetAcademicContext()
         {
-            var terms = await _context.AcademicTerms.OrderBy(t => t.TermNumber).ToListAsync();
-            var years = await _context.AcademicYears
-                .Where(y => y.StartYear <= DateTime.UtcNow.Year + 1)
-                .OrderByDescending(y => y.StartYear).ToListAsync();
-
-            var dto = new AcademicContextDto
-            {
-                Terms = terms,
-                Years = years
-            };
+            var dto = await _studyPlanService.GetAcademicContextAsync();
             return Ok(dto);
         }
 

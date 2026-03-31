@@ -165,6 +165,11 @@ export type IFormFile = Blob | File;
 
 export type IFormFileCollection = Array<IFormFile>;
 
+export type InboxResponseDto = {
+    floatingTasks?: Array<UnscheduledItemDto>;
+    fixedRoutines?: Array<UnscheduledItemDto>;
+};
+
 export type KpiSummaryDto = {
     totalUsers?: number | string;
     activeUsersThisWeek?: number | string;
@@ -473,6 +478,7 @@ export type StudentInfoDto = {
     university: null | string;
     major: null | string;
     cohort: null | string;
+    admissionYear: number | string;
     termId: number | string;
     yearId: number | string;
     startDate: string;
@@ -553,6 +559,8 @@ export type UnscheduledItemDto = {
     description?: null | string;
     type?: TaskType;
     courseId?: null | number | string;
+    courseName?: null | string;
+    courseColor?: null | string;
     studyPlanId?: number | string;
     plannedDuration?: number | string;
 };
@@ -868,21 +876,21 @@ export type GetCalendarResponses = {
 
 export type GetCalendarResponse = GetCalendarResponses[keyof GetCalendarResponses];
 
-export type GetUnscheduledItemsData = {
+export type GetInboxItemsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/calendar/Unscheduled';
+    url: '/api/calendar/inbox';
 };
 
-export type GetUnscheduledItemsResponses = {
+export type GetInboxItemsResponses = {
     /**
      * OK
      */
-    200: Array<UnscheduledItemDto>;
+    200: InboxResponseDto;
 };
 
-export type GetUnscheduledItemsResponse = GetUnscheduledItemsResponses[keyof GetUnscheduledItemsResponses];
+export type GetInboxItemsResponse = GetInboxItemsResponses[keyof GetInboxItemsResponses];
 
 export type RescheduleCalendarData = {
     body: RescheduleTaskDto;

@@ -9,7 +9,7 @@ import {
 } from "@/services/api/@tanstack/react-query.gen";
 
 interface UseCourseOptions {
-  studyPlanId?: number;
+  studyPlanId?: number | string;
 }
 
 export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
@@ -19,7 +19,6 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
     ...getCoursesOptions({
       query: { studyPlanId: studyPlanId },
     }),
-    enabled: !!studyPlanId,
   });
 
   const getCourseById = (courseId: number) => useQuery({
