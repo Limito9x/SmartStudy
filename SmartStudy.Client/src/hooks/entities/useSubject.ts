@@ -48,7 +48,6 @@ export const useSubject = () => {
       queryClient.invalidateQueries({
         queryKey: getSubjectsQueryKey(),
       });
-      alert("Tạo môn học thành công");
     },
   });
 
@@ -58,7 +57,6 @@ export const useSubject = () => {
       queryClient.invalidateQueries({
         queryKey: getSubjectsQueryKey(),
       });
-      alert("Tạo môn học thành công");
     },
   });
 
@@ -68,7 +66,6 @@ export const useSubject = () => {
       queryClient.invalidateQueries({
         queryKey: getSubjectsQueryKey(),
       });
-      alert("Cập nhật môn học thành công");
     },
   });
 
@@ -78,10 +75,6 @@ export const useSubject = () => {
       queryClient.invalidateQueries({
         queryKey: getSubjectsQueryKey(),
       });
-      alert("Xóa môn học thành công");
-    },
-    onError: () => {
-      alert("Có lỗi xảy ra khi xóa môn học");
     },
   });
 

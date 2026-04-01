@@ -10,7 +10,7 @@ namespace SmartStudy.Server.Entities
         public TaskType Type { get; set; } = TaskType.SelfStudy;
         public DateTime StartDate { get; set; } = DateTime.UtcNow;
         public DateTime? EndDate { get; set; }
-        public DateTime NextOccurrence { get; set; }
+        public bool IsActive { get; set; } = true;
         public int UserId { get; set; }
         public User User { get; set; }
         public int? StudyPlanId { get; set; }

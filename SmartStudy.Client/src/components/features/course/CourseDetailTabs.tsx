@@ -1,19 +1,34 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { ResponseCourseDto } from "@/services/api";
+import type { ResponseCourseDto, StudyPlanType } from "@/services/api";
 import WorkloadsTab from "@/components/features/course-workloads/WorkloadsTab";
 import OverviewTab from "@/components/features/course-tabs/OverviewTab";
 import AssetsVaultTab from "@/components/features/course-tabs/AssetsVaultTab";
+import { useQuery } from "@tanstack/react-query";
+import { getRoutinesOptions } from "@/services/api/@tanstack/react-query.gen";
 import EventsTab from "../course-events/EventsTab";
 
 interface CourseDetailTabsProps {
   course: ResponseCourseDto | null | undefined;
   courseId: number;
+  studyPlanId: number;
+  studyPlanType: StudyPlanType;
 }
 
 export default function CourseDetailTabs({
   course,
   courseId,
+  studyPlanId,
+  studyPlanType,
 }: CourseDetailTabsProps) {
+  const routinesQuery = useQuery({
+    ...getRoutinesOptions({
+      query: {
+        CourseId: courseId,
+      },
+    }),
+    enabled: !!courseId,
+  });
+
   return (
     <Tabs
       defaultValue="overview"
@@ -50,7 +65,14 @@ export default function CourseDetailTabs({
 
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
         <TabsContent value="overview" className="mt-6">
-          <OverviewTab course={course} courseId={courseId} />
+          <OverviewTab
+            course={course}
+            courseId={courseId}
+            studyPlanId={studyPlanId}
+            studyPlanType={studyPlanType}
+            routines={routinesQuery.data ?? []}
+            isRoutinesLoading={routinesQuery.isLoading}
+          />
         </TabsContent>
 
         <TabsContent value="workloads" className="mt-6">

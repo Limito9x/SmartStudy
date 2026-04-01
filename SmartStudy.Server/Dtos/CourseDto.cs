@@ -25,8 +25,17 @@ namespace SmartStudy.Server.Dtos
         public CourseStatus Status { get; set; }
         public string? Color { get; set; }
         public double Progress { get; set; }
+        public int TotalExpectations { get; set; }
+        public int TotalCompletions { get; set; }
         public int? SubjectId { get; set; }
         public List<ResponseTimelineEventDto>? TimelineEvents { get; set; }
+    }
+
+    public class CourseProgressDto
+    {
+        public double Progress { get; set; }
+        public int TotalExpectations { get; set; }
+        public int TotalCompletions { get; set; }
     }
 
     public record UpdateCourseStatusDto(CourseStatus Status);

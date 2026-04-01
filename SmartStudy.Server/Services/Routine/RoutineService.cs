@@ -10,9 +10,7 @@ using SmartStudy.Server.Helpers;
 namespace SmartStudy.Server.Services
 {
     public record Occurence(DateTime Date, Schedule Schedule);
-    // Toàn bộ CRUD về routine thường xoay quanh thông tin công việc
-    // Không có tác động gì đến lịch (schedule)
-    // Chỉ khi gán lịch -> sinh ra Task
+
     public interface IRoutineService
     {
         Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto);

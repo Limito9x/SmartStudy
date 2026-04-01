@@ -34,35 +34,36 @@ export default function BulkSubjectForm({ type, onSubmit, onCancel }: SubjectFor
           name: "subjects",
         });
         return (
-          <div className="space-y-4">
+          <div className="space-y-4 w-full">
             {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="border p-4 rounded mb-4 flex justify-between items-center gap-5"
-              >
-                {isAcademic && (
+              <div key={field.id} className="flex items-center gap-4 w-full">
+                <div
+                  className="border p-4 rounded mb-4 grid grid-cols-1 md:grid-cols-3 gap-4 flex-1"
+                >
+                  {isAcademic && (
+                    <FormInput
+                      name={`subjects.${index}.code`}
+                      control={control}
+                      label={`Mã môn học #${index + 1}`}
+                      placeholder="Nhập mã môn học (nếu có)"
+                    />
+                  )}
                   <FormInput
-                    name={`subjects.${index}.code`}
+                    name={`subjects.${index}.name`}
                     control={control}
-                    label={`Mã môn học #${index + 1}`}
-                    placeholder="Nhập mã môn học (nếu có)"
+                    label={`Tên môn học #${index + 1}`}
+                    placeholder="Nhập tên môn học"
                   />
-                )}
-                <FormInput
-                  name={`subjects.${index}.name`}
-                  control={control}
-                  label={`Tên môn học #${index + 1}`}
-                  placeholder="Nhập tên môn học"
-                />
-                {isAcademic && (
-                  <FormInput
-                    name={`subjects.${index}.credits`}
-                    control={control}
-                    label={`Số tín chỉ #${index + 1}`}
-                    type="number"
-                    placeholder="Nhập số tín chỉ"
-                  />
-                )}
+                  {isAcademic && (
+                    <FormInput
+                      name={`subjects.${index}.credits`}
+                      control={control}
+                      label={`Số tín chỉ #${index + 1}`}
+                      type="number"
+                      placeholder="Nhập số tín chỉ"
+                    />
+                  )}
+                </div>
                 <Button
                   type="button"
                   size={"icon-sm"}

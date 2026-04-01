@@ -15,7 +15,8 @@ namespace SmartStudy.Server.Data.Configurations
                 Name = x.Name,
                 Type = x.Type,
                 UserId = x.UserId
-            }).IsUnique();
+            }).IsUnique()
+            .HasFilter("\"DeletedAt\" IS NULL");
         }
     }
 }

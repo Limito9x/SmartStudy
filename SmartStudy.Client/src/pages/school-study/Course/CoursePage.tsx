@@ -4,7 +4,10 @@ import { ArrowLeft, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { getCourseByIdOptions } from "@/services/api/@tanstack/react-query.gen";
+import {
+  getCourseByIdOptions,
+  getStudyPlanByIdOptions,
+} from "@/services/api/@tanstack/react-query.gen";
 import CourseDetailTabs from "@/components/features/course/CourseDetailTabs";
 import CoursePanel from "@/components/panels/CoursePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -47,6 +50,15 @@ export default function CoursePage() {
       },
     }),
     enabled: !!courseIdNum,
+  });
+
+  const studyPlanQuery = useQuery({
+    ...getStudyPlanByIdOptions({
+      path: {
+        studyPlanId: studyPlanIdNum,
+      },
+    }),
+    enabled: !!studyPlanIdNum,
   });
 
   const isLoading = courseQuery.isLoading;
@@ -119,7 +131,12 @@ export default function CoursePage() {
               )}
             >
               {course && (
-                <CourseDetailTabs course={course} courseId={courseIdNum} />
+                <CourseDetailTabs
+                  course={course}
+                  courseId={courseIdNum}
+                  studyPlanId={studyPlanIdNum}
+                  studyPlanType={studyPlanQuery.data?.type ?? "Personal"}
+                />
               )}
             </div>
 

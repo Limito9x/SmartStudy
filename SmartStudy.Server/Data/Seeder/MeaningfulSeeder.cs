@@ -330,7 +330,6 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 CourseId = course.Id,
                 StartDate = plan.StartDate,
                 EndDate = plan.EndDate,
-                NextOccurrence = DateTime.UtcNow,
             };
 
             if (routineDto.Schedule is not null)

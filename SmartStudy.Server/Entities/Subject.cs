@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace SmartStudy.Server.Entities
 {
-    public class Subject : BaseSimpleEntity
+    public class Subject : BaseEntity
     {
         public string? Code { get; set; }
         public required string Name { get; set; }

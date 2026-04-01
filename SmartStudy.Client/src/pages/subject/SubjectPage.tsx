@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
 import type { StudyPlanType } from "@/services/api/types.gen";
+import { toast } from "sonner";
 
 const INIT_SEARCH_PARAMS = {
   page: 1,
@@ -71,9 +72,19 @@ export default function SubjectPage() {
       itemType: "môn học",
       itemName: subject.name,
       onConfirm: () => {
-        deleteSubjectMutation.mutate({
-          path: { subjectId: Number(subject.id) },
-        });
+        deleteSubjectMutation.mutate(
+          {
+            path: { subjectId: Number(subject.id) },
+          },
+          {
+            onSuccess: () => {
+              toast.success("Xóa môn học thành công");
+            },
+            onError: () => {
+              toast.error("Xóa môn học thất bại");
+            },
+          },
+        );
         closeDialog();
       },
     });
@@ -95,7 +106,7 @@ export default function SubjectPage() {
         open={openBulkDialog}
         onOpenChange={() => setOpenBulkDialog(false)}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="sm:max-w-3xl lg:max-w-4xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-bold text-blue-600">
               Thêm môn học mới
@@ -112,13 +123,13 @@ export default function SubjectPage() {
                 },
                 {
                   onSuccess: () => {
-                    closeDialog();
+                    setOpenBulkDialog(false);
+                    toast.success("Thêm môn học thành công");
                   },
                 },
               );
-              closeDialog();
             }}
-            onCancel={closeDialog}
+            onCancel={() => setOpenBulkDialog(false)}
           />
         </DialogContent>
       </Dialog>

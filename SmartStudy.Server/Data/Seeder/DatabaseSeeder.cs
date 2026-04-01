@@ -249,10 +249,6 @@ public class DatabaseSeeder : IDatabaseSeeder
                 routine.StartDate = plan.StartDate;
                 routine.EndDate = plan.EndDate;
 
-                var nextDay = new Faker().PickRandom<DayOfWeek>();
-                var nextTime = new TimeOnly(Random.Shared.Next(6, 21), 0);
-                routine.NextOccurrence = NextOccurrence(nextDay, nextTime);
-
                 var schedules = scheduleFaker.Generate(Random.Shared.Next(1, 3));
                 foreach (var schedule in schedules)
                 {

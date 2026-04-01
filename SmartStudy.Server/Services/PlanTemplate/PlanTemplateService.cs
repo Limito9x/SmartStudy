@@ -377,7 +377,6 @@ public class PlanTemplateService: IPlanTemplateService
             EndDate = r.EndDayOffset.HasValue
                 ? startDate.AddDays(r.EndDayOffset.Value)
                 : endDate,
-            NextOccurrence = startDate.AddDays(r.StartDayOffset),
             Schedules = r.Schedules.Select(s => new Schedule
             {
                 DayOfWeek = s.DayOfWeek,

@@ -76,5 +76,26 @@ namespace SmartStudy.Server.Controllers
             await _CourseService.UpdateCourseStatusAsync(courseId, dto);
             return NoContent();
         }
+
+        [HttpPatch("{courseId:int}/target-score", Name = "UpdateCourseTargetScore")]
+        public async Task<ActionResult> UpdateCourseTargetScore(int courseId, [FromBody] double targetScore)
+        {
+            await _CourseService.UpdateCourseTargetScoreAsync(courseId, targetScore);
+            return NoContent();
+        }
+
+        [HttpPost("{courseId:int}/final-score", Name = "UpdateCourseFinalScore")]
+        public async Task<ActionResult> UpdateCourseFinalScore(int courseId, [FromBody] double finalScore)
+        {
+            await _CourseService.UpdateCourseFinalScoreAsync(courseId, finalScore);
+            return NoContent();
+        }
+
+        [HttpPost("{courseId:int}/goal", Name = "UpdateCourseGoal")]
+        public async Task<ActionResult> UpdateCourseGoal(int courseId, [FromBody] string goal)
+        {
+            await _CourseService.UpdateCourseGoalAsync(courseId, goal);
+            return NoContent();
+        }
     }
 }

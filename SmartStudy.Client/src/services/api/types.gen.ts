@@ -384,6 +384,8 @@ export type ResponseCourseDto = {
     status?: CourseStatus;
     color?: null | string;
     progress?: number | string;
+    totalExpectations?: number | string;
+    totalCompletions?: number | string;
     subjectId?: null | number | string;
     timelineEvents?: null | Array<ResponseTimelineEventDto>;
 };
@@ -1137,6 +1139,54 @@ export type UpdateCourseStatusData = {
 };
 
 export type UpdateCourseStatusResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type UpdateCourseTargetScoreData = {
+    body: number | string;
+    path: {
+        courseId: number;
+    };
+    query?: never;
+    url: '/api/courses/{courseId}/target-score';
+};
+
+export type UpdateCourseTargetScoreResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type UpdateCourseFinalScoreData = {
+    body: number | string;
+    path: {
+        courseId: number;
+    };
+    query?: never;
+    url: '/api/courses/{courseId}/final-score';
+};
+
+export type UpdateCourseFinalScoreResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type UpdateCourseGoalData = {
+    body: string;
+    path: {
+        courseId: number;
+    };
+    query?: never;
+    url: '/api/courses/{courseId}/goal';
+};
+
+export type UpdateCourseGoalResponses = {
     /**
      * OK
      */

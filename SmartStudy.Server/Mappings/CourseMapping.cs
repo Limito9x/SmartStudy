@@ -1,6 +1,7 @@
 using Mapster;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
+using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Mappings
 {
@@ -12,7 +13,8 @@ namespace SmartStudy.Server.Mappings
                 .Ignore(dest => dest.Id)
                 .Ignore(dest => dest.StudyPlan)
                 .IgnoreNullValues(true);
-            
+
+
         }
     }
 }

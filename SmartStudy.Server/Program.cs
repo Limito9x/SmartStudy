@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using SmartStudy.Server.Middlewares;
 using SmartStudy.Server.Services.AI;
+using Hangfire;
+using Hangfire.PostgreSql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -142,11 +144,20 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<StudyPlugin>()
+                .AddScoped<RoutineTaskGenerator>()
                 .AddScoped<IMapper, ServiceMapper>();
 
 // Background job dọn các asset 
 builder.Services.AddHostedService<GarbageCollectorJob>();
 builder.Services.AddHostedService<RagProcessingWorker>();
+
+builder.Services.AddHangfire(config => config
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(connectionString));
+
+builder.Services.AddHangfireServer();
 
 // Http client giao tiếp 3rd-party
 builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>();
@@ -205,6 +216,14 @@ app.UseHttpsRedirection();
 // Thứ tự middleware
 app.UseAuthentication(); // 1. Kiểm tra danh tính (Token có hợp lệ không ?)
 app.UseAuthorization(); // 2. Kiểm tra quyền hạn (Người dùng này được làm gì ?)
+
+// Dashboard hangfire
+app.UseHangfireDashboard("/hangfire");
+RecurringJob.AddOrUpdate<RoutineTaskGenerator>(
+    "daily-routine-task-generator",
+    generator=>generator.GenerateUpcomingTasksAsync(),
+    "0 1 * * *" // chạy 1h mỗi ngày
+    );
 
 app.MapControllers();
 

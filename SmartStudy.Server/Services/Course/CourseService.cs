@@ -20,8 +20,10 @@ namespace SmartStudy.Server.Services
         Task<bool> DeleteCourseAsync(int courseId);
         Task UpdateCourseStatusAsync(int courseId, UpdateCourseStatusDto dto);
         //Task UpdateCourseProgressAsync(int CourseId);
-        Task SyncCourseClassSessions(int courseId, List<ScheduleDto> scheduleDtos);
         Task<CourseWorkloadDto> GetCourseWorkloadAsync(int courseId, string? keyword);
+        Task UpdateCourseGoalAsync(int courseId, string goal);
+        Task UpdateCourseTargetScoreAsync(int courseId, double targetScore);
+        Task UpdateCourseFinalScoreAsync(int courseId, double finalScore);
         Task<List<CourseEventDto>> GetCourseEventsAsync(int courseId);
     }
     public class CourseService : ICourseService
@@ -48,7 +50,11 @@ namespace SmartStudy.Server.Services
         {
             var userId = _currentUserService.UserId;
             var query = _context.Courses
+                .AsNoTracking()
                 .Include(c => c.StudyPlan)
+                .Include(c => c.Tasks)
+                .Include(c=>c.Routines)
+                .ThenInclude(r=>r.Schedules)
                 .Where(c => c.StudyPlan!.UserId == userId);
             
             if (studyPlanId.HasValue)
@@ -66,7 +72,10 @@ namespace SmartStudy.Server.Services
             
             return courses.Select(c => {
                 var dto = c.Adapt<ResponseCourseDto>();
-                dto.Progress = CalculateProgress(c);
+                var courseProgressDto = CalculateProgress(c);
+                dto.TotalExpectations = courseProgressDto.TotalExpectations;
+                dto.TotalCompletions = courseProgressDto.TotalCompletions;
+                dto.Progress = courseProgressDto.Progress;
                 return dto;
             }).ToList();
         }
@@ -78,7 +87,8 @@ namespace SmartStudy.Server.Services
             var course = await _context.Courses
                 .Include(c => c.StudyPlan)
                 .Include(c => c.Tasks)
-                .ThenInclude(t => t.Logs)
+                .Include(c=>c.Routines)
+                .ThenInclude(r=>r.Schedules)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == courseId);
 
@@ -86,7 +96,10 @@ namespace SmartStudy.Server.Services
             if (course.StudyPlan == null || course.StudyPlan.UserId != userId) return null;
 
             var dto = _mapper.Map<ResponseCourseDto>(course);
-            dto.Progress = CalculateProgress(course);
+                var courseProgressDto = CalculateProgress(course);
+                dto.TotalExpectations = courseProgressDto.TotalExpectations;
+                dto.TotalCompletions = courseProgressDto.TotalCompletions;
+                dto.Progress = courseProgressDto.Progress;
             return dto;
         }
 
@@ -185,55 +198,6 @@ namespace SmartStudy.Server.Services
                     .ToListAsync();
                 _context.Tasks.RemoveRange(futureTasks);
             }
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task SyncCourseClassSessions(int courseId, List<ScheduleDto> scheduleDtos)
-        {
-            var userId = _currentUserService.UserId;
-            var routine = await _context.Routines.Include(r => r.Schedules)
-                .FirstOrDefaultAsync(r => r.CourseId == courseId && r.Type == TaskType.ClassSession);
-            
-            if(routine == null)
-            {
-                var course = await _context.Courses.Include(c => c.StudyPlan).FirstOrDefaultAsync(c => c.Id == courseId)
-                    ?? throw new KeyNotFoundException("Không tìm thấy khóa học");
-                var studyPlan = course.StudyPlan;
-
-                // var routineDto = new RequestRoutineDto(
-                //     Name: $"Lịch học {course.Name}",
-                //     Description: $"Lịch học cho môn {course.Name} - HK{term}({year}-{year + 1})",
-                //     StartDate: studyPlan.StartDate,
-                //     EndDate: studyPlan.EndDate,
-                //     Type: TaskType.ClassSession,
-                //     CourseId: course.Id,
-                //     TimelineEventId: null,
-                //     StudyPlanId: studyPlan.Id
-                // );
-                //
-                // var newRoutine = _mapper.Map<Routine>(routineDto);
-                // _context.Routines.Add(newRoutine);
-                await _context.SaveChangesAsync();
-                
-            }
-
-            CollectionHelper.SyncCollection<Schedule, ScheduleDto, int>(
-                existingEntities: routine.Schedules,
-                incomingDtos: scheduleDtos,
-                entityKeySelector: s => s.Id,
-                dtoKeySelector: dto => dto.Id,
-                updateAction: (schedule, dto) =>
-                {
-                    _mapper.Map(dto, schedule);
-                },
-                createFunc: dto =>
-                {
-                    var newSchedule = _mapper.Map<Schedule>(dto);
-                    newSchedule.RoutineId = routine.Id;
-                    return newSchedule;
-                }
-                );
 
             await _context.SaveChangesAsync();
         }
@@ -352,8 +316,27 @@ namespace SmartStudy.Server.Services
 
             return courseEvents;
         }
+
+        private CourseProgressDto CalculateProgress(Course course)
+        {
+            var totalOccurences = course.Routines.Sum(r=>
+                RoutineHelper.GetOccurences(r.StartDate, r.EndDate ?? DateTime.UtcNow, r).Count());
+            
+            var singleTasks = course.Tasks.Where(t => t.RoutineId == null).ToList();
+            var completedTasks = course.Tasks.Count(t => t.Status == TaskStatus.Completed);
+            
+            var totalPlanned = totalOccurences + singleTasks.Count();
+            var progress = completedTasks / (double)totalPlanned;
+            
+            return new CourseProgressDto
+            {
+                Progress = Math.Round(progress * 100, 1),
+                TotalExpectations = totalPlanned,
+                TotalCompletions = completedTasks
+            };
+        }
         
-        private double CalculateProgress(Course course)
+        private double CalculateEfficiency(Course course)
         {
             if (course.Tasks == null || course.Tasks.Count == 0) return 0;
 
@@ -374,6 +357,42 @@ namespace SmartStudy.Server.Services
             // Clamp về [0, 1] phòng trường hợp actual > planned
             var raw = taskRatio * 0.4 + durationRatio * 0.6;
             return Math.Min(Math.Round(raw * 100, 1), 100);
+        }
+        
+        public async Task UpdateCourseGoalAsync(int courseId, string goal)
+        {
+            var userId = _currentUserService.UserId;
+            var course = await _context.Courses
+                .Include(c => c.StudyPlan)
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null || course.StudyPlan == null || course.StudyPlan.UserId != userId) return;
+
+            course.Goal = goal;
+            await _context.SaveChangesAsync();
+        }
+        
+        public async Task UpdateCourseTargetScoreAsync(int courseId, double targetScore)
+        {
+            var userId = _currentUserService.UserId;
+            var course = await _context.Courses
+                .Include(c => c.StudyPlan)
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null || course.StudyPlan == null || course.StudyPlan.UserId != userId) return;
+
+            course.TargetScore = targetScore;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateCourseFinalScoreAsync(int courseId, double finalScore)
+        {
+            var userId = _currentUserService.UserId;
+            var course = await _context.Courses
+                .Include(c => c.StudyPlan)
+                .FirstOrDefaultAsync(c => c.Id == courseId);
+            if (course == null || course.StudyPlan == null || course.StudyPlan.UserId != userId) return;
+
+            course.FinalScore = finalScore;
+            await _context.SaveChangesAsync();
         }
     }
 }

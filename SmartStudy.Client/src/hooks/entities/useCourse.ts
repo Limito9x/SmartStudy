@@ -2,10 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getCourseByIdOptions,
   getCoursesQueryKey,
+  getCourseByIdQueryKey,
   getCoursesOptions,
   updateCourseMutation,
+  updateCourseStatusMutation,
+  updateCourseTargetScoreMutation,
+  updateCourseFinalScoreMutation,
+  updateCourseGoalMutation,
   createCourseMutation,
-  deleteCourseMutation
+  deleteCourseMutation,
 } from "@/services/api/@tanstack/react-query.gen";
 
 interface UseCourseOptions {
@@ -15,58 +20,104 @@ interface UseCourseOptions {
 export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
   const queryClient = useQueryClient();
 
+  const invalidateCourseList = () => {
+    queryClient.invalidateQueries({
+      queryKey: getCoursesQueryKey({
+        query: { studyPlanId: studyPlanId },
+      }),
+    });
+  };
+
+  const invalidateCourseById = (courseId?: number | string | null) => {
+    const parsedCourseId = Number(courseId);
+    if (!Number.isFinite(parsedCourseId) || parsedCourseId <= 0) {
+      return;
+    }
+
+    queryClient.invalidateQueries({
+      queryKey: getCourseByIdQueryKey({
+        path: { courseId: parsedCourseId },
+      }),
+    });
+  };
+
   const getCourses = useQuery({
     ...getCoursesOptions({
       query: { studyPlanId: studyPlanId },
     }),
   });
 
-  const getCourseById = (courseId: number) => useQuery({
-    ...getCourseByIdOptions({
-      path: { courseId: courseId! },
-    }),
-    enabled: !!courseId,
-  });
+  const useCourseById = (courseId: number) =>
+    useQuery({
+      ...getCourseByIdOptions({
+        path: { courseId: courseId! },
+      }),
+      enabled: !!courseId,
+    });
 
   const createCourse = useMutation({
     ...createCourseMutation(),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getCoursesQueryKey({
-          query: { studyPlanId: studyPlanId },
-        }),
-      });
+      invalidateCourseList();
     },
   });
 
   const updateCourse = useMutation({
     ...updateCourseMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getCoursesQueryKey({
-          query: { studyPlanId: studyPlanId },
-        }),
-      });
+    onSuccess: (data) => {
+      invalidateCourseList();
+      invalidateCourseById(data.id);
+    },
+  });
+
+  const updateCourseStatus = useMutation({
+    ...updateCourseStatusMutation(),
+    onSuccess: (_data, variables) => {
+      invalidateCourseList();
+      invalidateCourseById(variables.path.courseId);
+    },
+  });
+
+  const updateCourseTargetScore = useMutation({
+    ...updateCourseTargetScoreMutation(),
+    onSuccess: (_data, variables) => {
+      invalidateCourseList();
+      invalidateCourseById(variables.path.courseId);
+    },
+  });
+
+  const updateCourseFinalScore = useMutation({
+    ...updateCourseFinalScoreMutation(),
+    onSuccess: (_data, variables) => {
+      invalidateCourseList();
+      invalidateCourseById(variables.path.courseId);
+    },
+  });
+
+  const updateCourseGoal = useMutation({
+    ...updateCourseGoalMutation(),
+    onSuccess: (_data, variables) => {
+      invalidateCourseList();
+      invalidateCourseById(variables.path.courseId);
     },
   });
 
   const deleteCourse = useMutation({
     ...deleteCourseMutation(),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getCoursesQueryKey({
-          query: { studyPlanId: studyPlanId },
-        }),
-      });
+      invalidateCourseList();
     },
   });
 
-
   return {
     getCourses,
-    getCourseById,
+    getCourseById: useCourseById,
+    updateCourseStatus,
+    updateCourseTargetScore,
+    updateCourseFinalScore,
+    updateCourseGoal,
     createCourse,
     updateCourse,
-    deleteCourse
+    deleteCourse,
   };
 };
