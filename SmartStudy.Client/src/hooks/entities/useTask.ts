@@ -3,6 +3,7 @@ import {
   getTaskByIdOptions,
   getTasksOptions,
   getTasksQueryKey,
+  getTaskDetailByIdOptions,
   createTaskMutation,
   createTaskLogWorkMutation,
   updateTaskInfoMutation,
@@ -11,6 +12,8 @@ import {
   getCalendarQueryKey,
   getInboxItemsQueryKey,
   getStudentDashboardSummaryQueryKey,
+  getCourseWorkloadQueryKey,
+  getTaskDetailByIdQueryKey
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskStatus } from "@/services/api";
 
@@ -43,9 +46,20 @@ export const useTask = () => {
       enabled: !!id,
     });
 
+  const getTaskDetailById = (id: number) =>
+    useQuery({
+      ...getTaskDetailByIdOptions({
+        path: {
+          taskId: id,
+        },
+      }),
+      enabled: !!id,
+    });
+
   const createTask = useMutation({
     ...createTaskMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const courseId = data.courseId;
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
@@ -55,12 +69,20 @@ export const useTask = () => {
       queryClient.invalidateQueries({
         queryKey: getInboxItemsQueryKey(),
       });
+      queryClient.invalidateQueries({
+        queryKey: getCourseWorkloadQueryKey({
+          path: {
+            courseId: courseId ?? 0,
+          }
+        }),
+      });
     },
   });
 
   const createTaskLogWork = useMutation({
     ...createTaskLogWorkMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const taskId = data.taskId;
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
@@ -69,6 +91,13 @@ export const useTask = () => {
       });
       queryClient.invalidateQueries({
         queryKey: getStudentDashboardSummaryQueryKey(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: getTaskDetailByIdQueryKey({
+          path: {
+            taskId: taskId,
+          }
+        }),
       });
     },
   });
@@ -121,6 +150,7 @@ export const useTask = () => {
   return {
     getTasks,
     getTaskById,
+    getTaskDetailById,
     createTask,
     createTaskLogWork,
     updateTaskInfo,

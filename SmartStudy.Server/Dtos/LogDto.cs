@@ -12,8 +12,8 @@ namespace SmartStudy.Server.Dtos
         double Productivity,
         DateTime? TimerStartAt,
         DateTime? TimerEndAt,
-        DateTime? CompletedAt
-        // SimpleResponseTaskDto Task
+        DateTime? CompletedAt,
+        int TaskId
     );
 
     // Task generate log

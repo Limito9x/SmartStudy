@@ -57,4 +57,17 @@ namespace SmartStudy.Server.Dtos
         int? TimelineEventId,
         int StudyPlanId
     );
+
+    public class LogDoc
+    {
+        public LogDto Log { get; set; } = null!;
+        public List<AssetResponseDto> Assets { get; set; } = [];
+    }
+
+    public class TaskDetailDto
+    {
+        public ResponseTaskDto Task { get; set; } = null!;
+        public List<AssetResponseDto> Docs { get; set; } = [];
+        public List<LogDoc> Logs { get; set; } = [];
+    }
 }

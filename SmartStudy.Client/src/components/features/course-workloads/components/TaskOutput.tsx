@@ -1,10 +1,7 @@
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { LogDoc } from "@/services/api";
-import { NotebookPen } from "lucide-react";
 import AssetListItem from "../shared/AssetListItem";
 import { useDialogStore } from "@/stores/useDialogStore";
 
@@ -17,34 +14,32 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
   const { openDialog } = useDialogStore();
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <NotebookPen size={16} />
-            Nhật ký và bài làm
-          </CardTitle>
-          <Button
-            size="sm"
-            className="h-8"
-            onClick={() =>
-              openDialog("LOG_WORK_FORM", {
-                taskId,
-              })
-            }
-          >
-            Ghi nhận công việc
-          </Button>
-        </div>
-      </CardHeader>
+    <section className="space-y-3 pb-2">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
+          Nhật ký và bài làm
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8"
+          onClick={() =>
+            openDialog("LOG_WORK_FORM", {
+              taskId,
+            })
+          }
+        >
+          Ghi nhận
+        </Button>
+      </div>
 
-      <CardContent>
+      <div>
         {logs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Chưa có kết quả đầu ra cho công việc này.
-          </p>
+          <div className="rounded-md bg-muted/30 px-4 py-5 text-center text-sm text-muted-foreground">
+            Chưa có nhật ký đầu ra
+          </div>
         ) : (
-          <ScrollArea className="h-72 pr-2">
+          <ScrollArea className="max-h-72 pr-2">
             <div className="space-y-3">
               {logs.map((entry, index) => {
                 const log = entry.log;
@@ -55,14 +50,17 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
                 return (
                   <div
                     key={String(log.id ?? `log-${index}`)}
-                    className="space-y-2 rounded-lg border p-3"
+                    className="space-y-2 rounded-md bg-stone-100/70 p-3"
                   >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline">Log #{String(log.id)}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {log.completedAt
-                          ? new Date(log.completedAt).toLocaleString("vi-VN")
-                          : "Chưa có thời gian hoàn thành"}
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      <strong>{formatDuration(log.actualDuration)}</strong>
+                      <span className="text-muted-foreground">·</span>
+                      <span className="text-muted-foreground">
+                        Độ khó: {getDifficultyLabel(log.difficultyLevel)}
+                      </span>
+                      <span className="text-muted-foreground">·</span>
+                      <span>
+                        {getComprehensionStars(log.comprehensionLevel)}
                       </span>
                     </div>
 
@@ -83,13 +81,60 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
                         ))}
                       </div>
                     ) : null}
+
+                    <div className="pt-1">
+                      <Badge variant="outline" className="text-[11px]">
+                        {log.completedAt
+                          ? new Date(log.completedAt).toLocaleString("vi-VN")
+                          : "Chưa có thời gian hoàn thành"}
+                      </Badge>
+                    </div>
                   </div>
                 );
               })}
             </div>
           </ScrollArea>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
+}
+
+function formatDuration(value: number | string | null) {
+  if (value == null || value === "") {
+    return "-- phút";
+  }
+
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes) || minutes <= 0) {
+    return "-- phút";
+  }
+
+  return `${minutes} phút`;
+}
+
+function getDifficultyLabel(value: number | string | null) {
+  const level = Number(value);
+  if (!Number.isFinite(level)) {
+    return "Chưa cập nhật";
+  }
+
+  if (level >= 2) {
+    return "Khó";
+  }
+
+  if (level === 1) {
+    return "Trung bình";
+  }
+
+  return "Dễ";
+}
+
+function getComprehensionStars(value: number | string | null) {
+  const level = Number(value);
+  if (!Number.isFinite(level)) {
+    return "--";
+  }
+
+  return "*".repeat(Math.max(1, Math.min(4, level + 1)));
 }

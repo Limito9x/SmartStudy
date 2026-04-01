@@ -1,6 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { AssetResponseDto } from "@/services/api";
-import { BookOpen } from "lucide-react";
 import AssetListItem from "../shared/AssetListItem";
 import ContextUploader from "../shared/ContextUploader";
 
@@ -11,19 +9,23 @@ interface TaskInputProps {
 
 export default function TaskInput({ docs, taskId }: TaskInputProps) {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <BookOpen size={16} />
+    <section className="space-y-3 border-b pb-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs font-semibold tracking-[0.08em] text-muted-foreground uppercase">
           Tài liệu hướng dẫn
-        </CardTitle>
-      </CardHeader>
+        </p>
+        <ContextUploader
+          linkedId={taskId}
+          linkedType="Task"
+          buttonText="Đính kèm"
+        />
+      </div>
 
-      <CardContent className="space-y-3">
+      <div>
         {docs.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Chưa có tài liệu đầu vào cho công việc này.
-          </p>
+          <div className="rounded-md bg-muted/30 px-4 py-5 text-center text-sm text-muted-foreground">
+            Chưa có tài liệu đầu vào
+          </div>
         ) : (
           <div className="space-y-2">
             {docs.map((doc) => (
@@ -31,13 +33,7 @@ export default function TaskInput({ docs, taskId }: TaskInputProps) {
             ))}
           </div>
         )}
-
-        <ContextUploader
-          linkedId={taskId}
-          linkedType="Task"
-          buttonText="Đính kèm tài liệu"
-        />
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   );
 }

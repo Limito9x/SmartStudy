@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, PanelRightClose, PanelRightOpen } from "lucide-react";
-import { useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getCourseByIdOptions } from "@/services/api/@tanstack/react-query.gen";
 import CourseDetailTabs from "@/components/features/course/CourseDetailTabs";
-import { ChatContainer } from "@/components/chats/ChatDrawer";
+import CoursePanel from "@/components/panels/CoursePanel";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { usePanelStore } from "@/stores/usePanelStore";
 
 export default function CoursePage() {
   const { courseId, studyPlanId } = useParams<{
@@ -17,7 +19,26 @@ export default function CoursePage() {
   const navigate = useNavigate();
   const courseIdNum = Number(courseId);
   const studyPlanIdNum = Number(studyPlanId);
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  const isMobile = useIsMobile();
+  const { isOpen, type, openPanel, closePanel } = usePanelStore();
+
+  const isChatOpen = isOpen && type === "CHAT";
+  const isDesktopPanelOpen = !isMobile && isOpen;
+
+  useEffect(() => {
+    closePanel();
+  }, [courseIdNum, closePanel]);
+
+  const handleToggleChat = () => {
+    if (isChatOpen) {
+      closePanel();
+      return;
+    }
+
+    openPanel("CHAT", {
+      courseId: Number.isFinite(courseIdNum) ? courseIdNum : null,
+    });
+  };
 
   const courseQuery = useQuery({
     ...getCourseByIdOptions({
@@ -75,7 +96,7 @@ export default function CoursePage() {
             variant="outline"
             size="sm"
             className="gap-1.5"
-            onClick={() => setIsChatOpen((prev) => !prev)}
+            onClick={handleToggleChat}
           >
             {isChatOpen ? (
               <PanelRightClose size={16} />
@@ -92,7 +113,7 @@ export default function CoursePage() {
             <div
               className={cn(
                 "h-full min-h-0 min-w-0 transition-[width] duration-300 ease-in-out",
-                isChatOpen
+                isDesktopPanelOpen
                   ? "w-[calc(100%-clamp(320px,32vw,560px))]"
                   : "w-full",
               )}
@@ -105,18 +126,22 @@ export default function CoursePage() {
             <div
               className={cn(
                 "h-full overflow-hidden bg-background transition-all duration-300 ease-in-out",
-                isChatOpen
+                isDesktopPanelOpen
                   ? "w-[clamp(320px,32vw,560px)] border-l opacity-100"
                   : "w-0 border-l-0 opacity-0 pointer-events-none",
               )}
             >
               <div className="h-full min-h-0 overflow-hidden rounded-lg border">
-                <ChatContainer courseId={courseIdNum} />
+                <CoursePanel mode="inline" fallbackCourseId={courseIdNum} />
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {isMobile ? (
+        <CoursePanel mode="sheet" fallbackCourseId={courseIdNum} />
+      ) : null}
     </div>
   );
 }

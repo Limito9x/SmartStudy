@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Accordion } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Plus } from "lucide-react";
 import { useState } from "react";
@@ -46,25 +48,29 @@ export default function WorkloadsTab({ courseId }: WorkloadsTabProps) {
   const data: CourseWorkloadDto | null = workloadQuery.data ?? null;
   const routines = data?.routines ?? [];
   const singleTasks = data?.singleTasks ?? [];
+  const routineTaskCount = routines.reduce(
+    (total, routine) => total + (routine.tasks?.length ?? 0),
+    0,
+  );
   const isEmpty = routines.length === 0 && singleTasks.length === 0;
   const isLoading = workloadQuery.isLoading;
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div className="flex-1">
-          <h2 className="mb-3 text-lg font-semibold">
+      <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="w-full space-y-3 md:w-auto">
+          <h2 className="text-lg font-semibold">
             Danh sách Tiến độ & Công việc
           </h2>
           <Input
             placeholder="Tìm kiếm công việc..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
+            className="w-full md:w-85"
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
           <Button variant="outline" size="sm" onClick={handleOpenCreateRoutine}>
             <Plus size={14} />
             Thêm Lịch học
@@ -95,50 +101,48 @@ export default function WorkloadsTab({ courseId }: WorkloadsTabProps) {
         </div>
       ) : (
         <>
-          <section className="space-y-4">
-            <div className="rounded-xl border-l-4 border-primary bg-primary/5 px-4 py-3">
-              <h3 className="text-sm font-semibold">Công việc theo lịch học</h3>
-              <p className="text-xs text-muted-foreground">
-                Các công việc được nhóm theo từng routine để theo dõi tiến độ rõ
-                ràng.
-              </p>
-            </div>
+          <section className="space-y-3">
+            <SectionLabel
+              title="Công việc theo lịch học"
+              taskCount={routineTaskCount}
+            />
 
             {routines.length === 0 ? (
-              <div className="rounded-lg border border-dashed px-4 py-5 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed bg-muted/20 px-4 py-4 text-sm text-muted-foreground">
                 Chưa có nhóm công việc theo lịch học.
               </div>
             ) : (
-              <div className="space-y-4">
+              <Accordion type="multiple" className="space-y-2">
                 {routines.map((routine, index) => (
                   <RoutineGroup
                     key={String(routine.routine?.id ?? `routine-${index}`)}
                     routine={routine}
+                    value={String(
+                      routine.routine?.id ??
+                        routine.routine?.name ??
+                        `routine-${index}`,
+                    )}
                   />
                 ))}
-              </div>
+              </Accordion>
             )}
           </section>
 
-          <section className="space-y-4">
-            <div className="rounded-xl border-l-4 border-orange-500 bg-orange-50/80 px-4 py-3">
-              <h3 className="text-sm font-semibold text-orange-900">
-                Công việc độc lập
-              </h3>
-              <p className="text-xs text-orange-700">
-                Các công việc không thuộc bất kỳ routine cố định nào.
-              </p>
-            </div>
+          <section className="space-y-3">
+            <SectionLabel
+              title="Công việc độc lập"
+              taskCount={singleTasks.length}
+            />
 
             {singleTasks.length === 0 ? (
-              <div className="rounded-lg border border-dashed px-4 py-5 text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed bg-muted/20 px-4 py-4 text-sm text-muted-foreground">
                 Chưa có công việc độc lập.
               </div>
             ) : (
               <div className="space-y-3">
                 {singleTasks.map((task, index) => (
                   <CourseTaskCard
-                    key={String(task.task?.id ?? `single-task-${index}`)}
+                    key={String(task?.id ?? `single-task-${index}`)}
                     taskData={task}
                   />
                 ))}
@@ -147,6 +151,29 @@ export default function WorkloadsTab({ courseId }: WorkloadsTabProps) {
           </section>
         </>
       )}
+    </div>
+  );
+}
+
+function SectionLabel({
+  title,
+  taskCount,
+}: {
+  title: string;
+  taskCount: number;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <h3 className="shrink-0 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        {title}
+      </h3>
+      <div className="h-px flex-1 bg-border" />
+      <Badge
+        variant="outline"
+        className="h-6 rounded-full px-2 text-xs font-medium text-muted-foreground"
+      >
+        {taskCount} {taskCount === 1 ? "task" : "tasks"}
+      </Badge>
     </div>
   );
 }

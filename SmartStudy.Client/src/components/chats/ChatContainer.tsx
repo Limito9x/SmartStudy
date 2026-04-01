@@ -1,45 +1,10 @@
-// ChatDrawer.tsx
-import { ArrowLeft, ChevronDown, History, SquarePen } from "lucide-react";
+import { ArrowLeft, History, SquarePen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AssistantRuntimeProvider } from "@assistant-ui/react";
 import { Composer, Thread } from "@/components/thread";
 import { useChatRuntime } from "@/hooks/useChatRuntime";
 import { useChatSession } from "@/hooks/entities/useChatSession";
-import { useChatDrawerStore } from "@/stores/useChatDrawerStore";
-import { AssistantModalPrimitive } from "@assistant-ui/react";
-import { BotIcon } from "lucide-react";
-
-export default function ChatDrawer() {
-  const { isOpen, setOpen, open, courseId } = useChatDrawerStore();
-
-  return (
-    <AssistantModalPrimitive.Root open={isOpen} onOpenChange={setOpen}>
-      <AssistantModalPrimitive.Trigger
-        asChild
-        className="fixed right-4 bottom-4 size-14"
-      >
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => open(courseId ?? undefined)}
-          className="rounded-full"
-        >
-          {isOpen ? (
-            <ChevronDown className="h-5 w-5" />
-          ) : (
-            <BotIcon className="size-1 h-6 w-6" />
-          )}
-        </Button>
-      </AssistantModalPrimitive.Trigger>
-      <AssistantModalPrimitive.Content
-        sideOffset={16}
-        className="h-125 w-100 overflow-hidden rounded-2xl border bg-popover shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out"
-      >
-        <ChatContainer courseId={courseId} />
-      </AssistantModalPrimitive.Content>
-    </AssistantModalPrimitive.Root>
-  );
-}
+import { useChatStore } from "@/stores/useChatStore";
 
 interface ChatContainerProps {
   courseId?: number | null;
@@ -48,11 +13,10 @@ interface ChatContainerProps {
 export function ChatContainer({ courseId }: ChatContainerProps) {
   const {
     view,
-    courseId: storeCourseId,
     activeSessionId,
     setActiveSession,
-  } = useChatDrawerStore();
-  const effectiveCourseId = courseId ?? storeCourseId ?? null;
+  } = useChatStore();
+  const effectiveCourseId = courseId ?? null;
 
   const runtime = useChatRuntime({
     sessionId: activeSessionId || undefined,
@@ -110,7 +74,7 @@ function ThreadMode({ onBack }: { onBack: () => void }) {
 }
 
 function SessionList({ courseId }: { courseId: number | null }) {
-  const { activeSessionId, setActiveSession } = useChatDrawerStore();
+  const { activeSessionId, setActiveSession } = useChatStore();
   const { getAllChatSessions } = useChatSession();
   const { data: chatSessions, isLoading } = getAllChatSessions(
     courseId || undefined,

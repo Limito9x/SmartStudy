@@ -10,9 +10,12 @@ import { logFormMapper } from "@/utils/mapper.ts/formMapper";
 import { useMutation } from "@tanstack/react-query";
 import { uploadAssetsMutation } from "@/services/api/@tanstack/react-query.gen";
 import { formDataBodySerializer } from "@/services/api/client";
+import { useLoadingStore } from "@/stores/useLoadingStore";
+import { toast } from "sonner";
 
 export default function LogFormContainer() {
   const { data, closeDialog } = useDialogStore();
+  const { showLoading, hideLoading } = useLoadingStore();
   const { logId, taskId, defaultValues } =
     data as DialogDataMap["LOG_WORK_FORM"];
 
@@ -61,6 +64,7 @@ export default function LogFormContainer() {
         (file) => file instanceof File,
       );
       if (filesToUpload && filesToUpload.length > 0) {
+        showLoading("Đang tải tệp lên...");
         uploadAssets.mutate(
           {
             body: {
@@ -70,12 +74,18 @@ export default function LogFormContainer() {
             },
           },
           {
-            onSuccess: () => {
+            onSuccess: (data) => {
+              const totalUpload = data?.length ?? 0;
+              toast.success(`Tải lên ${totalUpload} tệp thành công`);
               closeDialog();
             },
+            onSettled: () => {
+              hideLoading();
+            }
           },
         );
       } else {
+        toast.success(isEditMode ? "Cập nhật log thành công" : "Tạo log thành công");
         closeDialog();
       }
     };

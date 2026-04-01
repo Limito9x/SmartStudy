@@ -3,6 +3,7 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
 
 namespace SmartStudy.Server.Services;
@@ -81,7 +82,7 @@ public class StudentDashboardService: IStudentDashboardService
 
     // Current plan
     var currentPlan = await _context.StudyPlans
-        .Where(p => p.UserId == userId)
+        .Where(p => p.UserId == userId && p.Status==StudyPlanStatus.Active)
         .OrderByDescending(p =>
             p.StartDate <= today && (p.EndDate == null || p.EndDate >= today) ? 1 : 0)
         .ThenByDescending(p => p.StartDate)

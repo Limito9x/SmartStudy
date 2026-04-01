@@ -113,20 +113,14 @@ export type CourseEventDto = {
 
 export type CourseRoutineDto = {
     routine?: SimpleResponseRoutineDto;
-    tasks?: Array<CourseTaskDto>;
+    tasks?: Array<ResponseTaskDto>;
 };
 
 export type CourseStatus = 'Enrolled' | 'Completed' | 'Dropped';
 
-export type CourseTaskDto = {
-    task?: ResponseTaskDto;
-    docs?: Array<AssetResponseDto>;
-    logs?: Array<LogDoc>;
-};
-
 export type CourseWorkloadDto = {
     routines?: Array<CourseRoutineDto>;
-    singleTasks?: Array<CourseTaskDto>;
+    singleTasks?: Array<ResponseTaskDto>;
 };
 
 export type CreatePlanTemplateDto = {
@@ -221,6 +215,7 @@ export type LogDto = {
     timerStartAt: null | string;
     timerEndAt: null | string;
     completedAt: null | string;
+    taskId: number | string;
 };
 
 export type LoginResponseDto = {
@@ -528,6 +523,12 @@ export type StudyPlanStatsDto = {
 export type StudyPlanStatus = 'Active' | 'Completed' | 'Archived';
 
 export type StudyPlanType = 'Academic' | 'Personal';
+
+export type TaskDetailDto = {
+    task?: ResponseTaskDto;
+    docs?: Array<AssetResponseDto>;
+    logs?: Array<LogDoc>;
+};
 
 export type TaskStatus = 'Pending' | 'InProgress' | 'Completed' | 'Cancelled' | 'Archived';
 
@@ -1987,6 +1988,24 @@ export type UpdateTaskInfoResponses = {
 };
 
 export type UpdateTaskInfoResponse = UpdateTaskInfoResponses[keyof UpdateTaskInfoResponses];
+
+export type GetTaskDetailByIdData = {
+    body?: never;
+    path: {
+        taskId: number | string;
+    };
+    query?: never;
+    url: '/api/tasks/{taskId}/detail';
+};
+
+export type GetTaskDetailByIdResponses = {
+    /**
+     * OK
+     */
+    200: TaskDetailDto;
+};
+
+export type GetTaskDetailByIdResponse = GetTaskDetailByIdResponses[keyof GetTaskDetailByIdResponses];
 
 export type UpdateTaskStatusData = {
     body: TaskStatusDto;

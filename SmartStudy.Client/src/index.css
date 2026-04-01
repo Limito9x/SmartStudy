@@ -231,3 +231,15 @@ body {
 .rbc-addons-dnd-resize-ns-icon {
   border-top-color: rgba(255, 255, 255, 0.8) !important;
 }
+
+/* Tăng chiều cao của mỗi block 30 phút / 1 tiếng */
+.rbc-time-slot {
+  min-height: 48px !important; /* Chỉnh số này to lên (vd 40px, 60px) cho đến khi vừa mắt */
+  display: flex;
+  align-items: center;
+}
+
+/* Tùy chỉnh cái trục giờ bên trái cho thoáng hơn */
+.rbc-timeslot-group {
+  min-height: 96px !important; /* Thường = 2 lần rbc-time-slot nếu step là 30p */
+}

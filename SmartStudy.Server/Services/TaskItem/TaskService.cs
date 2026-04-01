@@ -2,6 +2,7 @@
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Helpers;
 using MapsterMapper;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
@@ -11,6 +12,7 @@ namespace SmartStudy.Server.Services
     {
         Task<ResponseTaskDto> CreateTaskAsync(RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> GetTaskByIdAsync(int taskId);
+        Task<TaskDetailDto> GetTaskDetailByIdAsync(int taskId);
         Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status);
         Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
@@ -49,10 +51,37 @@ namespace SmartStudy.Server.Services
         {
             var userId = _currentUserService.UserId;
             var taskItem = await _context.Tasks.FindAsync(taskItemId);
-            if (taskItem == null || taskItem.UserId != userId)            
+            if (taskItem == null || taskItem.UserId != userId)
                 throw new KeyNotFoundException("Không tìm thấy công việc");
-                
+
             return _mapper.Map<ResponseTaskDto>(taskItem);
+        }
+
+        public async Task<TaskDetailDto> GetTaskDetailByIdAsync(int taskItemId)
+        {
+            var userId = _currentUserService.UserId;
+            var taskItem = await _context.Tasks
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == taskItemId && t.UserId == userId);
+
+            if (taskItem == null)
+                throw new KeyNotFoundException("Không tìm thấy công việc");
+
+            var logs = await _context.Logs
+                .AsNoTracking()
+                .Where(l => l.TaskId == taskItemId)
+                .ToListAsync();
+
+            var logIds = logs.Select(l => l.Id).ToList();
+            var links = await _context.AssetLinks
+                .Include(al => al.Asset)
+                .AsNoTracking()
+                .Where(al =>
+                    (al.LinkedType == AssetLinkType.Task && al.LinkedId == taskItemId) ||
+                    (al.LinkedType == AssetLinkType.Log && logIds.Contains(al.LinkedId)))
+                .ToListAsync();
+
+            return BuildTaskDetailDto(taskItem, logs, links);
         }
 
         public async Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status)
@@ -128,7 +157,7 @@ namespace SmartStudy.Server.Services
                 {
                     existingTaskItem.Status = TaskStatus.Completed;
                 }
-                else
+                else if(existingTaskItem.Status!=TaskStatus.Completed)
                 {
                     existingTaskItem.Status = TaskStatus.InProgress;
                 }
@@ -176,6 +205,37 @@ namespace SmartStudy.Server.Services
                 await _context.SaveChangesAsync();
             }
             return true;
+        }
+
+        private TaskDetailDto BuildTaskDetailDto(
+            Entities.TaskItem task,
+            List<Entities.LogItem> logs,
+            List<Entities.AssetLink> links)
+        {
+            return new TaskDetailDto
+            {
+                Task = _mapper.Map<ResponseTaskDto>(task),
+                Docs = links
+                    .Where(al => al.LinkedType == AssetLinkType.Task && al.LinkedId == task.Id)
+                    .Select(al => _mapper.Map<AssetResponseDto>(al.Asset))
+                    .ToList(),
+                Logs = logs.Select(l =>
+                {
+                    var mappedLog = _mapper.Map<LogDto>(l) with
+                    {
+                        Productivity = StatisticHelper.CalculateProductivity(l, task)
+                    };
+
+                    return new LogDoc
+                    {
+                        Log = mappedLog,
+                        Assets = links
+                            .Where(al => al.LinkedType == AssetLinkType.Log && al.LinkedId == l.Id)
+                            .Select(al => _mapper.Map<AssetResponseDto>(al.Asset))
+                            .ToList()
+                    };
+                }).ToList()
+            };
         }
     }
 }

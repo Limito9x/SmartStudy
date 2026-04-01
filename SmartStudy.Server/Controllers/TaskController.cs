@@ -30,8 +30,14 @@ namespace SmartStudy.Server.Controllers
         public async Task<ActionResult<ResponseTaskDto>> GetTaskById(int taskId)
         {
             var task = await _TaskService.GetTaskByIdAsync(taskId);
-            if (task == null) return NotFound();
             return Ok(task);
+        }
+
+        [HttpGet("{taskId}/detail", Name = "GetTaskDetailById")]
+        public async Task<ActionResult<TaskDetailDto>> GetTaskDetailById(int taskId)
+        {
+            var taskDetail = await _TaskService.GetTaskDetailByIdAsync(taskId);
+            return Ok(taskDetail);
         }
         
         [HttpGet(Name = "GetTasks")]

@@ -8,6 +8,7 @@ import {
   getCalendarQueryKey,
   getInboxItemsQueryKey,
   deleteRoutineMutation,
+  getCourseWorkloadQueryKey
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
 
@@ -45,7 +46,8 @@ export const useRoutine = () => {
 
   const createRoutine = useMutation({
     ...createRoutineMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const courseId = data.courseId;
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
@@ -55,7 +57,13 @@ export const useRoutine = () => {
       queryClient.invalidateQueries({
         queryKey: getInboxItemsQueryKey(),
       });
-      alert("Tạo thói quen thành công");
+      queryClient.invalidateQueries({
+        queryKey: getCourseWorkloadQueryKey({
+          path: {
+            courseId: courseId ?? 0,
+          }
+        }),
+      });
     },
   });
 
@@ -68,7 +76,6 @@ export const useRoutine = () => {
       queryClient.invalidateQueries({
         queryKey: getCalendarQueryKey(),
       });
-      alert("Cập nhật thói quen thành công");
     },
   });
 
@@ -84,7 +91,6 @@ export const useRoutine = () => {
       queryClient.invalidateQueries({
         queryKey: getInboxItemsQueryKey(),
       });
-      alert("Xóa thói quen thành công");
     },
   });
 

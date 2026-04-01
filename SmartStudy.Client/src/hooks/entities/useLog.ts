@@ -38,7 +38,6 @@ export const useLog = () => {
         queryClient.invalidateQueries({
           queryKey: getStudentDashboardSummaryQueryKey(),
         });
-        alert("Cập nhật log thành công");
       },
     });
 
@@ -59,7 +58,6 @@ export const useLog = () => {
         queryClient.invalidateQueries({
           queryKey: getStudentDashboardSummaryQueryKey(),
         });
-        alert("Xóa log thành công");
       },
     });
 

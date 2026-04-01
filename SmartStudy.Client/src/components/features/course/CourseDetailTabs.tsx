@@ -31,13 +31,13 @@ export default function CourseDetailTabs({
             value="workloads"
             className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
-            Tiến độ & Công việc
+            Tiến độ
           </TabsTrigger>
           <TabsTrigger
             value="events"
             className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
-            Sự kiện & Mục tiêu học tập
+            Sự kiện
           </TabsTrigger>
           <TabsTrigger
             value="assets"

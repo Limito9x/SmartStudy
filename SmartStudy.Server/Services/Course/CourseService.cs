@@ -270,77 +270,18 @@ namespace SmartStudy.Server.Services
                         && (keyword == null || t.Name.Contains(keyword)))
                     .ToListAsync();
 
-            var allTaskIds = singleTasks.Select(t => t.Id)
-                .Concat(routineTasks.Select(t => t.Id))
-                .ToList();
-
-            var allLogs = allTaskIds.Count == 0
-                ? []
-                : await _context.Logs
-                    .AsNoTracking()
-                    .Where(l => allTaskIds.Contains(l.TaskId))
-                    .ToListAsync();
-
-            var allLogIds = allLogs.Select(l => l.Id).ToList();
-
-            var relatedLinks = (allTaskIds.Count == 0 && allLogIds.Count == 0)
-                ? []
-                : await _context.AssetLinks
-                    .Include(al => al.Asset)
-                    .AsNoTracking()
-                    .Where(al =>
-                        (al.LinkedType == AssetLinkType.Task && allTaskIds.Contains(al.LinkedId)) ||
-                        (al.LinkedType == AssetLinkType.Log && allLogIds.Contains(al.LinkedId)))
-                    .ToListAsync();
-
-            var logsByTaskId = allLogs.GroupBy(l => l.TaskId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
             return new CourseWorkloadDto
             {
                 SingleTasks = singleTasks
-                    .Select(t => BuildTaskDto(t, logsByTaskId, relatedLinks))
+                    .Select(t => _mapper.Map<ResponseTaskDto>(t))
                     .ToList(),
                 Routines = routines.Select(r => new CourseRoutineDto
                 {
                     Routine = _mapper.Map<SimpleResponseRoutineDto>(r),
                     Tasks = routineTasks
                         .Where(t => t.RoutineId == r.Id)
-                        .Select(t => BuildTaskDto(t, logsByTaskId, relatedLinks))
+                        .Select(t => _mapper.Map<ResponseTaskDto>(t))
                         .ToList()
-                }).ToList()
-            };
-        }
-
-        private CourseTaskDto BuildTaskDto(
-            TaskItem task,
-            Dictionary<int, List<LogItem>> logsByTaskId,
-            List<AssetLink> links)
-        {
-            var logs = logsByTaskId.GetValueOrDefault(task.Id, []);
-
-            return new CourseTaskDto
-            {
-                Task = _mapper.Map<ResponseTaskDto>(task),
-                Docs = links
-                    .Where(al => al.LinkedType == AssetLinkType.Task && al.LinkedId == task.Id)
-                    .Select(al => _mapper.Map<AssetResponseDto>(al.Asset))
-                    .ToList(),
-                Logs = logs.Select(l =>
-                {
-                    var mappedLog = _mapper.Map<LogDto>(l) with
-                    {
-                        Productivity = StatisticHelper.CalculateProductivity(l, task)
-                    };
-
-                    return new LogDoc
-                    {
-                        Log = mappedLog,
-                        Assets = links
-                            .Where(al => al.LinkedType == AssetLinkType.Log && al.LinkedId == l.Id)
-                            .Select(al => _mapper.Map<AssetResponseDto>(al.Asset))
-                            .ToList()
-                    };
                 }).ToList()
             };
         }

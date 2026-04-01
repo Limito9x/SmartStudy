@@ -1,85 +1,105 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import type { CourseTaskDto, TaskStatus, TaskType } from "@/services/api";
+import type { ResponseTaskDto, TaskStatus, TaskType } from "@/services/api";
+import type { PanelDataMap } from "@/stores/usePanelStore";
+import { usePanelStore } from "@/stores/usePanelStore";
 import {
   CalendarClock,
-  ChevronDown,
+  ChevronRight,
   ClipboardList,
   GraduationCap,
   Handshake,
   Notebook,
 } from "lucide-react";
-import TaskInput from "./TaskInput";
-import TaskOutput from "./TaskOutput";
 
 interface CourseTaskCardProps {
-  taskData: CourseTaskDto;
+  taskData: ResponseTaskDto;
 }
 
 export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
-  const task = taskData.task;
+  const { openPanel, isOpen, type, data } = usePanelStore();
+  const task = taskData;
 
   if (!task) {
     return null;
   }
 
   const taskId = normalizeId(task.id);
-  const TaskIcon = getTaskIcon(task.type);
   const statusStyle = getStatusStyle(task.status);
+  const activeTaskId =
+    isOpen && type === "TASK_DETAIL"
+      ? normalizeId((data as PanelDataMap["TASK_DETAIL"] | null)?.taskId ?? 0)
+      : null;
+  const isActive = activeTaskId === taskId;
+
+  const handleOpenTaskDetail = () => {
+    openPanel("TASK_DETAIL", { taskId });
+  };
 
   return (
-    <Collapsible className="rounded-xl border bg-card">
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="group flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-accent/40"
-        >
-          <div className="min-w-0 flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <TaskIcon size={16} />
-            </div>
-
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{task.name}</p>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <CalendarClock size={12} />
-                <span>
-                  {task.taskDate
-                    ? new Date(task.taskDate).toLocaleDateString("vi-VN")
-                    : "Chưa có hạn"}
-                </span>
-              </div>
-            </div>
+    <div
+      role="button"
+      tabIndex={0}
+      aria-selected={isActive}
+      onClick={handleOpenTaskDetail}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleOpenTaskDetail();
+        }
+      }}
+      className={cn(
+        "rounded-xl border p-3 transition-colors",
+        isActive ? "border-sky-300 bg-sky-100/70" : "bg-card hover:bg-muted/30",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex items-center gap-3">
+          <div
+            className={cn(
+              "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
+              isActive
+                ? "bg-sky-200 text-sky-800"
+                : "bg-primary/10 text-primary",
+            )}
+          >
+            {renderTaskIcon(task.type)}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Badge className={cn("border", statusStyle.badgeClass)}>
-              {statusStyle.label}
-            </Badge>
-            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+          <div className="min-w-0">
+            <p
+              className={cn(
+                "truncate text-sm font-medium",
+                task.status === "Completed" &&
+                  "line-through text-muted-foreground",
+              )}
+            >
+              {task.name}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <CalendarClock size={12} />
+              <span>
+                {task.taskDate
+                  ? new Date(task.taskDate).toLocaleDateString("vi-VN")
+                  : "Chưa có hạn"}
+              </span>
+            </div>
           </div>
-        </button>
-      </CollapsibleTrigger>
-
-      <CollapsibleContent className="border-t px-4 py-4">
-        <div className="space-y-4">
-          <section className="space-y-3">
-            <TaskInput taskId={taskId} docs={taskData.docs ?? []} />
-          </section>
-
-          <hr className="my-4 border-border/70" />
-
-          <section className="space-y-3">
-            <TaskOutput taskId={taskId} logs={taskData.logs ?? []} />
-          </section>
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+
+        <div className="flex items-center gap-2">
+          <Badge className={cn("border", statusStyle.badgeClass)}>
+            {statusStyle.label}
+          </Badge>
+          <ChevronRight
+            className={cn(
+              "h-4 w-4 text-muted-foreground transition-transform",
+              isActive && "translate-x-0.5 text-sky-700",
+            )}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -88,18 +108,18 @@ function normalizeId(rawId: number | string) {
   return Number.isFinite(id) ? id : 0;
 }
 
-function getTaskIcon(type: TaskType) {
+function renderTaskIcon(type: TaskType) {
   switch (type) {
     case "ClassSession":
-      return GraduationCap;
+      return <GraduationCap size={16} />;
     case "SelfStudy":
-      return Notebook;
+      return <Notebook size={16} />;
     case "AssignmentWork":
-      return ClipboardList;
+      return <ClipboardList size={16} />;
     case "Meeting":
-      return Handshake;
+      return <Handshake size={16} />;
     default:
-      return Notebook;
+      return <Notebook size={16} />;
   }
 }
 
