@@ -25,8 +25,8 @@ public class TodayTaskDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = null!;
-    public TimeOnly? StartTime { get; set; }
-    public int? PlannedDuration { get; set; }
+    public DateTime StartDateTime { get; set; }
+    public DateTime? EndDateTime { get; set; }
     public TaskType Type { get; set; }
     public Entities.Enums.TaskStatus Status { get; set; }
     public string? CourseName { get; set; }   // hiện badge môn học

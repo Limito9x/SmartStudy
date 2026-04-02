@@ -2,9 +2,9 @@ import { taskSchema, type TaskFormValues } from "./schema";
 import { BaseForm } from "../base/BaseForm";
 import {
   FormCombobox,
-  FormDatePicker,
   FormInput,
   FormSelect,
+  FormDateTimePicker,
 } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
@@ -80,26 +80,16 @@ export default function TaskForm({
                 { label: "Họp nhóm", value: "Meeting" },
               ]}
             />
-            <FormDatePicker
-              name="taskDate"
+            <FormDateTimePicker
               control={control}
-              label="Ngày học"
+              name="startDateTime"
+              label="Thời gian bắt đầu"
             />
-            <div className="grid grid-cols-2 gap-3">
-              <FormInput
-                name="startTime"
-                control={control}
-                label="Khung giờ bắt đầu"
-                type="time"
-              />
-              <FormInput
-                name="plannedDuration"
-                control={control}
-                label="Thời lượng dự kiến (phút)"
-                type="number"
-                placeholder="Thời lượng dự kiến (phút)"
-              />
-            </div>
+            <FormDateTimePicker
+              control={control}
+              name="endDateTime"
+              label="Thời gian kết thúc"
+            />
             {showCourseField && (
               <FormCombobox<TaskFormValues, ResponseCourseDto>
                 name="courseId"

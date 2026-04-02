@@ -13,9 +13,13 @@ public static class StatisticHelper
             log.TimerStartAt.HasValue && log.TimerEndAt.HasValue
                 ? (log.TimerEndAt.Value - log.TimerStartAt.Value).TotalMinutes
                 : log.ActualDuration;
+        
+        var plannedDuration = task.EndDateTime.HasValue && task.StartDateTime.HasValue
+            ? (task.EndDateTime.Value - task.StartDateTime.Value).TotalMinutes
+            : 0;
 
-        var timeEfficiency = task.PlannedDuration is > 0
-            ? Math.Min(actualMinutes / task.PlannedDuration.Value, 1.0)
+        var timeEfficiency = plannedDuration > 0
+            ? Math.Min(actualMinutes / plannedDuration, 1.0)
             : 1.0;
 
         // Task không có comprehension → chỉ dựa vào thời gian

@@ -1156,6 +1156,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("EndDateTime")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<int?>("EventRequirementId")
                         .HasColumnType("integer");
 
@@ -1166,17 +1169,14 @@ namespace SmartStudy.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("PlannedDuration")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("RoutineId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("ScheduleId")
                         .HasColumnType("integer");
 
-                    b.Property<TimeOnly?>("StartTime")
-                        .HasColumnType("time without time zone");
+                    b.Property<DateTime?>("StartDateTime")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1187,9 +1187,6 @@ namespace SmartStudy.Server.Migrations
 
                     b.Property<int?>("StudyPlanId")
                         .HasColumnType("integer");
-
-                    b.Property<DateOnly?>("TaskDate")
-                        .HasColumnType("date");
 
                     b.Property<int?>("TimelineEventId")
                         .HasColumnType("integer");
@@ -1218,7 +1215,7 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("RoutineId", "ScheduleId", "TaskDate")
+                    b.HasIndex("RoutineId", "ScheduleId", "StartDateTime")
                         .IsUnique();
 
                     b.ToTable("Tasks", (string)null);

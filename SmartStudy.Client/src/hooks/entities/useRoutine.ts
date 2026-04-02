@@ -8,7 +8,7 @@ import {
   getCalendarQueryKey,
   getInboxItemsQueryKey,
   deleteRoutineMutation,
-  getCourseWorkloadQueryKey
+  getCourseWorkloadQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
 
@@ -51,31 +51,47 @@ export const useRoutine = () => {
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
-      queryClient.invalidateQueries({
-        queryKey: getCalendarQueryKey(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: getInboxItemsQueryKey(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: getCourseWorkloadQueryKey({
-          path: {
-            courseId: courseId ?? 0,
-          }
-        }),
-      });
+
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: getCalendarQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getInboxItemsQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getCourseWorkloadQueryKey({
+            path: {
+              courseId: courseId ?? 0,
+            },
+          }),
+        });
+      }, 300);
     },
   });
 
   const updateRoutine = useMutation({
     ...updateRoutineMutation(),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const courseId = data.courseId;
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
-      queryClient.invalidateQueries({
-        queryKey: getCalendarQueryKey(),
-      });
+      setTimeout(() => {
+        queryClient.invalidateQueries({
+          queryKey: getCalendarQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getInboxItemsQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getCourseWorkloadQueryKey({
+            path: {
+              courseId: courseId ?? 0,
+            },
+          }),
+        });
+      }, 300);
     },
   });
 

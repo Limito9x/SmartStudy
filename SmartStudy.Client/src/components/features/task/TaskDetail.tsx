@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { useTask } from "@/hooks/entities/useTask";
 import type { TaskStatus, TaskType } from "@/services/api";
+import { formatTaskDateTime } from "@/utils/dateUtils";
 import { toast } from "sonner";
 
 interface TaskDetailProps {
@@ -74,7 +75,7 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
           <div className="min-w-0">
             <p className="line-clamp-2 text-base font-semibold">{task.name}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span>{formatDate(task.taskDate)}</span>
+              <span>{formatTaskDateTime(task.startDateTime,task.endDateTime)}</span>
               <span>•</span>
               <span>{getTaskTypeLabel(task.type)}</span>
             </div>

@@ -51,7 +51,7 @@ import {
   stringifyNullable,
   toNumber,
 } from "@/utils/courseOverviewUtils";
-import { weekdayMap } from "@/utils/calendar";
+import { weekdayMap } from "@/utils/dateUtils";
 import {
   AlertCircle,
   CheckCircle2,
@@ -225,8 +225,8 @@ export default function OverviewTab({
   return (
     <div className="space-y-6">
       <Card>
-        <CardContent className="relative p-6">
-          <div className="absolute right-6 top-6">
+        <CardContent className="relative p-4">
+          <div className="absolute right-6 top-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon" className="h-8 w-8">
@@ -275,16 +275,6 @@ export default function OverviewTab({
             </div>
 
             <div className="w-full max-w-xl space-y-3 lg:w-110">
-              {status !== "Completed" ? (
-                <div className="flex justify-start lg:justify-end">
-                  <Button
-                    onClick={() => setIsCompletionDialogOpen(true)}
-                    disabled={completionPending}
-                  >
-                    Đánh dấu hoàn thành
-                  </Button>
-                </div>
-              ) : null}
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <StatTile

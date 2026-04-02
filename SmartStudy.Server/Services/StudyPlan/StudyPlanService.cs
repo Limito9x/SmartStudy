@@ -251,13 +251,14 @@ namespace SmartStudy.Server.Services
                 .Where(t => t.Course.StudyPlanId == planId)
                 .ToListAsync();
 
-            var overdueTasks = tasks.Count(t => t.TaskDate.HasValue
-                                                && t.TaskDate < today
+            var overdueTasks = tasks.Count(t => t.StartDateTime.HasValue
+                                                && t.StartDateTime.Value.Date < today.ToDateTime(TimeOnly.MinValue)
                                                 && t.Status != TaskStatus.Completed
                                                 && t.Status != TaskStatus.Cancelled);
 
             var pendingTasks = tasks.Count(t => t.Status == TaskStatus.Pending
-                                                && t.TaskDate >= today);
+                                                && t.StartDateTime.HasValue 
+                                                && t.StartDateTime.Value.Date >= today.ToDateTime(TimeOnly.MinValue));
             
             return new StudyPlanStatsDto()
             {

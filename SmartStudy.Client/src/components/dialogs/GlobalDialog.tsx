@@ -1,10 +1,10 @@
 import { useDialogStore } from "@/stores/useDialogStore";
-import TaskFormContainer from "../forms/containers/TaskFormContainer";
-import RoutineFormContainer from "../forms/containers/RoutineFormContainer";
-import CourseFormContainer from "../forms/containers/CourseFormContainer";
-import ScheduleFormContainer from "../forms/containers/ScheduleFormContainer";
-import LogFormContainer from "../forms/containers/LogFormContainer";
-import StudyPlanFormContainer from "../forms/containers/StudyPlanFormContainer";
+import TaskFormContainer from "../form-containers/TaskFormContainer";
+import RoutineFormContainer from "../form-containers/RoutineFormContainer";
+import CourseFormContainer from "../form-containers/CourseFormContainer";
+import ScheduleFormContainer from "../form-containers/ScheduleFormContainer";
+import LogFormContainer from "../form-containers/LogFormContainer";
+import StudyPlanFormContainer from "../form-containers/StudyPlanFormContainer";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
 import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
 import PlanTemplateEditDialog from "@/components/dialogs/template/PlanTemplateEditDialog";
 import PlanTemplateSelectPlanDialog from "@/components/dialogs/template/PlanTemplateSelectPlanDialog";
-import EventFormContainer from "../forms/containers/EventFormContainer";
-import SubjectFormContainer from "../forms/containers/SubjectFormContainer";
+import EventFormContainer from "../form-containers/EventFormContainer";
+import SubjectFormContainer from "../form-containers/SubjectFormContainer";
 
 const DIALOG_TITLES: {
   [K in DialogType]: (data: DialogDataMap[K]) => string;

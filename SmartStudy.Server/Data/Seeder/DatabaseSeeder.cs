@@ -281,7 +281,6 @@ public class DatabaseSeeder : IDatabaseSeeder
         var taskFaker = new Faker<TaskItem>("vi")
             .RuleFor(t => t.Name, f => $"{f.Hacker.Verb()} {f.Commerce.ProductAdjective()} {f.Hacker.Noun()}")
             .RuleFor(t => t.Type, f => f.PickRandom<TaskType>())
-            .RuleFor(t => t.PlannedDuration, f => f.Random.Int(30, 180))
             .RuleFor(t => t.Status, _ => SmartStudy.Server.Entities.Enums.TaskStatus.Completed)
             .RuleFor(t => t.Location, f => f.Address.City());
 
@@ -295,15 +294,17 @@ public class DatabaseSeeder : IDatabaseSeeder
 
             var taskDateUtc = Utc(localFaker.Date.Recent(40, DateTime.UtcNow));
             var startTime = new TimeOnly(localFaker.Random.Int(6, 21), localFaker.PickRandom(0, 15, 30, 45));
-            var taskDate = DateOnly.FromDateTime(taskDateUtc);
+            var startDateTime = taskDateUtc.Date.Add(startTime.ToTimeSpan());
+            var plannedDuration = localFaker.Random.Int(30, 180);
+            var endDateTime = startDateTime.AddMinutes(plannedDuration);
 
             var task = taskFaker.Generate();
             task.UserId = plan.UserId;
             task.StudyPlanId = plan.Id;
             task.CourseId = course.Id;
-            task.TaskDate = taskDate;
-            task.StartTime = startTime;
-            task.CreatedAt = Utc(taskDate.ToDateTime(startTime));
+            task.StartDateTime = startDateTime;
+            task.EndDateTime = endDateTime;
+            task.CreatedAt = Utc(startDateTime);
 
             tasks.Add(task);
         }
@@ -320,10 +321,10 @@ public class DatabaseSeeder : IDatabaseSeeder
 
         foreach (var task in tasks)
         {
-            var planned = task.PlannedDuration ?? 60;
+            var planned = (task.EndDateTime - task.StartDateTime)?.TotalMinutes ?? 60;
             var variance = new Faker().Random.Double(0.6, 1.4);
             var actualDuration = Math.Max(15, (int)Math.Round(planned * variance));
-            var taskStart = task.TaskDate?.ToDateTime(task.StartTime ?? new TimeOnly(8, 0)) ?? task.CreatedAt;
+            var taskStart = task.StartDateTime ?? task.CreatedAt;
             var completedAt = Utc(taskStart.AddMinutes(actualDuration));
 
             var log = logFaker.Generate();

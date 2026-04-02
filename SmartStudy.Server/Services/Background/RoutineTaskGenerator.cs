@@ -1,3 +1,4 @@
+using System.Formats.Asn1;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities;
@@ -17,6 +18,23 @@ public class RoutineTaskGenerator
     {
         _logger = logger;
         _context = context;
+    }
+
+    public async Task GenerateForSingleRoutineAsync(int routineId)
+    {
+        _logger.LogInformation($"Bắt đầu sinh task cho routine ID:{routineId}");
+        var routine = await _context.Routines
+                    .Include(r=>r.Schedules)
+                    .FirstOrDefaultAsync(r=>r.Id==routineId);
+
+        if (routine != null)
+        {
+            var total = await ProcessSingleRoutineAsync(routine);
+            _logger.LogInformation($"Tổng cộng sinh ra {total} tasks");
+            await _context.SaveChangesAsync();
+        }
+        else _logger.LogInformation("Không tìm thấy routine để sinh task");
+        _logger.LogInformation($"Kết thúc quá trình sinh task cho routine ID:{routineId}");
     }
 
     public async Task GenerateUpcomingTasksAsync()
@@ -40,8 +58,8 @@ public class RoutineTaskGenerator
         foreach (var routine in activeRoutines)
         {
             var last5TaskStatuses = await _context.Tasks
-                .Where(t => t.RoutineId == routine.Id && t.TaskDate < DateOnly.FromDateTime(today))
-                .OrderByDescending(t => t.TaskDate)
+                .Where(t => t.RoutineId == routine.Id && t.StartDateTime < today)
+                .OrderByDescending(t => t.StartDateTime)
                 .Select(t => t.Status)
                 .Take(5)
                 .ToListAsync();
@@ -54,12 +72,27 @@ public class RoutineTaskGenerator
                 continue; 
             }
             
+            var total = await ProcessSingleRoutineAsync(routine);
+            newTaskCount+=total;
+        }
+
+        var changes = await _context.SaveChangesAsync();
+        
+        _logger.LogInformation($"Kết thúc: Đã lưu {changes} thay đổi vào DB. Trong đó đẻ ra {newTaskCount} task mới.");
+    }
+
+    private async Task<int> ProcessSingleRoutineAsync(Routine routine)
+    {
+        var totalGenerates = 0;
+        var today = DateTime.Today.Date;
+        var lookAheadDate = today.AddDays(14);
+            
             var startAnchor = routine.StartDate > today ? routine.StartDate.Date : today;
             var endAnchor = (routine.EndDate.HasValue && routine.EndDate.Value < lookAheadDate) 
                 ? routine.EndDate.Value.Date 
                 : lookAheadDate;
             
-            if(startAnchor>endAnchor) continue;
+            if(startAnchor>endAnchor) return 0;
             
             var upcomingOccurences =
                 RoutineHelper.GetOccurences(startAnchor, endAnchor, routine)
@@ -75,17 +108,17 @@ public class RoutineTaskGenerator
                     .IgnoreQueryFilters()
                     .AnyAsync(t=>
                         t.ScheduleId==schedule.Id &&
-                        t.TaskDate == DateOnly.FromDateTime(targetDate));
+                        t.StartDateTime == targetDate.Add(schedule.StartTime!.Value.ToTimeSpan()));
 
                 if (!taskEverExisted)
                 {
+                    var startDateTime = targetDate.Add(schedule.StartTime!.Value.ToTimeSpan());
                     var task = new TaskItem()
                     {
                         Name = routine.Name,
                         Description = routine.Description,
-                        TaskDate = DateOnly.FromDateTime(occurence.Date),
-                        StartTime = occurence.Schedule.StartTime,
-                        PlannedDuration = occurence.Schedule.Duration,
+                        StartDateTime = startDateTime,
+                        EndDateTime = startDateTime.AddMinutes(schedule.Duration!.Value),
                         Location = occurence.Schedule.Location,
                         UserId = routine.UserId,
                         RoutineId = routine.Id,
@@ -97,13 +130,9 @@ public class RoutineTaskGenerator
                         CourseId = routine.CourseId
                     };
                     _context.Tasks.Add(task);
-                    newTaskCount++;
+                    totalGenerates++;
                 }
             }
-        }
-
-        var changes = await _context.SaveChangesAsync();
-        
-        _logger.LogInformation($"Kết thúc: Đã lưu {changes} thay đổi vào DB. Trong đó đẻ ra {newTaskCount} task mới.");
+        return totalGenerates;
     }
 }

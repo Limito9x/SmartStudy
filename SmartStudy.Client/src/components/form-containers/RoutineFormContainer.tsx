@@ -1,9 +1,9 @@
 import { useRoutine } from "@/hooks/entities/useRoutine"; // File useRoutine.ts của bác
-import RoutineForm from "../routine/RoutineForm";
+import RoutineForm from "@/components/forms/routine/RoutineForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { RoutineFormValues } from "../routine/schema";
+import type { RoutineFormValues } from "@/components/forms/routine/schema";
 import { routineApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { routineFormMapper } from "@/utils/mapper.ts/formMapper";
 
@@ -35,14 +35,12 @@ export default function RoutineFormContainer() {
     isEditMode && RoutineData
       ? routineFormMapper.toFormValues(RoutineData) // Map lại chuẩn form nếu cần
       : {
-        ...defaultValues,
-        name: defaultValues?.name || "",
-        type: defaultValues?.type || "SelfStudy",
-        courseId: courseId || defaultValues?.courseId,
-        eventId: eventId || defaultValues?.eventId,
-      };
-
-      
+          ...defaultValues,
+          name: defaultValues?.name || "",
+          type: defaultValues?.type || "SelfStudy",
+          courseId: courseId || defaultValues?.courseId,
+          eventId: eventId || defaultValues?.eventId,
+        };
 
   const handleSubmit = (values: RoutineFormValues) => {
     if (isEditMode) {

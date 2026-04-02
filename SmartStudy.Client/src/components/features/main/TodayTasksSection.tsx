@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TaskType, TodayTaskDto } from "@/services/api";
+import { formatTimeForTodayView } from "@/utils/dateUtils";
 
 const taskTypeLabel: Record<TaskType, string> = {
   ClassSession: "Buổi học",
@@ -110,7 +111,7 @@ function TaskGroup({
                         </Badge>
                       ) : null}
                       <Clock3 className="h-3.5 w-3.5" />
-                      <span>{formatTaskTime(task.startTime)}</span>
+                      <span>{formatTimeForTodayView(task.startDateTime,task.endDateTime)}</span>
                     </div>
                   </div>
                 </div>

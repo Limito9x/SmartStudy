@@ -14,8 +14,8 @@ export default function Step2Program() {
     // 1. Dựa vào năm nhập học và học kỳ để đoán ngày bắt đầu và kết thúc
     const { startDate, endDate } = guessAcademicDates(termValue, yearValue);
     // 2. Cập nhật lại form với ngày bắt đầu và kết thúc đã đoán được
-    setValue("startDate", startDate.toISOString().split("T")[0]);
-    setValue("endDate", endDate.toISOString().split("T")[0]);
+    setValue("startDate", startDate);
+    setValue("endDate", endDate);
   };
 
   return (

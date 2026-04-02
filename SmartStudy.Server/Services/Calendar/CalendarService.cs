@@ -44,8 +44,9 @@ public class CalendarService: ICalendarService
         .Include(t => t.Course)
         .Include(t => t.Routine)
         .Where(t => t.UserId == userId
-                 && t.TaskDate >= fromDate
-                 && t.TaskDate <= toDate
+                 && t.StartDateTime.HasValue
+                 && t.StartDateTime.Value.Date >= fromDate.ToDateTime(TimeOnly.MinValue)
+                 && t.StartDateTime.Value.Date <= toDate.ToDateTime(TimeOnly.MaxValue)
                  && t.Status!= TaskStatus.Archived)
         .ToListAsync();
 
@@ -63,9 +64,9 @@ public class CalendarService: ICalendarService
             EntityId = task.Id,
             EntityType = CalendarEntityType.Task,
             Title = task.Name,
-            Date = task.TaskDate!.Value,
-            StartTime = task.StartTime,
-            Duration = task.PlannedDuration,
+            Date = DateOnly.FromDateTime(task.StartDateTime!.Value),
+            StartTime = TimeOnly.FromDateTime(task.StartDateTime!.Value),
+            Duration = task.EndDateTime.HasValue && task.StartDateTime.HasValue ? (int?)(task.EndDateTime.Value - task.StartDateTime.Value).TotalMinutes : null,
             CourseName = task.Course?.Name,
             CourseId = task.CourseId,
             TaskType = task.Type,
@@ -155,7 +156,7 @@ public async Task<InboxResponseDto> GetInboxItemsAsync()
         .AsNoTracking()
         .Where(t => t.UserId == userId
                     && t.RoutineId == null
-                    && !t.TaskDate.HasValue
+                    && !t.StartDateTime.HasValue
                     && t.Status != TaskStatus.Cancelled
                     && t.Status != TaskStatus.Archived)
         .ToListAsync();
@@ -183,9 +184,9 @@ public async Task RescheduleTaskAsync(RescheduleTaskDto dto)
     if (task == null)
         throw new KeyNotFoundException("Task không tồn tại!");
 
-    task.TaskDate = dto.NewDate;
-    task.StartTime = dto.NewStartTime;
-    task.PlannedDuration = dto.NewDuration;
+    var startDateTime = dto.NewDate.ToDateTime(dto.NewStartTime);
+    task.StartDateTime = startDateTime;
+    task.EndDateTime = startDateTime.AddMinutes(dto.NewDuration);
 
     await _context.SaveChangesAsync();
 }

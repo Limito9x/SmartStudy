@@ -14,8 +14,8 @@ using SmartStudy.Server.Data;
 namespace SmartStudy.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260331001832_StudentInfoAdmissionYear")]
-    partial class StudentInfoAdmissionYear
+    [Migration("20260402043605_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -916,13 +916,13 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Instructor")
                         .HasColumnType("text");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("NextOccurrence")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp without time zone");
@@ -1111,6 +1111,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<int?>("Credits")
                         .HasColumnType("integer");
 
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -1130,7 +1133,8 @@ namespace SmartStudy.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.HasIndex("Name", "Type", "UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"DeletedAt\" IS NULL");
 
                     b.ToTable("Subjects");
                 });
@@ -1155,6 +1159,9 @@ namespace SmartStudy.Server.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("EndDateTime")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<int?>("EventRequirementId")
                         .HasColumnType("integer");
 
@@ -1165,17 +1172,14 @@ namespace SmartStudy.Server.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("PlannedDuration")
-                        .HasColumnType("integer");
-
                     b.Property<int?>("RoutineId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("ScheduleId")
                         .HasColumnType("integer");
 
-                    b.Property<TimeOnly?>("StartTime")
-                        .HasColumnType("time without time zone");
+                    b.Property<DateTime?>("StartDateTime")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -1186,9 +1190,6 @@ namespace SmartStudy.Server.Migrations
 
                     b.Property<int?>("StudyPlanId")
                         .HasColumnType("integer");
-
-                    b.Property<DateOnly?>("TaskDate")
-                        .HasColumnType("date");
 
                     b.Property<int?>("TimelineEventId")
                         .HasColumnType("integer");
@@ -1217,7 +1218,7 @@ namespace SmartStudy.Server.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("RoutineId", "ScheduleId", "TaskDate")
+                    b.HasIndex("RoutineId", "ScheduleId", "StartDateTime")
                         .IsUnique();
 
                     b.ToTable("Tasks", (string)null);
@@ -1548,7 +1549,7 @@ namespace SmartStudy.Server.Migrations
                         .HasForeignKey("StudyPlanId");
 
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
-                        .WithMany()
+                        .WithMany("Routines")
                         .HasForeignKey("TimelineEventId");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
@@ -1651,7 +1652,7 @@ namespace SmartStudy.Server.Migrations
                         .HasForeignKey("StudyPlanId");
 
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
-                        .WithMany()
+                        .WithMany("Tasks")
                         .HasForeignKey("TimelineEventId");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
@@ -1732,6 +1733,13 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("SmartStudy.Server.Entities.TaskItem", b =>
                 {
                     b.Navigation("Logs");
+                });
+
+            modelBuilder.Entity("SmartStudy.Server.Entities.TimelineEvent", b =>
+                {
+                    b.Navigation("Routines");
+
+                    b.Navigation("Tasks");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.User", b =>

@@ -1,8 +1,8 @@
 import { useSchedule } from "@/hooks/entities/useSchedule"; // File useschedule.ts của bác
-import ScheduleForm from "../schedule/ScheduleForm";
+import ScheduleForm from "@/components/forms/schedule/ScheduleForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { ScheduleFormValues } from "../schedule/schema";
+import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
 import { scheduleApiMapper } from "@/utils/mapper.ts/apiMapper";
 
 export default function ScheduleFormContainer() {

@@ -358,6 +358,9 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
             {
                 var taskDate = DateOnly.FromDateTime(today.AddDays(taskDto.DayOffset));
                 var startTime = TimeOnly.Parse(taskDto.StartTime);
+                var startDateTime = taskDate.ToDateTime(startTime);
+                var endDateTime = startDateTime.AddMinutes(taskDto.PlannedDuration);
+
 
                 // Tìm routine + schedule nếu có
                 Routine? routine = taskDto.RoutineRef is not null
@@ -370,9 +373,8 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 {
                     Name = taskDto.Name,
                     Type = Enum.Parse<TaskType>(taskDto.Type),
-                    TaskDate = taskDate,
-                    StartTime = startTime,
-                    PlannedDuration = taskDto.PlannedDuration,
+                    StartDateTime = startDateTime,
+                    EndDateTime = endDateTime,
                     Status = Enum.Parse<TaskStatus>(taskDto.Status),
                     UserId = user.Id,
                     StudyPlanId = plan.Id,
@@ -387,7 +389,7 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 // 4. Log nếu có
                 if (taskDto.Log is not null && taskDto.Status == "Completed")
                 {
-                    var completedAt = taskDate.ToDateTime(startTime)
+                    var completedAt = startDateTime
                         .AddMinutes(taskDto.Log.ActualDuration)
                         .ToUniversalTime();
 

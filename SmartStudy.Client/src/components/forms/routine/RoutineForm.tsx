@@ -4,8 +4,8 @@ import {
   FormInput,
   FormSelect,
   FormCombobox,
-  FormDatePicker,
 } from "@/components/form-controls";
+import { FormDatePicker } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
 import type {
   ResponseCourseDto,

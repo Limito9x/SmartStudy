@@ -1,9 +1,9 @@
 import { useCourse } from "@/hooks/entities/useCourse"; // File useCourse.ts của bác
-import CourseForm from "../course/CourseForm";
+import CourseForm from "@/components/forms/course/CourseForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { CourseFormValues } from "../course/schema";
+import type { CourseFormValues } from "@/components/forms/course/schema";
 import { courseApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { courseFormMapper } from "@/utils/mapper.ts/formMapper";
 
@@ -14,7 +14,7 @@ export default function CourseFormContainer() {
 
   const isEditMode = !!courseId;
   const { getCourseById, createCourse, updateCourse } = useCourse({
-    studyPlanId
+    studyPlanId,
   });
 
   // NẾU LÀ EDIT: Fetch data ngầm.
@@ -42,8 +42,6 @@ export default function CourseFormContainer() {
           finalScore: defaultValues?.finalScore,
           goal: defaultValues?.goal || "",
         };
-
-      
 
   const handleSubmit = (values: CourseFormValues) => {
     if (isEditMode) {

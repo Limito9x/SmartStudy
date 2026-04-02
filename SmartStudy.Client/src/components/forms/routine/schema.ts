@@ -9,8 +9,8 @@ export const routineSchema = z
     type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting"]),
     courseId: z.number().optional(),
     eventId: z.number().optional(),
-    startDate: z.string().optional(),
-    endDate: z.string().optional(),
+    startDate: z.date().nullable().optional(),
+    endDate: z.date().nullable().optional(),
     schedules: z.array(scheduleSchema).optional(),
   });
 

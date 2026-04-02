@@ -7,8 +7,8 @@ export const settingSchema = z.object({
   cohort: z.string().min(1, "Khóa học không được để trống"),
   termId: z.coerce.number().nullable(),
   yearId: z.coerce.number().nullable(),
-  startDate: z.string().min(1, "Ngày bắt đầu không được để trống"),
-  endDate: z.string().min(1, "Ngày kết thúc không được để trống"),
+  startDate: z.date().min(new Date(1900, 0, 1), "Ngày bắt đầu không hợp lệ"),
+  endDate: z.date().min(new Date(1900, 0, 1), "Ngày kết thúc không hợp lệ"),
   admissionYear: z.coerce.number().nullable(),
 });
 

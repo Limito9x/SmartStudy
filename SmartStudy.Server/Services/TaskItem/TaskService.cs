@@ -102,8 +102,7 @@ namespace SmartStudy.Server.Services
             }
 
             var tasks = await query
-                .OrderBy(t => t.TaskDate)
-                .ThenBy(t => t.StartTime)
+                .OrderBy(t => t.StartDateTime)
                 .ToListAsync();
 
             return _mapper.Map<List<ResponseTaskDto>>(tasks);

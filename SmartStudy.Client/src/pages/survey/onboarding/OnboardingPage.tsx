@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { SubmitHandler } from "react-hook-form";
 import { getProfileQueryKey } from "@/services/api/@tanstack/react-query.gen";
 import { useQueryClient } from "@tanstack/react-query";
+import { addMonths } from "date-fns";
 
 const STEPS = ["Thông tin sinh viên", "Học kỳ hiện tại"];
 
@@ -29,8 +30,8 @@ export default function OnboardingPage() {
     cohort: "",
     termId: null,
     yearId: null,
-    startDate: "",
-    endDate: "",
+    startDate: new Date(),
+    endDate: addMonths(new Date(), 1),
     admissionYear: null,
   };
 
@@ -54,8 +55,8 @@ export default function OnboardingPage() {
           cohort: dto.cohort,
           termId: Number(dto.termId),
           yearId: Number(dto.yearId),
-          startDate: dto.startDate,
-          endDate: dto.endDate,
+          startDate: dto.startDate.toISOString(),
+          endDate: dto.endDate.toISOString(),
           admissionYear: Number(dto.admissionYear),
         },
       });

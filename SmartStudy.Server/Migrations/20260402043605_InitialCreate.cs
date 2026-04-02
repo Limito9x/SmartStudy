@@ -256,7 +256,8 @@ namespace SmartStudy.Server.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     University = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     Major = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: true),
-                    Cohort = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true)
+                    Cohort = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
+                    AdmissionYear = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -281,7 +282,8 @@ namespace SmartStudy.Server.Migrations
                     Credits = table.Column<int>(type: "integer", nullable: true),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    DeletedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -586,7 +588,7 @@ namespace SmartStudy.Server.Migrations
                     Type = table.Column<int>(type: "integer", nullable: false),
                     StartDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     EndDate = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    NextOccurrence = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     StudyPlanId = table.Column<int>(type: "integer", nullable: true),
                     CourseId = table.Column<int>(type: "integer", nullable: true),
@@ -656,9 +658,8 @@ namespace SmartStudy.Server.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
-                    TaskDate = table.Column<DateOnly>(type: "date", nullable: true),
-                    StartTime = table.Column<TimeOnly>(type: "time without time zone", nullable: true),
-                    PlannedDuration = table.Column<int>(type: "integer", nullable: true),
+                    StartDateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    EndDateTime = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     Location = table.Column<string>(type: "text", nullable: true),
                     Status = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
@@ -951,7 +952,8 @@ namespace SmartStudy.Server.Migrations
                 name: "IX_Subjects_Name_Type_UserId",
                 table: "Subjects",
                 columns: new[] { "Name", "Type", "UserId" },
-                unique: true);
+                unique: true,
+                filter: "\"DeletedAt\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subjects_UserId",
@@ -969,9 +971,9 @@ namespace SmartStudy.Server.Migrations
                 column: "EventRequirementId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tasks_RoutineId_ScheduleId_TaskDate",
+                name: "IX_Tasks_RoutineId_ScheduleId_StartDateTime",
                 table: "Tasks",
-                columns: new[] { "RoutineId", "ScheduleId", "TaskDate" },
+                columns: new[] { "RoutineId", "ScheduleId", "StartDateTime" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -22,8 +22,8 @@ export const studyPlanApiMapper = {
     studyPlanData: StudyPlanFormValues,
   ): RequestStudyPlanDto => ({
     name: studyPlanData.name,
-    startDate: studyPlanData.startDate,
-    endDate: studyPlanData.endDate,
+    startDate: studyPlanData.startDate.toISOString(),
+    endDate: studyPlanData.endDate.toISOString(),
     termId: studyPlanData.termId || null,
     yearId: studyPlanData.yearId || null,
     type: studyPlanData.type,
@@ -58,8 +58,8 @@ export const routineApiMapper = {
     courseId:
       typeof routineData.courseId === "number" ? routineData.courseId : null,
     timelineEventId: routineData.eventId || null,
-    startDate: routineData.startDate || null,
-    endDate: routineData.endDate || null,
+    startDate: routineData.startDate?.toISOString() || null,
+    endDate: routineData.endDate?.toISOString() || null,
     schedules:
       routineData.schedules?.map((s) => ({
         id: s.id,
@@ -97,27 +97,6 @@ const parseTimeToHHmmss = (value?: string | null): string | null => {
   return `${hh}:${mm}:${ss}`;
 };
 
-const parseDateToYyyyMmDd = (value?: string | null): string | null => {
-  if (!value) {
-    return null;
-  }
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return value;
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
-
 export const taskApiMapper = {
   toRequestTaskDto: (
     taskData: TaskFormValues,
@@ -126,12 +105,11 @@ export const taskApiMapper = {
     studyPlanId: studyPlanId || null,
     name: taskData.name,
     description: taskData.description || null,
-    taskDate: parseDateToYyyyMmDd(taskData.taskDate),
-    startTime: parseTimeToHHmmss(taskData.startTime),
-    plannedDuration: taskData.plannedDuration || 60,
+    startDateTime: taskData.startDateTime?.toISOString() || null,
+    endDateTime: taskData.endDateTime?.toISOString() || null,
     type: taskData.type,
     courseId: typeof taskData.courseId === "number" ? taskData.courseId : null,
-    timelineEventId: taskData.eventId || null
+    timelineEventId: taskData.eventId || null,
   }),
 };
 
@@ -177,9 +155,7 @@ export const logApiMapper = {
 };
 
 export const subjectApiMapper = {
-  toRequestSubjectDto: (
-    subjectData: SubjectFormValues,
-  ): RequestSubjectDto => ({
+  toRequestSubjectDto: (subjectData: SubjectFormValues): RequestSubjectDto => ({
     name: subjectData.name,
     code: subjectData.code || null,
     credits: subjectData.credits || null,

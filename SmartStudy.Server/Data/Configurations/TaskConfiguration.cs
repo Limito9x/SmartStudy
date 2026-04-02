@@ -18,7 +18,7 @@ namespace SmartStudy.Server.Data.Configurations
             {
                 t.RoutineId,
                 t.ScheduleId,
-                t.TaskDate
+                t.StartDateTime
             }).IsUnique();
         }
     }

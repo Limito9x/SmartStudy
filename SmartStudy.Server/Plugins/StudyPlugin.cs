@@ -36,11 +36,11 @@ namespace SmartStudy.Server.Plugins
             // Query cực gọn: Chỉ lấy những thứ AI cần biết
             var tasks = await _context.Tasks
                 .AsNoTracking()
-                .Where(t => t.UserId == userId && t.TaskDate == targetDate)
-                .OrderBy(t => t.StartTime)
+                .Where(t => t.UserId == userId && t.StartDateTime.HasValue && t.StartDateTime.Value.Date == targetDate.ToDateTime(TimeOnly.MinValue).Date)
+                .OrderBy(t => t.StartDateTime)
                 .Select(t => new {
                     t.Name,
-                    t.StartTime,
+                    t.StartDateTime,
                     Status = t.Status == Entities.Enums.TaskStatus.Completed ? "Đã xong" : "Chưa làm"
                 })
                 .ToListAsync();
@@ -55,7 +55,7 @@ namespace SmartStudy.Server.Plugins
             foreach (var task in tasks)
             {
                 // Viết rõ ràng, sạch sẽ để AI dễ đọc
-                result += $"- {task.StartTime}: {task.Name} (Trạng thái: {task.Status})\n";
+                result += $"- {task.StartDateTime:HH:mm}: {task.Name} (Trạng thái: {task.Status})\n";
             }
 
             return result;
@@ -81,11 +81,14 @@ namespace SmartStudy.Server.Plugins
                 return "Lỗi: Thời gian không hợp lệ.";
             }
 
+            var startDateTime = taskDate.ToDateTime(startTime);
+            var endDateTime = startDateTime.AddMinutes(duration);
+
             var dto = new RequestTaskDto
-                (name,description, taskDate, startTime, duration, type,null, null, studyPlanId);
+                (name,description, startDateTime, endDateTime, type,null, null, studyPlanId);
             
             var response = await _taskService.CreateTaskAsync(dto);
-            return $"Công việc '{response.Name}' đã được tạo thành công cho ngày {response.TaskDate}.";
+            return $"Công việc '{response.Name}' đã được tạo thành công cho ngày {response.StartDateTime:yyyy-MM-dd}.";
         }
         
         // ── PLUGIN 1: WEEKLY SUMMARY ──────────────────────────────
@@ -114,8 +117,9 @@ namespace SmartStudy.Server.Plugins
             var tasks = await _context.Tasks
                 .AsNoTracking()
                 .Where(t => t.UserId == userId
-                    && t.TaskDate >= monday
-                    && t.TaskDate <= sunday)
+                    && t.StartDateTime.HasValue
+                    && t.StartDateTime.Value.Date >= monday.ToDateTime(TimeOnly.MinValue)
+                    && t.StartDateTime.Value.Date <= sunday.ToDateTime(TimeOnly.MinValue))
                 .Include(t => t.Logs)
                 .Include(t => t.Course)
                 .ToListAsync();
@@ -131,7 +135,7 @@ namespace SmartStudy.Server.Plugins
             // Tổng giờ học thực tế từ logs
             var allLogs = tasks.SelectMany(t => t.Logs ?? new List<Entities.LogItem>()).ToList();
             var totalActualMinutes = allLogs.Sum(l => l.ActualDuration);
-            var totalPlannedMinutes = tasks.Sum(t => t.PlannedDuration ?? 0);
+            var totalPlannedMinutes = tasks.Sum(t => t.EndDateTime.HasValue && t.StartDateTime.HasValue ? (t.EndDateTime.Value - t.StartDateTime.Value).TotalMinutes : 0);
  
             // Tổng kết theo môn
             var byCourse = tasks
@@ -240,8 +244,9 @@ namespace SmartStudy.Server.Plugins
                     .Include(l => l.Task)
                     .Where(l => l.Task.UserId == userId
                         && l.Task.CourseId == course.Id
-                        && l.Task.TaskDate >= fourWeeksAgo)
-                    .OrderBy(l => l.Task.TaskDate)
+                        && l.Task.StartDateTime.HasValue
+                        && l.Task.StartDateTime.Value.Date >= fourWeeksAgo.ToDateTime(TimeOnly.MinValue))
+                    .OrderBy(l => l.Task.StartDateTime)
                     .ToListAsync();
  
                 var totalMinutes = logs.Sum(l => l.ActualDuration);
@@ -261,8 +266,8 @@ namespace SmartStudy.Server.Plugins
  
                 // Xu hướng hiểu bài: so sánh 2 tuần đầu vs 2 tuần sau
                 var midpoint = today.AddDays(-14);
-                var earlyLogs = logs.Where(l => l.Task.TaskDate < midpoint).ToList();
-                var recentLogs = logs.Where(l => l.Task.TaskDate >= midpoint).ToList();
+                var earlyLogs = logs.Where(l => l.Task.StartDateTime.HasValue && l.Task.StartDateTime.Value.Date < midpoint.ToDateTime(TimeOnly.MinValue)).ToList();
+                var recentLogs = logs.Where(l => l.Task.StartDateTime.HasValue && l.Task.StartDateTime.Value.Date >= midpoint.ToDateTime(TimeOnly.MinValue)).ToList();
  
                 var earlyAvg = earlyLogs.Where(l => l.ComprehensionLevel.HasValue)
                     .Select(l => (double)(int)l.ComprehensionLevel!)

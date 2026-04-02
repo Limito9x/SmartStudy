@@ -1,10 +1,11 @@
 import { BaseForm } from "../base/BaseForm";
 import { studyPlanSchema } from "./schema";
-import { FormInput, FormDatePicker } from "@/components/form-controls";
+import { FormInput } from "@/components/form-controls";
+import { FormDatePicker } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
 import { type StudyPlanFormValues } from "./schema";
 import FormAcademicContext from "@/components/form-controls/FormAcademicContext";
-import {  useWatch } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 
 interface StudyPlanFormProps {
   defaultValues?: Partial<StudyPlanFormValues>;
@@ -47,16 +48,14 @@ export default function StudyPlanForm({
               />
             )}
             <FormDatePicker
-              name="startDate"
               control={methods.control}
+              name="startDate"
               label="Ngày bắt đầu"
-              placeholder="Chọn ngày bắt đầu"
             />
             <FormDatePicker
-              name="endDate"
               control={methods.control}
+              name="endDate"
               label="Ngày kết thúc"
-              placeholder="Chọn ngày kết thúc"
             />
             <Button type="submit" className="mt-4">
               {isEditMode ? "Cập nhật" : "Tạo mới"}

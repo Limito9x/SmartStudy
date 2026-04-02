@@ -11,6 +11,7 @@ import {
   Handshake,
   Notebook,
 } from "lucide-react";
+import { formatTaskDateTime } from "@/utils/dateUtils";
 
 interface CourseTaskCardProps {
   taskData: ResponseTaskDto;
@@ -79,8 +80,8 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <CalendarClock size={12} />
               <span>
-                {task.taskDate
-                  ? new Date(task.taskDate).toLocaleDateString("vi-VN")
+                {task.startDateTime
+                  ? formatTaskDateTime(task.startDateTime, task.endDateTime)
                   : "Chưa có hạn"}
               </span>
             </div>

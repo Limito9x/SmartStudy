@@ -1,9 +1,9 @@
 import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
-import StudyPlanForm from "../study-plan/StudyPlanForm";
+import StudyPlanForm from "@/components/forms/study-plan/StudyPlanForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { StudyPlanFormValues } from "../study-plan/schema";
+import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
 import { studyPlanApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { studyPlanFormMapper } from "@/utils/mapper.ts/formMapper";
 import { addMonths } from "date-fns";
@@ -35,11 +35,8 @@ export default function StudyPlanFormContainer() {
       ? studyPlanFormMapper.toFormValues(studyPlanData) // Map lại chuẩn form nếu cần
       : {
           name: defaultValues?.name || "",
-          startDate:
-            defaultValues?.startDate || new Date().toISOString().split("T")[0], // Mặc định là hôm nay
-          endDate:
-            defaultValues?.endDate ||
-            addMonths(new Date(), 1).toISOString().split("T")[0], // Mặc định là 1 tháng sau
+          startDate: new Date(), // Mặc định là hôm nay
+          endDate: addMonths(new Date(),1), // Mặc định là 1 tháng sau
           termId: defaultValues?.termId || null,
           yearId: defaultValues?.yearId || null,
           type: defaultValues?.type || "Academic",

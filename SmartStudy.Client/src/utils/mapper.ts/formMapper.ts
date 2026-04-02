@@ -14,19 +14,13 @@ import type {
   TaskStatus,
   ResponseStudyPlanDto,
 } from "@/services/api/types.gen";
-
-const formatDueDate = (dueDate: string | null | undefined) => {
-  if (!dueDate) return null;
-  const date = new Date(dueDate);
-  if (date.getFullYear() <= 1) return null;
-  return date.toISOString();
-};
+import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
 
 export const studyPlanFormMapper = {
   toFormValues: (studyPlanDto: ResponseStudyPlanDto): StudyPlanFormValues => ({
     name: studyPlanDto.name,
-    startDate: studyPlanDto.startDate || "",
-    endDate: studyPlanDto.endDate || "",
+    startDate: new Date(studyPlanDto.startDate) || "",
+    endDate: new Date(studyPlanDto.endDate) || "",
     termId: Number(studyPlanDto.termId) || null,
     yearId: Number(studyPlanDto.yearId) || null,
     type: studyPlanDto.type || "Academic",
@@ -45,11 +39,13 @@ export const courseFormMapper = {
 };
 
 export const timelineEventFormMapper = {
-  toFormValues: (eventDto: ResponseTimelineEventDto) => ({
+  toFormValues: (
+    eventDto: ResponseTimelineEventDto,
+  ): TimelineEventFormValues => ({
     title: eventDto.title,
     type: eventDto.type,
     priority: eventDto.priority,
-    dueDate: formatDueDate(eventDto.dueDate) || "",
+    dueDate: new Date(eventDto.dueDate),
     notes: eventDto.notes || "",
     location: eventDto.location || "",
     courseId: Number(eventDto.courseId),
@@ -61,11 +57,8 @@ export const taskFormMapper = {
     name: taskDto.name,
     description: taskDto.description || "",
     type: taskDto.type,
-    startTime: taskDto.startTime || "",
-    plannedDuration: taskDto.plannedDuration
-      ? Number(taskDto.plannedDuration)
-      : undefined,
-    taskDate: taskDto.taskDate || "",
+    startDateTime: new Date(taskDto.startDateTime || ""),
+    endDateTime: new Date(taskDto.endDateTime || ""),
     location: taskDto.location || "",
     courseId: Number(taskDto.courseId),
     eventId: Number(taskDto.timelineEventId) || null,
@@ -78,8 +71,8 @@ export const routineFormMapper = {
     instructor: routineDto.instructor || "",
     description: routineDto.description || "",
     type: routineDto.type,
-    startDate: routineDto.startDate || "",
-    endDate: routineDto.endDate || "",
+    startDate: new Date(routineDto.startDate) || null,
+    endDate: routineDto.endDate ? new Date(routineDto.endDate) : null,
     courseId: Number(routineDto.courseId),
     eventId: Number(routineDto.timelineEventId),
     schedules:

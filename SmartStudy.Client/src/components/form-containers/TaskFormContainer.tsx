@@ -1,9 +1,9 @@
 import { useTask } from "@/hooks/entities/useTask"; // File useTask.ts của bác
-import TaskForm from "../task/TaskForm";
+import TaskForm from "../forms/task/TaskForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { TaskFormValues } from "../task/schema";
+import type { TaskFormValues } from "../forms/task/schema";
 import { taskApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { taskFormMapper } from "@/utils/mapper.ts/formMapper";
 

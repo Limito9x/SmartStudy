@@ -17,6 +17,7 @@ export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
         courseId: courseId,
       }
     }),
+    enabled: !!courseId,
   });
 
   const getEventById = (eventId: number) =>

@@ -149,21 +149,23 @@ namespace SmartStudy.Server.Services
                 throw new AppException("Ngày không khớp với lịch trình");
             }
             
+            var startDateTime = taskDate.ToDateTime(schedule.StartTime!.Value);
             var existingTask = await _context.Tasks
                 .FirstOrDefaultAsync(t => t.ScheduleId == scheduleId 
-                                          && t.TaskDate == taskDate);
+                                          && t.StartDateTime == startDateTime);
 
             if (existingTask != null)
             {
                 throw new AppException("Nhiệm vụ này đã được xác nhận từ trước rồi!");
             }
             
+            var endDateTime = startDateTime.AddMinutes(schedule.Duration!.Value);
             var task = new TaskItem()
             {
                 Name = schedule.Routine!.Name,
                 Description = schedule.Routine.Description,
-                TaskDate = taskDate,
-                StartTime = schedule.StartTime,
+                StartDateTime = startDateTime,
+                EndDateTime = endDateTime,
                 Location = schedule.Location,
                 UserId = userId,
                 RoutineId = schedule.RoutineId,
@@ -225,12 +227,13 @@ namespace SmartStudy.Server.Services
                     continue;
                 }
 
+                var startDateTime = date.Date.Add(schedule.StartTime!.Value.ToTimeSpan());
                 tasks.Add(new TaskItem
                 {
                     Name = routine.Name,
                     Description = routine.Description,
-                    TaskDate = DateOnly.FromDateTime(date),
-                    StartTime = schedule.StartTime,
+                    StartDateTime = startDateTime,
+                    EndDateTime = startDateTime.AddMinutes(schedule.Duration!.Value),
                     Location = schedule.Location,
                     UserId = userId,
                     RoutineId = routine.Id,

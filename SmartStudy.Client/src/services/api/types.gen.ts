@@ -346,9 +346,8 @@ export type RequestSubjectDto = {
 export type RequestTaskDto = {
     name: string;
     description: null | string;
-    taskDate: null | string;
-    startTime: null | string;
-    plannedDuration: null | number | string;
+    startDateTime: null | string;
+    endDateTime: null | string;
     type: TaskType;
     courseId: null | number | string;
     timelineEventId: null | number | string;
@@ -444,9 +443,8 @@ export type ResponseTaskDto = {
     id: number | string;
     name: string;
     description: null | string;
-    taskDate: null | string;
-    startTime: null | string;
-    plannedDuration: null | number | string;
+    startDateTime: null | string;
+    endDateTime: null | string;
     type: TaskType;
     location: null | string;
     status: TaskStatus;
@@ -578,8 +576,8 @@ export type TemplateSubject = {
 export type TodayTaskDto = {
     id?: number | string;
     name?: string;
-    startTime?: null | string;
-    plannedDuration?: null | number | string;
+    startDateTime?: string;
+    endDateTime?: null | string;
     type?: TaskType;
     status?: TaskStatus;
     courseName?: null | string;

@@ -4,8 +4,8 @@ import { BaseForm } from "../base/BaseForm";
 import {
   FormInput,
   FormSelect,
-  FormDatePicker,
   FormCombobox,
+  FormDateTimePicker,
 } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
 import { useCourse } from "@/hooks/entities/useCourse";
@@ -16,7 +16,11 @@ interface EventFormProps {
   onSubmit: (data: TimelineEventFormValues) => void;
 }
 
-export const EventForm = ({ defaultValues, onSubmit, courseId }: EventFormProps) => {
+export const EventForm = ({
+  defaultValues,
+  onSubmit,
+  courseId,
+}: EventFormProps) => {
   const { data: courses } = useCourse({}).getCourses;
   return (
     <BaseForm
@@ -70,12 +74,10 @@ export const EventForm = ({ defaultValues, onSubmit, courseId }: EventFormProps)
                 { label: "Thấp", value: "1" },
               ]}
             />
-            <FormDatePicker
-              name="dueDate"
+            <FormDateTimePicker
               control={control}
+              name="dueDate"
               label="Ngày deadline"
-              placeholder="Chọn ngày deadline"
-              minDate={new Date()}
             />
 
             <Button type="submit">Lưu</Button>

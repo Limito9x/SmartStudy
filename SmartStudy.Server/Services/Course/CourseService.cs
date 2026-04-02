@@ -86,6 +86,7 @@ namespace SmartStudy.Server.Services
 
             var course = await _context.Courses
                 .Include(c => c.StudyPlan)
+                .Include(c=>c.TimelineEvents)
                 .Include(c => c.Tasks)
                 .Include(c=>c.Routines)
                 .ThenInclude(r=>r.Schedules)
@@ -192,9 +193,9 @@ namespace SmartStudy.Server.Services
 
             if (dto.Status == CourseStatus.Dropped || dto.Status == CourseStatus.Completed)
             {
-                var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7));
+                var today = DateTime.UtcNow.AddHours(7);
                 var futureTasks = await _context.Tasks
-                    .Where(t => t.CourseId == courseId && t.TaskDate.HasValue && t.TaskDate.Value >= today)
+                    .Where(t => t.CourseId == courseId && t.StartDateTime.HasValue && t.StartDateTime.Value.Date >= today.Date)
                     .ToListAsync();
                 _context.Tasks.RemoveRange(futureTasks);
             }
@@ -344,8 +345,8 @@ namespace SmartStudy.Server.Services
             var completedTasks = course.Tasks.Count(t => t.Status == TaskStatus.Completed);
 
             var totalPlanned = course.Tasks
-                .Where(t => t.PlannedDuration.HasValue)
-                .Sum(t => t.PlannedDuration!.Value);
+                .Where(t => t.StartDateTime.HasValue && t.EndDateTime.HasValue)
+                .Sum(t => (t.EndDateTime!.Value - t.StartDateTime!.Value).TotalMinutes);
 
             var totalActual = course.Tasks
                 .SelectMany(t => t.Logs ?? [])

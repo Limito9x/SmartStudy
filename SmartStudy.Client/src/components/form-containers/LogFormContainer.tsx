@@ -1,10 +1,10 @@
 import { useTask } from "@/hooks/entities/useTask";
 import { useLog } from "@/hooks/entities/useLog";
-import { LogWorkForm } from "../log/LogWorkForm";
+import { LogWorkForm } from "../forms/log/LogWorkForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { LogFormValues } from "../log/schema";
+import type { LogFormValues } from "@/components/forms/log/schema";
 import { logApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { logFormMapper } from "@/utils/mapper.ts/formMapper";
 import { useMutation } from "@tanstack/react-query";
@@ -54,7 +54,14 @@ export default function LogFormContainer() {
       : {
           ...defaultValues,
           note: defaultValues?.note || "",
-          actualDuration: Number(task?.plannedDuration) || 60,
+          actualDuration:
+            Math.floor(
+              Math.abs(
+                (new Date(task?.endDateTime || 0).getTime() -
+                  new Date(task?.startDateTime || 0).getTime()) /
+                  60000,
+              ),
+            ) || 60,
         };
 
   const handleSubmit = async (values: LogFormValues) => {
@@ -81,11 +88,13 @@ export default function LogFormContainer() {
             },
             onSettled: () => {
               hideLoading();
-            }
+            },
           },
         );
       } else {
-        toast.success(isEditMode ? "Cập nhật log thành công" : "Tạo log thành công");
+        toast.success(
+          isEditMode ? "Cập nhật log thành công" : "Tạo log thành công",
+        );
         closeDialog();
       }
     };

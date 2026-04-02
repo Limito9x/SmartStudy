@@ -52,32 +52,34 @@ public class StudentDashboardService: IStudentDashboardService
     var todayTasks = await _context.Tasks
         .Include(t => t.Course)
         .Where(t => t.UserId == userId
-                 && t.TaskDate == todayOnly && t.Status!= Entities.Enums.TaskStatus.Completed)
+                 && t.StartDateTime.HasValue
+                 && t.StartDateTime.Value.Date == today && t.Status!= Entities.Enums.TaskStatus.Completed)
         .ToListAsync();
 
     // Overdue
     var overdueTasks = await _context.Tasks
         .Include(t => t.Course)
         .Where(t => t.UserId == userId
-                 && t.TaskDate.HasValue
-                 && t.TaskDate < todayOnly
+                 && t.StartDateTime.HasValue
+                 && t.StartDateTime.Value.Date < today
                  && t.Status != Entities.Enums.TaskStatus.Completed
                  && t.Status != Entities.Enums.TaskStatus.Cancelled)
         .ToListAsync();
     
     var completedTasks = await _context.Tasks
         .Where(t => t.UserId == userId
-                 && t.TaskDate.HasValue
+                 && t.StartDateTime.HasValue
                  && t.StatusUpdatedAt.HasValue
-                 && DateOnly.FromDateTime(t.StatusUpdatedAt.Value) == todayOnly
+                 && t.StatusUpdatedAt.Value.Date == today
                  && t.Status == Entities.Enums.TaskStatus.Completed)
         .ToListAsync();
 
     // Tasks tuần này để tính completion rate
     var weekTasks = await _context.Tasks
         .Where(t => t.UserId == userId
-                 && t.TaskDate >= DateOnly.FromDateTime(startOfWeek)
-                 && t.TaskDate <= DateOnly.FromDateTime(startOfWeek.AddDays(6)))
+                 && t.StartDateTime.HasValue
+                 && t.StartDateTime.Value.Date >= startOfWeek
+                 && t.StartDateTime.Value.Date <= startOfWeek.AddDays(6))
         .ToListAsync();
 
     // Current plan

@@ -1,16 +1,15 @@
 import { useSubject } from "@/hooks/entities/useSubject"; // File useSubject.ts của bác
-import SubjectForm from "../subject/SubjectForm";
+import SubjectForm from "@/components/forms/subject/SubjectForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { SubjectFormValues } from "../subject/schema";
+import type { SubjectFormValues } from "@/components/forms/subject/schema";
 import { subjectApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { subjectFormMapper } from "@/utils/mapper.ts/formMapper";
 
 export default function SubjectFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { subjectId, defaultValues } =
-    data as DialogDataMap["SUBJECT_FORM"];
+  const { subjectId, defaultValues } = data as DialogDataMap["SUBJECT_FORM"];
 
   const isEditMode = !!subjectId;
   const { getSubjectById, createSubject, updateSubject } = useSubject();
@@ -33,13 +32,11 @@ export default function SubjectFormContainer() {
     isEditMode && subjectData
       ? subjectFormMapper.toFormValues(subjectData) // Map lại chuẩn form nếu cần
       : {
-        name: defaultValues?.name || "",
-        code: defaultValues?.code || "",
-        credits: defaultValues?.credits || null,
-        type: defaultValues?.type || "Academic",
-      };
-
-      
+          name: defaultValues?.name || "",
+          code: defaultValues?.code || "",
+          credits: defaultValues?.credits || null,
+          type: defaultValues?.type || "Academic",
+        };
 
   const handleSubmit = (values: SubjectFormValues) => {
     if (isEditMode) {

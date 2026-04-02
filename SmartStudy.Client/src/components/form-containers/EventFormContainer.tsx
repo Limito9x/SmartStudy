@@ -1,9 +1,9 @@
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
-import { EventForm } from "../timeline-event/EventForm";
+import { EventForm } from "../forms/timeline-event/EventForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { TimelineEventFormValues } from "../timeline-event/schema";
+import type { TimelineEventFormValues } from "../forms/timeline-event/schema";
 import { timelineEventApiMapper } from "@/utils/mapper.ts/apiMapper";
 import { timelineEventFormMapper } from "@/utils/mapper.ts/formMapper";
 
@@ -14,7 +14,7 @@ export default function EventFormContainer() {
 
   const isEditMode = !!eventId;
   const { getEventById, createEvent, updateEvent } = useTimelineEvent({
-    courseId
+    courseId,
   });
 
   // NẾU LÀ EDIT: Fetch data ngầm.
@@ -30,15 +30,18 @@ export default function EventFormContainer() {
     );
   }
 
-  // Chập data mồi (Create) hoặc data fetch được (Edit) vào form
   const finalDefaultValues =
     isEditMode && EventData
       ? timelineEventFormMapper.toFormValues(EventData) // Map lại chuẩn form nếu cần
       : {
           ...defaultValues,
+          priority: defaultValues?.priority || 1,
           title: defaultValues?.title || "",
           type: defaultValues?.type || "Assignment",
-          courseId: defaultValues?.courseId || courseId,
+          courseId: Number(defaultValues?.courseId || courseId),
+          dueDate: defaultValues?.dueDate
+            ? new Date(defaultValues.dueDate)
+            : undefined,
         };
 
   const handleSubmit = (values: TimelineEventFormValues) => {
@@ -67,7 +70,6 @@ export default function EventFormContainer() {
   return (
     <EventForm
       courseId={courseId}
-      isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
       onSubmit={handleSubmit}
     />

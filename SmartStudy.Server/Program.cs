@@ -39,7 +39,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddControllers()
     .AddJsonOptions(opts => {
-        // Custom converters can be registered here if needed.
+        opts.JsonSerializerOptions.NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.AllowNamedFloatingPointLiterals;
     });
 
 // Cấu hình OpenAPI với .NET 10

@@ -1,5 +1,4 @@
 import z from "zod";
-import type { RequestTimelineEventDto } from "@/services/api";
 
 export const timelineEventSchema = z.object({
   courseId: z.coerce.number().min(1, "Lớp học phần không được để trống"),
@@ -7,7 +6,7 @@ export const timelineEventSchema = z.object({
     .string()
     .min(1, "Tiêu đề không được để trống")
     .max(200, "Tiêu đề không được vượt quá 200 ký tự"),
-  dueDate: z.string().nullable().optional(),
+  dueDate: z.date().nullable().optional(),
   type: z.enum(
     ["Exam", "Assignment", "Presentation", "ProjectDeadline", "Other"],
     { message: "Loại sự kiện không được để trống" },
@@ -18,6 +17,6 @@ export const timelineEventSchema = z.object({
     .max(3, "Mức độ ưu tiên không được vượt quá 3"),
   location: z.string().nullable().optional(),
   notes: z.string().nullable().optional(),
-}) satisfies z.ZodType<Partial<RequestTimelineEventDto>, any, any>;
+});
 
 export type TimelineEventFormValues = z.infer<typeof timelineEventSchema>;

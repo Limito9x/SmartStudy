@@ -8,9 +8,8 @@ namespace SmartStudy.Server.Entities
     {
         public required string Name { get; set; }
         public string? Description { get; set; }
-        public DateOnly? TaskDate { get; set; }
-        public TimeOnly? StartTime { get; set; }
-        public int? PlannedDuration { get; set; } // Thời lượng dự kiến, để hỗ trợ tính toán nhắc nhở và đánh giá sau này
+        public DateTime? StartDateTime { get; set; }
+        public DateTime? EndDateTime { get; set; }
         public string? Location { get; set; } // Địa điểm học, để hỗ trợ nhắc nhở và đánh giá sau này
         // --- PHÂN LOẠI & TRẠNG THÁI ---
         public Enums.TaskStatus Status { get; set; } = Enums.TaskStatus.Pending;
@@ -42,12 +41,12 @@ namespace SmartStudy.Server.Entities
                     return false;
 
                 // 2. Task dạng "Tự do" không có ngày (Backlog) -> Không có khái niệm quá hạn
-                if (!TaskDate.HasValue)
+                if (!StartDateTime.HasValue)
                     return false;
 
-                // 3. SO SÁNH RULE: Nếu TaskDate nhỏ hơn ngày hôm nay -> Đã quá hạn!
-                var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)); // Nhớ cộng múi giờ VN
-                return TaskDate.Value < today;
+                // 3. SO SÁNH RULE: Nếu ngày của StartDateTime nhỏ hơn ngày hôm nay -> Đã quá hạn!
+                var today = DateTime.UtcNow.AddHours(7).Date;
+                return StartDateTime.Value.Date < today;
             }
         }
     }

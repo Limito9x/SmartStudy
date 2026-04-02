@@ -7,9 +7,8 @@ export const taskSchema = z.object({
     .min(1, "Tên nhiệm vụ không được để trống")
     .max(200, "Tên nhiệm vụ không được vượt quá 200 ký tự"),
   description: z.string().nullable().optional(),
-  taskDate: z.string().nullable().optional(),
-  startTime: z.string().nullable().optional(),
-  plannedDuration: z.number().min(1,"Thời lượng không hợp lệ").nullable().optional(),
+  startDateTime: z.date().nullable().optional(),
+  endDateTime: z.date().nullable().optional(),
   type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting"], {
     message: "Loại nhiệm vụ không được để trống",
   }),

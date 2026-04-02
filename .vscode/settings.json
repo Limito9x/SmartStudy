@@ -1,0 +1,6 @@
+{
+  "terminal.integrated.env.windows": {
+    "SMARTSTUDY_SERVER": "D:\\.NET\\SmartStudy\\SmartStudy.Server",
+    "SMARTSTUDY_CLIENT": "D:\\.NET\\SmartStudy\\SmartStudy.Client"
+  },
+}
