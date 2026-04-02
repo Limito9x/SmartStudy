@@ -35,18 +35,15 @@ public class CalendarEventDto
     public CalendarEntityType EntityType { get; set; }
     
     public string Title { get; set; } = null!;
-    public DateOnly Date { get; set; }
-    public TimeOnly? StartTime { get; set; }
-    public int? Duration { get; set; }
+    public DateTime StartAt {get; set;}
+    public DateTime EndAt {get; set;}
     public string? CourseName { get; set; }
     public int? CourseId { get; set; }
     
     // Task specific
     public TaskType? TaskType { get; set; }
     public Entities.Enums.TaskStatus? Status { get; set; }
-    
-    // Event specific
-    public PriorityLevel? Priority { get; set; }
+    public string? Location {get; set;}
     
     // Virtual = routine chưa được gen task thật
     public bool IsVirtual { get; set; }

@@ -55,14 +55,13 @@ export type CalendarEventDto = {
     routineId?: null | number | string;
     entityType?: CalendarEntityType;
     title?: string;
-    date?: string;
-    startTime?: null | string;
-    duration?: null | number | string;
+    startAt?: string;
+    endAt?: string;
     courseName?: null | string;
     courseId?: null | number | string;
     taskType?: null | TaskType;
     status?: null | TaskStatus;
-    priority?: null | PriorityLevel;
+    location?: null | string;
     isVirtual?: boolean;
     color?: null | string;
 };

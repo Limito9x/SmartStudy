@@ -64,10 +64,10 @@ public class CalendarService: ICalendarService
             EntityId = task.Id,
             EntityType = CalendarEntityType.Task,
             Title = task.Name,
-            Date = DateOnly.FromDateTime(task.StartDateTime!.Value),
-            StartTime = TimeOnly.FromDateTime(task.StartDateTime!.Value),
-            Duration = task.EndDateTime.HasValue && task.StartDateTime.HasValue ? (int?)(task.EndDateTime.Value - task.StartDateTime.Value).TotalMinutes : null,
+            StartAt = task.StartDateTime.Value,
+            EndAt = task.EndDateTime.Value,
             CourseName = task.Course?.Name,
+            Location = task.Location,
             CourseId = task.CourseId,
             TaskType = task.Type,
             Status = task.Status,
@@ -98,6 +98,9 @@ public class CalendarService: ICalendarService
                 if (materializedRoutineOccurrences
                     .Contains((routine.Id, schedule.Id))) continue;
 
+                DateTime start = date.ToDateTime(schedule.StartTime.Value);
+                DateTime end = start.AddMinutes(schedule.Duration.Value);
+
                 result.Add(new CalendarEventDto
                 {
                     CalendarId = $"schedule-{schedule.Id}-{date:yyyyMMdd}",
@@ -105,9 +108,9 @@ public class CalendarService: ICalendarService
                     EntityType = CalendarEntityType.Schedule,
                     RoutineId = routine.Id,
                     Title = routine.Name,
-                    Date = date,
-                    StartTime = schedule.StartTime,
-                    Duration = schedule.Duration,
+                    StartAt = start,
+                    EndAt = end,
+                    Location = schedule.Location,
                     CourseName = routine.Course?.Name,
                     CourseId = routine.CourseId,
                     IsVirtual = true,  // chưa có task thật
@@ -134,17 +137,16 @@ public class CalendarService: ICalendarService
             EntityId = ev.Id,
             EntityType = CalendarEntityType.TimelineEvent,
             Title = ev.Title,
-            Date = DateOnly.FromDateTime(ev.DueDate!.Value),
+            StartAt = ev.DueDate.Value,
             CourseName = ev.Course?.Name,
             CourseId = ev.CourseId,
-            Priority = ev.Priority,
             IsVirtual = false,
             Color = ev.Course?.Color ?? "#7F77DD"
         });
     }
 
-    return result.OrderBy(e => e.Date)
-                 .ThenBy(e => e.StartTime)
+    return result.OrderBy(e => e.StartAt)
+                 .ThenBy(e => TimeOnly.FromDateTime(e.StartAt))
                  .ToList();
 }
 
