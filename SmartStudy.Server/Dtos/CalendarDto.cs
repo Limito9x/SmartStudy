@@ -37,6 +37,7 @@ public class CalendarEventDto
     public string Title { get; set; } = null!;
     public DateTime StartAt {get; set;}
     public DateTime EndAt {get; set;}
+    public bool IsAllDay { get; set; } = false;
     public string? CourseName { get; set; }
     public int? CourseId { get; set; }
     
@@ -56,8 +57,7 @@ public enum CalendarEntityType
 {
     Task,
     Routine,
-    TimelineEvent,
-    Schedule
+    TimelineEvent
 }
 
 public record RescheduleTaskDto

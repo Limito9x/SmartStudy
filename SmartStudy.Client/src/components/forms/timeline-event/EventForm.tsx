@@ -75,10 +75,15 @@ export const EventForm = ({
               ]}
             />
             <FormDateTimePicker
-              control={control}
-              name="dueDate"
-              label="Ngày deadline"
-            />
+                control={control}
+                name="startDateTime"
+                label="Ngày bắt đầu"
+              />
+              <FormDateTimePicker
+                control={control}
+                name="endDateTime"
+                label="Ngày kết thúc"
+              />
 
             <Button type="submit">Lưu</Button>
           </>

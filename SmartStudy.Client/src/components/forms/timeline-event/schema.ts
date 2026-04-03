@@ -6,7 +6,9 @@ export const timelineEventSchema = z.object({
     .string()
     .min(1, "Tiêu đề không được để trống")
     .max(200, "Tiêu đề không được vượt quá 200 ký tự"),
-  dueDate: z.date().nullable().optional(),
+  startDateTime: z.date(),
+  endDateTime: z.date(),
+  isAllDay: z.boolean().default(false),
   type: z.enum(
     ["Exam", "Assignment", "Presentation", "ProjectDeadline", "Other"],
     { message: "Loại sự kiện không được để trống" },

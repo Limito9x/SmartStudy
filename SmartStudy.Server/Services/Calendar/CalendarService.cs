@@ -84,6 +84,7 @@ public class CalendarService: ICalendarService
         .Include(r => r.Schedules)
         .Include(r => r.Course)
         .Where(r => r.UserId == userId 
+                    && r.IsActive
                     && r.Course.Status == CourseStatus.Enrolled
                     && r.StartDate <= toDateTime
                     && (r.EndDate == null || r.EndDate >= fromDateTime))
@@ -108,7 +109,7 @@ public class CalendarService: ICalendarService
                 {
                     CalendarId = $"schedule-{schedule.Id}-{date:yyyyMMdd}",
                     EntityId = schedule.Id,
-                    EntityType = CalendarEntityType.Schedule,
+                    EntityType = CalendarEntityType.Task,
                     RoutineId = routine.Id,
                     Title = routine.Name,
                     StartAt = start,
@@ -128,15 +129,14 @@ public class CalendarService: ICalendarService
     var events = await _context.TimelineEvents
         .Include(e => e.Course)
         .Where(e => e.Course.StudyPlan.UserId == userId
-                 && e.DueDate.HasValue
-                 && e.DueDate.Value.Date >= fromDate.ToDateTime(TimeOnly.MinValue)
-                 && e.DueDate.Value.Date <= toDate.ToDateTime(TimeOnly.MaxValue))
+                 && e.StartDateTime.Date <= toDate.ToDateTime(TimeOnly.MaxValue)
+                 && e.EndDateTime.Date >= fromDate.ToDateTime(TimeOnly.MinValue))
         .ToListAsync();
 
     foreach (var ev in events)
     {
         var status = ev.Status.ToString();
-        var isOverdue = ev.DueDate.HasValue && ev.DueDate.Value < DateTime.UtcNow && ev.Status == EventStatus.Pending;
+        var isOverdue = ev.EndDateTime < DateTime.UtcNow && ev.Status == EventStatus.Pending;
             
         result.Add(new CalendarEventDto
         {
@@ -144,7 +144,9 @@ public class CalendarService: ICalendarService
             EntityId = ev.Id,
             EntityType = CalendarEntityType.TimelineEvent,
             Title = ev.Title,
-            StartAt = ev.DueDate.Value,
+            StartAt = ev.StartDateTime,
+            EndAt = ev.EndDateTime,
+            IsAllDay = ev.IsAllDay,
             CourseName = ev.Course?.Name,
             CourseId = ev.CourseId,
             IsVirtual = false,

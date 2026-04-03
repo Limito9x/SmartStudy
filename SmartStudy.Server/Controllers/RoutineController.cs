@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
@@ -72,6 +71,13 @@ namespace SmartStudy.Server.Controllers
         {
             var tasks = await _routineService.GetUpcomingTasksAsync(id, daysAhead);
             return Ok(tasks);
+        }
+
+        [HttpPost("{id}/toggle-status", Name = "ToggleRoutineStatus")]
+        public async Task<ActionResult<ResponseRoutineDto>> ToggleRoutineStatus(int id)
+        {
+            var updatedRoutine = await _routineService.ToggleRoutineStatusAsync(id);
+            return Ok(updatedRoutine);
         }
     }
 }

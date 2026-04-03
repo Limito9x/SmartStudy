@@ -120,9 +120,9 @@ export const timelineEventApiMapper = {
     courseId: eventData.courseId,
     title: eventData.title,
     notes: eventData.notes || "",
-    dueDate: eventData?.dueDate
-      ? new Date(eventData?.dueDate).toISOString()
-      : null,
+    startDateTime: eventData.startDateTime.toISOString(),
+    endDateTime: eventData.endDateTime.toISOString(),
+    isAllDay: eventData.isAllDay,
     type: eventData.type,
     priority: eventData.priority,
     location: eventData?.location || "",

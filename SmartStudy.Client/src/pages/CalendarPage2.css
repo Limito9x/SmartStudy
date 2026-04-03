@@ -69,3 +69,24 @@
   font-size: 11px;
   color: hsl(var(--muted-foreground));
 }
+
+/* Style cho cái bóng khi đang kéo ngoài lịch */
+.fc-event-dragging {
+  opacity: 0.8 !important;
+  z-index: 9999 !important;
+  cursor: grabbing !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transform: scale(1.05);
+}
+
+/* Style cho khung "ướm" mờ trên lịch khi kéo qua */
+.fc-daygrid-event-harness.fc-event-preview,
+.fc-timegrid-event-harness.fc-event-preview {
+  opacity: 0.4 !important;
+}
+
+/* Đảm bảo item trong danh sách chờ có style cursor đúng */
+.inbox-item {
+  touch-action: none; /* Tránh xung đột trên cảm ứng */
+  user-select: none;
+}

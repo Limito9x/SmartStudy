@@ -351,7 +351,8 @@ public class DatabaseSeeder : IDatabaseSeeder
             .RuleFor(e => e.Title, f => f.Lorem.Sentence(5))
             .RuleFor(e => e.Type, f => f.PickRandom<EventType>())
             .RuleFor(e => e.Priority, f => f.PickRandom<PriorityLevel>())
-            .RuleFor(e => e.DueDate, f => Utc(f.Date.Soon(35, DateTime.UtcNow)))
+            .RuleFor(e => e.StartDateTime, f => Utc(f.Date.Soon(35, DateTime.UtcNow)))
+            .RuleFor(e => e.EndDateTime, f => Utc(f.Date.Soon(25, DateTime.UtcNow)))
             .RuleFor(e => e.Location, f => f.Address.City())
             .RuleFor(e => e.Notes, f => f.Lorem.Sentence(12));
 

@@ -275,7 +275,6 @@ export default function OverviewTab({
             </div>
 
             <div className="w-full max-w-xl space-y-3 lg:w-110">
-
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <StatTile
                   label="Mục tiêu"
@@ -521,8 +520,8 @@ function InlineTargetScore({
 }
 
 function UpcomingEventRow({ event }: { event: ResponseTimelineEventDto }) {
-  const { day, month } = formatDayMonth(event.dueDate);
-  const daysLeft = getDaysLeft(event.dueDate);
+  const { day, month } = formatDayMonth(event.endDateTime);
+  const daysLeft = getDaysLeft(event.endDateTime);
   const badgeClass = getCountdownClassName(daysLeft);
   const countdownText = getCountdownText(daysLeft);
 

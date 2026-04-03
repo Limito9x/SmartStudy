@@ -14,8 +14,6 @@ namespace SmartStudy.Server.Data.Configurations
                 .WithMany(c => c.TimelineEvents)
                 .HasForeignKey(x => x.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasIndex(x => new { x.CourseId, x.DueDate });
         }
     }
 }

@@ -117,9 +117,8 @@ public class StudentDashboardService: IStudentDashboardService
     var upcomingEvents = await _context.TimelineEvents
         .Include(e => e.Course)
         .Where(e => e.Course.StudyPlan.UserId == userId
-                 && e.DueDate.HasValue
-                 && e.DueDate.Value.Date > today
-                 && e.DueDate.Value.Date <= today.AddDays(30))
+                 && e.EndDateTime.Date > today
+                 && e.EndDateTime.Date <= today.AddDays(30))
         .ToListAsync();
 
     return new DashboardSummaryDto
@@ -138,9 +137,7 @@ public class StudentDashboardService: IStudentDashboardService
         CompletedTasks = completedTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
         UpcomingEvents = upcomingEvents.Select(e => {
             var dto = e.Adapt<UpcomingEventDto>();
-            dto.DaysUntil = e.DueDate.HasValue 
-                ? (int)(e.DueDate.Value.Date - today).TotalDays 
-                : 0;
+            dto.DaysUntil = (int)(e.EndDateTime.Date - today).TotalDays;
             dto.CourseName = e.Course?.Name ?? "";
             return dto;
         }).ToList()

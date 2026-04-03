@@ -7,7 +7,9 @@ namespace SmartStudy.Server.Dtos
     (
         int CourseId,
         string Title,
-        DateTime? DueDate, // Có thể tạo trước mà chưa biết ngày đến hạn
+        DateTime StartDateTime,
+        DateTime EndDateTime,
+        bool IsAllDay,
         EventType Type,
         PriorityLevel Priority,
         string? Location,
@@ -19,7 +21,9 @@ namespace SmartStudy.Server.Dtos
         int Id,
         int CourseId,
         string Title,
-        DateTime DueDate,
+        DateTime StartDateTime,
+        DateTime EndDateTime,
+        bool IsAllDay,
         EventType Type,
         PriorityLevel Priority,
         string? Location,

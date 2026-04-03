@@ -41,7 +41,8 @@ export default function CreateCalendarEntryDialog({
     () => ({
       name: "",
       description: "",
-      dueDate: selectedStart.toISOString(),
+      startDateTime: selectedStart.toISOString(),
+      endDateTime: selectedEnd.toISOString(),
       startAt: toTimeValue(selectedStart),
       endAt: toTimeValue(selectedEnd),
       type: "SelfStudy",

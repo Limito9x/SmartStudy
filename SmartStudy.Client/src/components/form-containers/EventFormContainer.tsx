@@ -39,9 +39,13 @@ export default function EventFormContainer() {
           title: defaultValues?.title || "",
           type: defaultValues?.type || "Assignment",
           courseId: Number(defaultValues?.courseId || courseId),
-          dueDate: defaultValues?.dueDate
-            ? new Date(defaultValues.dueDate)
-            : undefined,
+          startDateTime: defaultValues?.startDateTime
+            ? new Date(defaultValues.startDateTime)
+            : new Date(),
+          endDateTime: defaultValues?.endDateTime
+            ? new Date(defaultValues.endDateTime)
+            : new Date(Date.now() + 3600000),
+          isAllDay: defaultValues?.isAllDay || false,
         };
 
   const handleSubmit = (values: TimelineEventFormValues) => {

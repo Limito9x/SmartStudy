@@ -21,15 +21,20 @@ import type {
 } from "@fullcalendar/core";
 import type {
   EventDragStopArg,
+  EventReceiveArg,
   EventResizeDoneArg,
 } from "@fullcalendar/interaction";
 import { formatISO } from "date-fns";
-import { renderEventContent, eventPopoverContent } from "@/components/features/calendar/CalendarItems";
+import {
+  renderEventContent,
+  EventPopoverContent,
+} from "@/components/features/calendar/CalendarItems";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useLayoutStore } from "@/stores/useLayoutStore";
 
 // Import CSS overrides
 import "./CalendarPage2.css";
@@ -62,10 +67,11 @@ export default function CalendarPage2() {
     isOpen: false,
     eventData: null as any,
     anchorRect: { top: 0, left: 0, width: 0, height: 0 },
-  })
+  });
 
   const { openDialog } = useDialogStore();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isInboxOpen = useLayoutStore((state) => state.isInboxOpen);
+  const setIsInboxOpen = useLayoutStore((state) => state.setInboxOpen);
 
   const { getCalendar, getInboxItems, rescheduleCalendar } = useCalendar({
     from: currentRange.from,
@@ -150,7 +156,6 @@ export default function CalendarPage2() {
 
   const handleSelect = useCallback(
     (info: any) => {
-
       openDialog("TASK_FORM", {
         defaultValues: {
           startDateTime: new Date(formatISO(info.start)),
@@ -162,6 +167,40 @@ export default function CalendarPage2() {
     },
     [openDialog],
   );
+
+  const handleEventReceive = (eventReceive: EventReceiveArg) => {
+    const dto = eventReceive.event.extendedProps;
+
+    // Gỡ bóng preview khỏi calendar ngay lập tức, data thật sẽ load từ API
+    eventReceive.event.remove();
+
+    const start = eventReceive.event.start;
+    const end =
+      eventReceive.event.end || new Date(start!.getTime() + 60 * 60 * 1000);
+
+    if (!start) return;
+
+    if (dto.entityType === "Routine") {
+      const dayOfWeek = start.getDay();
+      openDialog("SCHEDULE_FORM", {
+        routineId: Number(eventReceive.event.id),
+        defaultValues: {
+          id: 0,
+          dayOfWeek: dayOfWeek === 0 ? 7 : dayOfWeek, // Convert JS Sunday=0 to API Sunday=7
+          startTime: format(start, "HH:mm:ss"),
+          duration: dto.plannedDuration || 60,
+        },
+      });
+    } else if (dto.entityType === "Task") {
+      rescheduleCalendar.mutate({
+        body: {
+          taskId: Number(eventReceive.event.id),
+          newStartDate: formatISO(start),
+          newEndDate: formatISO(end),
+        },
+      });
+    }
+  };
 
   const handleEventClick = useCallback((info: EventClickArg) => {
     const dto = info.event.extendedProps;
@@ -193,30 +232,6 @@ export default function CalendarPage2() {
     });
   }, []);
 
-  const handleDeleteUnscheduledItem = (item: UnscheduledItemDto) => {
-    if (item.entityType === "Routine") {
-      openDialog("CONFIRM_DELETE", {
-        itemType: "lịch trình",
-        itemName: item.name || "Lịch trình chưa đặt tên",
-        onConfirm: () => {
-          deleteRoutine.mutate({ path: { id: Number(item.id) } });
-        },
-      });
-    } else if (item.entityType === "Task") {
-      openDialog("CONFIRM_DELETE", {
-        itemType: "công việc",
-        itemName: item.name || "Công việc chưa đặt tên",
-        onConfirm: () => {
-          deleteTaskById.mutate({ path: { taskId: Number(item.id) } });
-        },
-      });
-    }
-  };
-
-  const handleDragStart = (item: UnscheduledItemDto) => {
-    setTimeout(() => setIsDrawerOpen(false), 0);
-  };
-
   return (
     <div className="relative h-full overflow-hidden p-4">
       <div className="bg-white rounded-xl shadow p-4 h-full flex flex-col">
@@ -237,6 +252,8 @@ export default function CalendarPage2() {
           events={events}
           editable={true}
           selectable={true}
+          droppable={true}
+          eventReceive={handleEventReceive}
           eventDrop={handleEventDrop}
           select={handleSelect}
           eventClick={handleEventClick}
@@ -275,17 +292,21 @@ export default function CalendarPage2() {
           side="right" // Ưu tiên mở sang bên phải của event
           align="start" // Ép mép trên của Popover bằng với mép trên của event
           className="w-70 p-4 shadow-lg"
-
         >
           {popoverState.eventData && (
-            eventPopoverContent(popoverState.eventData)
+            <EventPopoverContent
+              eventData={popoverState.eventData}
+              hidePopover={() => {
+                setPopoverState((prev) => ({ ...prev, isOpen: false }));
+              }}
+            />
           )}
         </PopoverContent>
       </Popover>
 
-      {!isDrawerOpen && (
+      {!isInboxOpen && (
         <button
-          onClick={() => setIsDrawerOpen(true)}
+          onClick={() => setIsInboxOpen(true)}
           className="absolute right-4 top-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 z-40 transition-transform hover:scale-105"
         >
           <Menu className="w-6 h-6" />
@@ -294,13 +315,13 @@ export default function CalendarPage2() {
 
       <div
         className={`absolute top-0 right-0 h-full w-full max-w-80 bg-white shadow-2xl border-l border-gray-200 z-50 transform transition-transform duration-300 ease-in-out ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          isInboxOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-bold">Hộp công việc</h3>
           <button
-            onClick={() => setIsDrawerOpen(false)}
+            onClick={() => setIsInboxOpen(false)}
             className="p-1 hover:bg-gray-100 rounded-md"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -310,9 +331,6 @@ export default function CalendarPage2() {
         <div className="h-[calc(100%-60px)]">
           <UnscheduledList
             inboxItems={inboxItems}
-            onDragStart={handleDragStart}
-            onDragEnd={() => setIsDrawerOpen(true)}
-            onDelete={handleDeleteUnscheduledItem}
           />
         </div>
       </div>

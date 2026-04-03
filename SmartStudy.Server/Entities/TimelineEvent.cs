@@ -35,7 +35,9 @@ namespace SmartStudy.Server.Entities
         public EventStatus Status { get; set; } = EventStatus.Pending;
         [Required]
         public required string Title { get; set; }
-        public DateTime? DueDate { get; set; }
+        public DateTime StartDateTime { get; set; }
+        public DateTime EndDateTime { get; set; }
+        public bool IsAllDay { get; set; } = false;
         public EventType Type { get; set; }
         public PriorityLevel Priority { get; set; }
         public string? Location { get; set; }

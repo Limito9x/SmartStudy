@@ -1,10 +1,42 @@
 import { useDialogStore } from "@/stores/useDialogStore";
-import TaskFormContainer from "../form-containers/TaskFormContainer";
-import RoutineFormContainer from "../form-containers/RoutineFormContainer";
-import CourseFormContainer from "../form-containers/CourseFormContainer";
-import ScheduleFormContainer from "../form-containers/ScheduleFormContainer";
-import LogFormContainer from "../form-containers/LogFormContainer";
-import StudyPlanFormContainer from "../form-containers/StudyPlanFormContainer";
+import { lazy } from "react";
+
+const TaskFormContainer = lazy(
+  () => import("../form-containers/TaskFormContainer"),
+);
+const RoutineFormContainer = lazy(
+  () => import("../form-containers/RoutineFormContainer"),
+);
+const CourseFormContainer = lazy(
+  () => import("../form-containers/CourseFormContainer"),
+);
+const ScheduleFormContainer = lazy(
+  () => import("../form-containers/ScheduleFormContainer"),
+);
+const LogFormContainer = lazy(
+  () => import("../form-containers/LogFormContainer"),
+);
+const StudyPlanFormContainer = lazy(
+  () => import("../form-containers/StudyPlanFormContainer"),
+);
+const ConfirmDelete = lazy(
+  () => import("@/components/ui/common/ConfirmDelete"),
+);
+const PlanTemplateEditDialog = lazy(
+  () => import("@/components/dialogs/template/PlanTemplateEditDialog"),
+);
+const PlanTemplateSelectPlanDialog = lazy(
+  () => import("@/components/dialogs/template/PlanTemplateSelectPlanDialog"),
+);
+const EventFormContainer = lazy(
+  () => import("../form-containers/EventFormContainer"),
+);
+const SubjectFormContainer = lazy(
+  () => import("../form-containers/SubjectFormContainer"),
+);
+
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +45,6 @@ import {
 } from "@/components/ui/dialog";
 import type { DialogDataMap, DialogType } from "@/stores/useDialogStore";
 import { cn } from "@/lib/utils";
-import ConfirmDelete from "@/components/ui/common/ConfirmDelete";
-import PlanTemplateEditDialog from "@/components/dialogs/template/PlanTemplateEditDialog";
-import PlanTemplateSelectPlanDialog from "@/components/dialogs/template/PlanTemplateSelectPlanDialog";
-import EventFormContainer from "../form-containers/EventFormContainer";
-import SubjectFormContainer from "../form-containers/SubjectFormContainer";
 
 const DIALOG_TITLES: {
   [K in DialogType]: (data: DialogDataMap[K]) => string;
@@ -113,7 +140,17 @@ export default function GlobalDialog() {
         </DialogHeader>
 
         <div className="py-4">
-          <ComponentToRender />
+          <Suspense
+            fallback={
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            }
+          >
+            <ComponentToRender />
+          </Suspense>
         </div>
       </DialogContent>
     </Dialog>

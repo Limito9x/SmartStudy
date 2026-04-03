@@ -272,15 +272,15 @@ namespace SmartStudy.Server.Services
                 {
                     DateTime endDate;
 
-                    if (r.EndDate.HasValue && e.DueDate.HasValue)
+                    if (r.EndDate.HasValue)
                     {
                         // Nếu có cả 2, lấy ngày nào đến trước!
-                        endDate = r.EndDate.Value < e.DueDate.Value ? r.EndDate.Value : e.DueDate.Value;
+                        endDate = r.EndDate.Value < e.EndDateTime ? r.EndDate.Value : e.EndDateTime;
                     }
                     else
                     {
                         // Nếu 1 trong 2 bị null, ưu tiên lấy cái có giá trị. Khúc chót mới lấy UtcNow làm fallback
-                        endDate = r.EndDate ?? e.DueDate ?? DateTime.UtcNow;
+                        endDate = r.EndDate ?? e.EndDateTime;
                     }
                     
                     var totalCompletions = r.Tasks.Count(t => t.Status == TaskStatus.Completed);
@@ -303,7 +303,8 @@ namespace SmartStudy.Server.Services
                 {
                     Id = e.Id,
                     Title = e.Title,
-                    DueDate = e.DueDate,
+                    StartDateTime = e.StartDateTime,
+                    EndDateTime = e.EndDateTime,
                     Priority = e.Priority,
                     EventType = e.Type,
                     Location = e.Location,

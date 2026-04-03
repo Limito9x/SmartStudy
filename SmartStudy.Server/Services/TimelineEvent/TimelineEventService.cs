@@ -109,7 +109,9 @@ namespace SmartStudy.Server.Services
 
             // Prevent moving an event to a different course.
             entity.Title = dto.Title;
-            entity.DueDate = dto.DueDate;
+            entity.StartDateTime = dto.StartDateTime;
+            entity.EndDateTime = dto.EndDateTime;
+            entity.IsAllDay = dto.IsAllDay;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseTimelineEventDto>(entity);

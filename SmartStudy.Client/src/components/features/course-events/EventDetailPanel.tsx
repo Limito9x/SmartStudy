@@ -28,7 +28,7 @@ export default function EventDetailPanel({
   const totalTasks = toNumber(eventData.totalTasks);
   const progress =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-  const daysLeft = getDaysLeft(eventData.dueDate);
+  const daysLeft = getDaysLeft(eventData.endDateTime);
 
   const handleOpenCreateTask = () => {
     openDialog("TASK_FORM", {
@@ -57,7 +57,7 @@ export default function EventDetailPanel({
             </div>
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              Hạn hoàn thành: {formatDate(eventData.dueDate)}
+              Hạn hoàn thành: {formatDate(eventData.endDateTime)}
             </p>
           </div>
 

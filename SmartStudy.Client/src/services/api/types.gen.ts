@@ -47,7 +47,7 @@ export type BulkCreateStudyPlanDto = {
     studyPlans: Array<RequestStudyPlanDto>;
 };
 
-export type CalendarEntityType = 'Task' | 'Routine' | 'TimelineEvent' | 'Schedule';
+export type CalendarEntityType = 'Task' | 'Routine' | 'TimelineEvent';
 
 export type CalendarEventDto = {
     calendarId?: string;
@@ -57,6 +57,7 @@ export type CalendarEventDto = {
     title?: string;
     startAt?: string;
     endAt?: string;
+    isAllDay?: boolean;
     courseName?: null | string;
     courseId?: null | number | string;
     taskType?: null | TaskType;
@@ -100,7 +101,8 @@ export type CourseAssetResponseDto = {
 export type CourseEventDto = {
     id?: number | string;
     title?: string;
-    dueDate?: null | string;
+    startDateTime?: string;
+    endDateTime?: string;
     eventType?: EventType;
     priority?: PriorityLevel;
     location?: null | string;
@@ -357,7 +359,9 @@ export type RequestTaskDto = {
 export type RequestTimelineEventDto = {
     courseId: number | string;
     title: string;
-    dueDate: null | string;
+    startDateTime: string;
+    endDateTime: string;
+    isAllDay: boolean;
     type: EventType;
     priority: PriorityLevel;
     location: null | string;
@@ -398,6 +402,8 @@ export type ResponseRoutineDto = {
     endDate: null | string;
     courseId: null | number | string;
     timelineEventId: null | number | string;
+    isActive: boolean;
+    studyPlanId: null | number | string;
     schedules: Array<ScheduleDto>;
     tasks: null | Array<ResponseTaskDto>;
 };
@@ -459,7 +465,9 @@ export type ResponseTimelineEventDto = {
     id: number | string;
     courseId: number | string;
     title: string;
-    dueDate: string;
+    startDateTime: string;
+    endDateTime: string;
+    isAllDay: boolean;
     type: EventType;
     priority: PriorityLevel;
     location: null | string;
@@ -493,6 +501,7 @@ export type SimpleResponseRoutineDto = {
     startDate: string;
     endDate: null | string;
     type: TaskType;
+    isActive: boolean;
     courseId: null | number | string;
     timelineEventId: null | number | string;
     schedules: Array<ScheduleDto>;
@@ -1625,6 +1634,24 @@ export type GetUpcomingRoutineTasksResponses = {
 };
 
 export type GetUpcomingRoutineTasksResponse = GetUpcomingRoutineTasksResponses[keyof GetUpcomingRoutineTasksResponses];
+
+export type ToggleRoutineStatusData = {
+    body?: never;
+    path: {
+        id: number | string;
+    };
+    query?: never;
+    url: '/api/routines/{id}/toggle-status';
+};
+
+export type ToggleRoutineStatusResponses = {
+    /**
+     * OK
+     */
+    200: ResponseRoutineDto;
+};
+
+export type ToggleRoutineStatusResponse = ToggleRoutineStatusResponses[keyof ToggleRoutineStatusResponses];
 
 export type CreateScheduleData = {
     body: RequestScheduleDto;

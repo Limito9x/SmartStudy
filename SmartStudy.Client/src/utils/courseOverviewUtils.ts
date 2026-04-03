@@ -164,8 +164,8 @@ export function sortTimelineEventsByPriority(
       return priorityB - priorityA;
     }
 
-    const dueA = parseDate(a.dueDate);
-    const dueB = parseDate(b.dueDate);
+    const dueA = parseDate(a.endDateTime);
+    const dueB = parseDate(b.endDateTime);
 
     if (dueA && dueB) {
       return dueA.getTime() - dueB.getTime();

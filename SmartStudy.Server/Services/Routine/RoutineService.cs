@@ -21,6 +21,7 @@ namespace SmartStudy.Server.Services
         Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
         Task<bool> DeleteRoutineAsync(int RoutineId);
+        Task<ResponseRoutineDto> ToggleRoutineStatusAsync(int RoutineId);
     }
     public class RoutineService : IRoutineService
     {
@@ -96,6 +97,7 @@ namespace SmartStudy.Server.Services
         {
             var Routine = await _context.Routines
                 .Include(r => r.Schedules)
+                .Include(r => r.Tasks)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Id == RoutineId);
             if (Routine == null) return null;
@@ -187,16 +189,50 @@ namespace SmartStudy.Server.Services
         {
             var existingRoutine = await _context.Routines.FindAsync(RoutineId);
             if (existingRoutine == null) return false;
+            var tasks = await _context.Tasks
+                .Where(t => t.RoutineId == RoutineId 
+                            && t.UserId == _currentUserService.UserId 
+                            && t.Status == Entities.Enums.TaskStatus.Completed)
+                .ToListAsync();
+            if (tasks.Any())
+            {
+                return false; // Không cho xóa nếu còn Task đã hoàn thành
+            }
+            await ClearFuturePendingTasksAsync(RoutineId); // Xóa các Task pending trong tương lai
+            _context.Routines.Remove(existingRoutine);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<ResponseRoutineDto> ToggleRoutineStatusAsync(int RoutineId)
+        {
+            var existingRoutine = await _context.Routines.FindAsync(RoutineId);
+            if (existingRoutine == null) throw new KeyNotFoundException("Không tìm thấy routine!");
+
+            existingRoutine.IsActive = !existingRoutine.IsActive;
+            if(!existingRoutine.IsActive)
+            {
+                await ClearFuturePendingTasksAsync(RoutineId); // Nếu tắt routine thì xóa các Task pending trong tương lai
+            }
+            else
+            {
+                // Nếu bật lại routine thì gen Task cho các lịch học (nếu có)
+                BackgroundJob.Enqueue<RoutineTaskGenerator>(
+                    generator=>generator.GenerateForSingleRoutineAsync(existingRoutine.Id)
+                );
+            }
+            await _context.SaveChangesAsync();
+            return _mapper.Map<ResponseRoutineDto>(existingRoutine);
+        }
+
+        private async Task ClearFuturePendingTasksAsync(int RoutineId)
+        {
             await _context.Tasks
                 .Where(t => t.RoutineId == RoutineId 
                             && t.UserId == _currentUserService.UserId 
                             && t.Status == Entities.Enums.TaskStatus.Pending
-                            && t.Logs == null
                             && t.StartDateTime >= DateTime.UtcNow.Date)
                 .ExecuteDeleteAsync();
-            _context.Routines.Remove(existingRoutine);
-            await _context.SaveChangesAsync();
-            return true;
         }
 
         public async Task GenerateTasksAsync(int RoutineId, DateTime Until)

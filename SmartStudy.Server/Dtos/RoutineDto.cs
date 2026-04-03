@@ -40,6 +40,8 @@ namespace SmartStudy.Server.Dtos
         DateTime? EndDate,
         int? CourseId,
         int? TimelineEventId,
+        bool IsActive,
+        int? StudyPlanId,
         List<ScheduleDto> Schedules,
         List<ResponseTaskDto>? Tasks
     );
@@ -52,6 +54,7 @@ namespace SmartStudy.Server.Dtos
         DateTime StartDate,
         DateTime? EndDate,
         TaskType Type,
+        bool IsActive,
         int? CourseId,
         int? TimelineEventId,
         List<ScheduleDto> Schedules
