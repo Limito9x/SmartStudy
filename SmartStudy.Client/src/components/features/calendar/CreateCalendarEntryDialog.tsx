@@ -10,7 +10,7 @@ import { useRoutine } from "@/hooks/entities/useRoutine";
 import { useTask } from "@/hooks/entities/useTask";
 import { getCalendarQueryKey } from "@/services/api/@tanstack/react-query.gen";
 import { useDialogStore } from "@/stores/useDialogStore";
-import { routineApiMapper, taskApiMapper } from "@/utils/mapper.ts/apiMapper";
+import { routineApiMapper, taskApiMapper } from "@/utils/mapper/apiMapper";
 
 type CreateMode = "task" | "routine";
 

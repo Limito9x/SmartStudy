@@ -4,8 +4,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
-import { studyPlanApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { studyPlanFormMapper } from "@/utils/mapper.ts/formMapper";
+import { studyPlanApiMapper } from "@/utils/mapper/apiMapper";
+import { studyPlanFormMapper } from "@/utils/mapper/formMapper";
 import { addMonths } from "date-fns";
 
 export default function StudyPlanFormContainer() {
@@ -36,7 +36,7 @@ export default function StudyPlanFormContainer() {
       : {
           name: defaultValues?.name || "",
           startDate: new Date(), // Mặc định là hôm nay
-          endDate: addMonths(new Date(),1), // Mặc định là 1 tháng sau
+          endDate: addMonths(new Date(), 1), // Mặc định là 1 tháng sau
           termId: defaultValues?.termId || null,
           yearId: defaultValues?.yearId || null,
           type: defaultValues?.type || "Academic",

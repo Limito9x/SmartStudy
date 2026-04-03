@@ -23,7 +23,7 @@ import { useState } from "react";
 import { weekdayMap } from "@/utils/dateUtils";
 import RoutineForm from "@/components/forms/routine/RoutineForm";
 import { useDialogStore } from "@/stores/useDialogStore";
-import { routineApiMapper } from "@/utils/mapper.ts/apiMapper";
+import { routineApiMapper } from "@/utils/mapper/apiMapper";
 import { useOutletContext } from "react-router-dom";
 import { type StudyPlanOutletContext } from "@/layouts/StudyPlanLayout";
 import { addWeeks } from "date-fns";

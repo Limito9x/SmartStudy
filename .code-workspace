@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "name": "Backend",
+      "path": "./SmartStudy.Server",
+    },
+    {
+      "name": "Frontend",
+      "path": "./SmartStudy.Client",
+    },
+  ],
+}

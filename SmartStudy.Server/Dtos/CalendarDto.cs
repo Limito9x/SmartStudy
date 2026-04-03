@@ -42,7 +42,8 @@ public class CalendarEventDto
     
     // Task specific
     public TaskType? TaskType { get; set; }
-    public Entities.Enums.TaskStatus? Status { get; set; }
+    public string Status { get; set; } = "Pending";
+    public bool IsOverdue { get; set; } = false;
     public string? Location {get; set;}
     
     // Virtual = routine chưa được gen task thật
@@ -62,7 +63,6 @@ public enum CalendarEntityType
 public record RescheduleTaskDto
 (
     int TaskId,
-    DateOnly NewDate,
-    TimeOnly NewStartTime,
-    int NewDuration
+    DateTime newStartDate,
+    DateTime newEndDate
 );

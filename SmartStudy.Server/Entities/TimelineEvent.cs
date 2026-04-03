@@ -12,6 +12,15 @@ namespace SmartStudy.Server.Entities
         ProjectDeadline, // Hạn chót dự án
         Other // Khác
     }
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum EventStatus
+    {
+        Pending, // Chưa hoàn thành
+        Completed, // Đã hoàn thành
+        Cancelled // Đã hủy
+    }
+
     public enum  PriorityLevel
     {
         Low = 1,
@@ -23,7 +32,7 @@ namespace SmartStudy.Server.Entities
         [Required]
         public int CourseId { get; set; }
         public Course? Course { get; set; }
-        public bool IsCompleted { get; set; } = false;
+        public EventStatus Status { get; set; } = EventStatus.Pending;
         [Required]
         public required string Title { get; set; }
         public DateTime? DueDate { get; set; }

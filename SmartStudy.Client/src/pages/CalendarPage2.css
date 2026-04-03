@@ -1,0 +1,71 @@
+:root {
+  --fc-border-color: hsl(var(--border));
+  --fc-today-bg-color: hsl(var(--accent) / 0.3);
+  --fc-event-bg-color: hsl(var(--primary));
+  --fc-event-border-color: transparent;
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: hsl(var(--muted));
+}
+
+/* Grid lines – rõ ràng, dễ phân biệt khung giờ */
+.fc .fc-timegrid-col {
+  border-right: 1px solid #d4d4d8;
+}
+
+/* Đường kẻ ngang major slots — nổi bật rõ */
+.fc .fc-timegrid-slot-major {
+  border-top: 1px solid #e4e4e7;
+}
+
+/* Minor slots — hiển thị rõ nhưng nhạt hơn */
+.fc .fc-timegrid-slot-minor {
+  border-top: 0.5px solid #f4f4f5;
+}
+
+/* Đường viền bảng */
+.fc td,
+.fc th {
+  border-color: #d4d4d8;
+}
+.fc .fc-scrollgrid {
+  border-color: #d4d4d8;
+}
+
+/* Header ng�y � b? bold m?c d?nh */
+.fc .fc-col-header-cell {
+  font-weight: 500;
+  font-size: 12px;
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Event � bo g�c, b? border, padding g?n */
+.fc .fc-event {
+  border: none;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+.fc .fc-event-title {
+  font-weight: 500;
+}
+.fc .fc-event-time {
+  font-size: 10px;
+  opacity: 0.85;
+  font-weight: 400;
+}
+
+/* Today highlight nh?t hon */
+.fc .fc-day-today {
+  background: hsl(var(--accent) / 0.15) !important;
+}
+
+/* B? border scrollgrid ngo�i c�ng */
+.fc .fc-scrollgrid {
+  border: none;
+}
+
+/* Time label g?n hon */
+.fc .fc-timegrid-axis {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+}

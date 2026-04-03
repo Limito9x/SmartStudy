@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 // Bác check lại xem import hook Course của bác đúng đường dẫn này không nhé:
 import { useCourse } from "@/hooks/entities/useCourse";
-import { getAutoDefaultPlan } from "@/utils/studyPlanUtils";
+import { getAutoDefaultPlan } from "@/utils/entities/studyPlanUtils";
 import {
   Select,
   SelectContent,
@@ -28,6 +28,7 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { useState } from "react";
 import PlanNav from "./plan-nav";
 import { Separator } from "@/components/ui/separator";
+import { addMonths } from "date-fns";
 
 export default function Workspace() {
   const { openDialog } = useDialogStore();
@@ -115,8 +116,8 @@ export default function Workspace() {
                 defaultValues: {
                   type: "Personal",
                   name: "",
-                  startDate: "",
-                  endDate: "",
+                  startDate: new Date(),
+                  endDate: addMonths(new Date(), 3),
                   termId: null,
                   yearId: null,
                 },

@@ -60,7 +60,8 @@ export type CalendarEventDto = {
     courseName?: null | string;
     courseId?: null | number | string;
     taskType?: null | TaskType;
-    status?: null | TaskStatus;
+    status?: string;
+    isOverdue?: boolean;
     location?: null | string;
     isVirtual?: boolean;
     color?: null | string;
@@ -367,9 +368,8 @@ export type RequirementStrategy = 'Additive' | 'Averaging' | 'MaxValue' | 'TaskB
 
 export type RescheduleTaskDto = {
     taskId: number | string;
-    newDate: string;
-    newStartTime: string;
-    newDuration: number | string;
+    newStartDate: string;
+    newEndDate: string;
 };
 
 export type ResponseCourseDto = {

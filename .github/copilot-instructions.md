@@ -21,8 +21,11 @@
 3. Dùng TanStack Query, không dùng useEffect để fetch
 
 ## Terminal paths
-- Backend: D:\\.NET\\SmartStudy\\SmartStudy.Server
-- Frontend: D:\\.NET\\SmartStudy\\SmartStudy.Client
+- Backend terminal: cd D:\.NET\SmartStudy\SmartStudy.Server
+- Frontend terminal: cd D:\.NET\SmartStudy\SmartStudy.Client
+- ALWAYS cd to correct directory before running npm or dotnet commands
+- npm commands → must be in SmartStudy.Client
+- dotnet commands → must be in SmartStudy.Server
 
 ## Form Creation Workflow
 

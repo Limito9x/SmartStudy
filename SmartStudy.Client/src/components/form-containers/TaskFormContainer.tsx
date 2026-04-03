@@ -4,8 +4,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { TaskFormValues } from "../forms/task/schema";
-import { taskApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { taskFormMapper } from "@/utils/mapper.ts/formMapper";
+import { taskApiMapper } from "@/utils/mapper/apiMapper";
+import { taskFormMapper } from "@/utils/mapper/formMapper";
 
 export default function TaskFormContainer() {
   const { data, closeDialog } = useDialogStore();
@@ -35,14 +35,12 @@ export default function TaskFormContainer() {
     isEditMode && taskData
       ? taskFormMapper.toFormValues(taskData) // Map lại chuẩn form nếu cần
       : {
-        ...defaultValues,
-        name: defaultValues?.name || "",
-        type: defaultValues?.type || "SelfStudy",
-        courseId: courseId || defaultValues?.courseId,
-        eventId: eventId || defaultValues?.eventId,
-      };
-
-      
+          ...defaultValues,
+          name: defaultValues?.name || "",
+          type: defaultValues?.type || "SelfStudy",
+          courseId: courseId || defaultValues?.courseId,
+          eventId: eventId || defaultValues?.eventId,
+        };
 
   const handleSubmit = (values: TaskFormValues) => {
     if (isEditMode) {

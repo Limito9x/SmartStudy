@@ -4,8 +4,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
-import { routineApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { routineFormMapper } from "@/utils/mapper.ts/formMapper";
+import { routineApiMapper } from "@/utils/mapper/apiMapper";
+import { routineFormMapper } from "@/utils/mapper/formMapper";
 
 export default function RoutineFormContainer() {
   const { data, closeDialog } = useDialogStore();

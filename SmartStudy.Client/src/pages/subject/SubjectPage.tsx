@@ -10,7 +10,7 @@ import {
   personalSubjectColumns,
 } from "@/components/data-table/columns/SubjectColumns";
 import type { ResponseSubjectDto } from "@/services/api/types.gen";
-import { subjectApiMapper } from "@/utils/mapper.ts/apiMapper";
+import { subjectApiMapper } from "@/utils/mapper/apiMapper";
 import BulkSubjectForm from "@/components/forms/subject/BulkSubjectForm";
 import {
   Dialog,

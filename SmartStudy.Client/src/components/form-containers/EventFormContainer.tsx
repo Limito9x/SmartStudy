@@ -4,8 +4,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { TimelineEventFormValues } from "../forms/timeline-event/schema";
-import { timelineEventApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { timelineEventFormMapper } from "@/utils/mapper.ts/formMapper";
+import { timelineEventApiMapper } from "@/utils/mapper/apiMapper";
+import { timelineEventFormMapper } from "@/utils/mapper/formMapper";
 
 export default function EventFormContainer() {
   const { data, closeDialog } = useDialogStore();

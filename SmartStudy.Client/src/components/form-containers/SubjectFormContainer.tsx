@@ -4,8 +4,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { SubjectFormValues } from "@/components/forms/subject/schema";
-import { subjectApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { subjectFormMapper } from "@/utils/mapper.ts/formMapper";
+import { subjectApiMapper } from "@/utils/mapper/apiMapper";
+import { subjectFormMapper } from "@/utils/mapper/formMapper";
 
 export default function SubjectFormContainer() {
   const { data, closeDialog } = useDialogStore();

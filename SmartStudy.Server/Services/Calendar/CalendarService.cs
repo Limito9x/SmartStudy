@@ -2,6 +2,7 @@ using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Exceptions;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
@@ -68,9 +69,11 @@ public class CalendarService: ICalendarService
             EndAt = task.EndDateTime.Value,
             CourseName = task.Course?.Name,
             Location = task.Location,
+            RoutineId = task.RoutineId,
             CourseId = task.CourseId,
             TaskType = task.Type,
-            Status = task.Status,
+            Status = task.Status.ToString(),
+            IsOverdue = task.IsOverdue,
             IsVirtual = false,
             Color = task.Course?.Color ?? "#7F77DD"
         });
@@ -114,6 +117,7 @@ public class CalendarService: ICalendarService
                     CourseName = routine.Course?.Name,
                     CourseId = routine.CourseId,
                     IsVirtual = true,  // chưa có task thật
+                    Status = "Pending",
                     Color = routine.Course?.Color ?? "#7F77DD"
                 });
             }
@@ -131,6 +135,9 @@ public class CalendarService: ICalendarService
 
     foreach (var ev in events)
     {
+        var status = ev.Status.ToString();
+        var isOverdue = ev.DueDate.HasValue && ev.DueDate.Value < DateTime.UtcNow && ev.Status == EventStatus.Pending;
+            
         result.Add(new CalendarEventDto
         {
             CalendarId = $"event-{ev.Id}",
@@ -141,6 +148,8 @@ public class CalendarService: ICalendarService
             CourseName = ev.Course?.Name,
             CourseId = ev.CourseId,
             IsVirtual = false,
+            Status = status,
+            IsOverdue = isOverdue,
             Color = ev.Course?.Color ?? "#7F77DD"
         });
     }
@@ -186,9 +195,8 @@ public async Task RescheduleTaskAsync(RescheduleTaskDto dto)
     if (task == null)
         throw new KeyNotFoundException("Task không tồn tại!");
 
-    var startDateTime = dto.NewDate.ToDateTime(dto.NewStartTime);
-    task.StartDateTime = startDateTime;
-    task.EndDateTime = startDateTime.AddMinutes(dto.NewDuration);
+    task.StartDateTime=dto.newStartDate;
+    task.EndDateTime=dto.newEndDate;
 
     await _context.SaveChangesAsync();
 }

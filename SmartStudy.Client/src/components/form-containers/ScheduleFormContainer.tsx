@@ -3,7 +3,7 @@ import ScheduleForm from "@/components/forms/schedule/ScheduleForm";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { ScheduleFormValues } from "@/components/forms/schedule/schema";
-import { scheduleApiMapper } from "@/utils/mapper.ts/apiMapper";
+import { scheduleApiMapper } from "@/utils/mapper/apiMapper";
 
 export default function ScheduleFormContainer() {
   const { data, closeDialog } = useDialogStore();

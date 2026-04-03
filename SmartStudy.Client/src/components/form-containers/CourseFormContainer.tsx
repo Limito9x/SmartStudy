@@ -4,8 +4,8 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { CourseFormValues } from "@/components/forms/course/schema";
-import { courseApiMapper } from "@/utils/mapper.ts/apiMapper";
-import { courseFormMapper } from "@/utils/mapper.ts/formMapper";
+import { courseApiMapper } from "@/utils/mapper/apiMapper";
+import { courseFormMapper } from "@/utils/mapper/formMapper";
 
 export default function CourseFormContainer() {
   const { data, closeDialog } = useDialogStore();
