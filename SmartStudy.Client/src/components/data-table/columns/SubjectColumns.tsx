@@ -1,6 +1,6 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import type { ResponseSubjectDto } from "@/services/api";
-import ActionMenu from "../ActionMenu";
+import ActionMenu from "../../shared/ActionMenu";
 
 export const academicSubjectColumns: ColumnDef<ResponseSubjectDto>[] = [
   {

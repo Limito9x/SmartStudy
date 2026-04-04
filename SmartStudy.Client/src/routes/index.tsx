@@ -4,7 +4,6 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/auth/LoginPage";
 import CoursePage from "@/pages/school-study/course/CoursePage";
 import CalendarPage from "@/pages/calendar/CalendarPage";
-import CalendarPage2 from "@/pages/CalendarPage2";
 import SubjectPage from "@/pages/subject/SubjectPage";
 import OnboardingPage from "@/pages/survey/onboarding/OnboardingPage";
 import MainPage from "@/pages/main/MainPage";
@@ -72,11 +71,7 @@ export default function AppRoutes() {
                 },
                 {
                   path: "calendar",
-                  element: <CalendarPage2 />,
-                },
-                {
-                  path: "calendar2",
-                  element: <CalendarPage2 />,
+                  element: <CalendarPage />,
                 },
                 {
                   path: "templates",

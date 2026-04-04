@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PlanTemplateDto } from "@/services/api";
 import { Badge } from "@/components/ui/badge";
-import ActionMenu from "@/components/data-table/ActionMenu";
+import ActionMenu from "@/components/shared/ActionMenu";
 
 interface TemplateColumnActions {
   onView: (template: PlanTemplateDto) => void;

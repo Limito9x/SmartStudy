@@ -1,112 +1,161 @@
-import DraggableCalendar from "@/components/features/calendar/DraggableCalendar";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
+import viLocale from "@fullcalendar/core/locales/vi";
+import { useState, useCallback, useMemo } from "react";
+import { format } from "date-fns";
 import { useCalendar } from "@/hooks/entities/useCalendar";
+import { useDialogStore } from "@/stores/useDialogStore";
+import { Menu, X } from "lucide-react";
+import UnscheduledList from "@/components/features/calendar/UnscheduledList";
 import { useTask } from "@/hooks/entities/useTask";
 import { useRoutine } from "@/hooks/entities/useRoutine";
-import { useSchedule } from "@/hooks/entities/useSchedule";
-import { useDialogStore } from "@/stores/useDialogStore";
-import { useCallback, useState } from "react";
-import UnscheduledList from "@/components/features/calendar/UnscheduledList";
-import type { UnscheduledItemDto } from "@/services/api";
-import { Menu, X } from "lucide-react"; // Icon cái nút Hamburger và nút Đóng
-import { format } from "date-fns";
 import type {
-  CalendarEventAction,
-  MyTask,
-} from "@/components/features/calendar/DraggableCalendar";
+  EventClickArg,
+  EventDropArg,
+} from "@fullcalendar/core";
+import type {
+  EventReceiveArg,
+  EventResizeDoneArg,
+} from "@fullcalendar/interaction";
+import { formatISO } from "date-fns";
+import {
+  renderEventContent,
+  EventPopoverContent,
+} from "@/components/features/calendar/CalendarItems";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useLayoutStore } from "@/stores/useLayoutStore";
 
-function getCurrentWeekRange() {
-  const now = new Date();
-  const day = now.getDay(); // 0=CN, 1=T2...
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+// Import CSS overrides
+import "./CalendarPage.css";
 
-  const fmt = (d: Date): string =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const taskTypeColorMap: Record<string, string> = {
+  ClassSession: "#2563eb",
+  SelfStudy: "#0f766e",
+  AssignmentWork: "#7c3aed",
+  Meeting: "#ea580c",
+};
 
-  return { from: fmt(monday), to: fmt(sunday) };
-}
+const getColor = (dto: any) => {
+  const fallback =
+    dto.entityType === "Schedule"
+      ? "#3b82f6"
+      : dto.entityType === "TimelineEvent"
+        ? "#ef4444"
+        : dto.taskType
+          ? taskTypeColorMap[dto.taskType]
+          : "#7F77DD";
+  return dto.color || fallback;
+};
 
-// CalendarPage.tsx
-export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [currentRange, setCurrentRange] = useState(getCurrentWeekRange());
-  const [draggedItem, setDraggedItem] = useState<UnscheduledItemDto | null>(
-    null,
-  );
+export default function CalendarPage2() {
+  const [currentRange, setCurrentRange] = useState({
+    from: format(new Date(), "yyyy-MM-dd"),
+    to: format(new Date(), "yyyy-MM-dd"),
+  });
+  const [popoverState, setPopoverState] = useState({
+    isOpen: false,
+    eventData: null as any,
+    anchorRect: { top: 0, left: 0, width: 0, height: 0 },
+  });
+
   const { openDialog } = useDialogStore();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const isInboxOpen = useLayoutStore((state) => state.isInboxOpen);
+  const setIsInboxOpen = useLayoutStore((state) => state.setInboxOpen);
 
   const { getCalendar, getInboxItems, rescheduleCalendar } = useCalendar({
     from: currentRange.from,
     to: currentRange.to,
   });
 
-  const { updateTaskInfo, deleteTaskById } = useTask();
-  const { deleteRoutine } = useRoutine();
-  const { confirmTaskOnOccurrence } = useSchedule();
-
   const { data: calendarEvents } = getCalendar();
-
   const { data: inboxItems } = getInboxItems;
+  const { deleteTaskById } = useTask();
+  const { deleteRoutine } = useRoutine();
 
-  const handleRangeChange = (from: string, to: string) => {
-    setCurrentRange({ from, to });
-  };
-
-  const handleDragStart = (item: UnscheduledItemDto) => {
-    setDraggedItem(item);
-    setTimeout(() => setIsDrawerOpen(false), 0);
-  };
-
-  const handleDragEnd = () => {
-    setIsDrawerOpen(true);
-  };
-
-  const handleDropOnCalendar = async (args: {
-    start: Date | string;
-    end: Date | string;
-  }) => {
-    if (!draggedItem) return;
-    const { start, end } = args;
-    const dayOfWeek = new Date(start).getDay();
-
-    if (draggedItem.entityType === "Routine") {
-      openDialog("SCHEDULE_FORM", {
-        routineId: Number(draggedItem.id),
-        defaultValues: {
-          id: 0,
-          dayOfWeek: dayOfWeek === 0 ? 7 : dayOfWeek, // Convert JS Sunday=0 to API Sunday=7
-          startTime: format(new Date(start), "HH:mm:ss"),
-          duration: Math.ceil(
-            (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60),
-          ),
-        },
-      });
-    } else if (draggedItem.entityType === "Task") {
-      rescheduleCalendar.mutate({
-        body: {
-          taskId: Number(draggedItem.id),
-          newDate: format(new Date(start), "yyyy-MM-dd"),
-          newStartTime: format(new Date(start), "HH:mm:ss"),
-          newDuration: Math.ceil(
-            (new Date(end).getTime() - new Date(start).getTime()) / (1000 * 60),
-          ),
-        },
-      });
+  const handleReschedule = (info: EventDropArg | EventResizeDoneArg) => {
+    const event = info.event;
+    const dto = event.extendedProps;
+    if (dto.entityType !== "Task" || dto.isVirtual) {
+      info.revert();
+      return;
     }
+
+    const startDateTime = event.start ? formatISO(event.start) : null;
+    const endDateTime = event.end ? formatISO(event.end) : null;
+
+    if (!startDateTime || !endDateTime) {
+      info.revert();
+      return;
+    }
+
+    rescheduleCalendar.mutate(
+      {
+        body: {
+          taskId: Number(dto.entityId),
+          newStartDate: startDateTime,
+          newEndDate: endDateTime,
+        },
+      },
+      {
+        onError: () => info.revert(),
+      },
+    );
   };
 
-  const handleSelectSlot = useCallback(
-    ({ start, end }: { start: Date; end: Date }) => {
+  const events = useMemo(() => {
+    if (!calendarEvents) return [];
+    return calendarEvents.map((dto: any) => {
+      const startString = dto.startDateTime || dto.startAt;
+      const endString = dto.endDateTime || dto.endAt;
+
+      const isTimelineEvent = dto.entityType === "TimelineEvent";
+
+      return {
+        id: String(dto.calendarId),
+        title: dto.title,
+        start: startString,
+        end: endString,
+        allDay:
+          isTimelineEvent ||
+          (!startString?.includes("T") &&
+            !startString?.includes(":") &&
+            !isTimelineEvent),
+        backgroundColor: getColor(dto),
+        className: dto.status === "Completed" ? "opacity-80" : "",
+        extendedProps: { ...dto },
+      };
+    });
+  }, [calendarEvents]);
+
+  // Thả sự kiện
+  const handleEventDrop = useCallback(
+    (info: any) => {
+      handleReschedule(info);
+    },
+    [rescheduleCalendar],
+  );
+
+  // Kéo thời gian (đầu hoặc cuối sự kiện)
+  const handleEventResize = useCallback(
+    (info: EventResizeDoneArg) => {
+      handleReschedule(info);
+    },
+    [rescheduleCalendar],
+  );
+
+  const handleSelect = useCallback(
+    (info: any) => {
       openDialog("TASK_FORM", {
         defaultValues: {
-          taskDate: format(start, "yyyy-MM-dd"),
-          startTime: format(start, "HH:mm:ss"),
-          plannedDuration: Math.ceil(
-            (end.getTime() - start.getTime()) / (1000 * 60),
-          ), // duration tính bằng phút
+          startDateTime: new Date(formatISO(info.start)),
+          endDateTime: new Date(formatISO(info.end)),
           name: "",
           type: "SelfStudy",
         },
@@ -115,161 +164,160 @@ export default function CalendarPage() {
     [openDialog],
   );
 
-  const handleEventChange = useCallback(
-    ({ event, start, end }: { event: MyTask; start: Date; end: Date }) => {
-      if (event.entityType === "Task") {
-        rescheduleCalendar.mutate({
-          body: {
-            taskId: Number(event.entityId),
-            newDate: format(start, "yyyy-MM-dd"),
-            newStartTime: format(start, "HH:mm:ss"),
-            newDuration: Math.ceil(
-              (end.getTime() - start.getTime()) / (1000 * 60),
-            ), // duration tính bằng phút
-          },
-        });
-      }
-    },
-    [updateTaskInfo],
-  );
+  const handleEventReceive = (eventReceive: EventReceiveArg) => {
+    const dto = eventReceive.event.extendedProps;
 
-  const handleEventAction = useCallback(
-    ({ type, event }: CalendarEventAction) => {
-      if (type === "log-work") {
-        if (!event.entityId) return;
-        openDialog("LOG_WORK_FORM", {
-          taskId: Number(event.entityId),
-          defaultValues: {
-            actualDuration:
-              Math.ceil(
-                (event.end.getTime() - event.start.getTime()) / (1000 * 60),
-              ) || 60,
-            note: "",
-            markAsCompleted: false,
-            files: [],
-          },
-        });
-        return;
-      }
+    // Gỡ bóng preview khỏi calendar ngay lập tức, data thật sẽ load từ API
+    eventReceive.event.remove();
 
-      if (type === "delete-task") {
-        if (!event.entityId) return;
-        openDialog("CONFIRM_DELETE", {
-          itemType: "công việc",
-          itemName: event.title,
-          onConfirm: () => {
-            deleteTaskById.mutate({
-              path: {
-                taskId: Number(event.entityId),
-              },
-            });
-          },
-        });
-        return;
-      }
+    const start = eventReceive.event.start;
+    const end =
+      eventReceive.event.end || new Date(start!.getTime() + 60 * 60 * 1000);
 
-      if (type === "confirm-schedule") {
-        if (!event.entityId) return;
-        confirmTaskOnOccurrence.mutate({
-          path: {
-            id: Number(event.entityId),
-          },
-          query: {
-            taskDate: format(event.start, "yyyy-MM-dd"),
-          },
-        });
-        return;
-      }
+    if (!start) return;
 
-      if (type === "edit-schedule") {
-        if (!event.entityId || !event.routineId) return;
-
-        openDialog("SCHEDULE_FORM", {
-          routineId: Number(event.routineId),
-          defaultValues: {
-            id: Number(event.entityId),
-            dayOfWeek: event.start.getDay(),
-            startTime: format(event.start, "HH:mm:ss"),
-            duration:
-              Math.ceil(
-                (event.end.getTime() - event.start.getTime()) / (1000 * 60),
-              ) || 60,
-            location: "",
-          },
-        });
-
-        return;
-      }
-
-      if (type === "edit-routine") {
-        if (!event.routineId) return;
-
-        openDialog("ROUTINE_FORM", {
-          routineId: Number(event.routineId),
-        });
-      }
-    },
-    [confirmTaskOnOccurrence, deleteTaskById, openDialog],
-  );
-
-  const handleDeleteUnscheduledItem = (item: UnscheduledItemDto) => {
-    if (item.entityType === "Routine") {
-      openDialog("CONFIRM_DELETE", {
-        itemType: "lịch trình",
-        itemName: item.name || "Lịch trình chưa đặt tên",
-        onConfirm: () => {
-          // Gọi API xóa thói quen
-          deleteRoutine.mutate({ path: { id: Number(item.id) } });
+    if (dto.entityType === "Routine") {
+      const dayOfWeek = start.getDay();
+      openDialog("SCHEDULE_FORM", {
+        routineId: Number(eventReceive.event.id),
+        defaultValues: {
+          id: 0,
+          dayOfWeek: dayOfWeek === 0 ? 7 : dayOfWeek, // Convert JS Sunday=0 to API Sunday=7
+          startTime: format(start, "HH:mm:ss"),
+          duration: dto.plannedDuration || 60,
         },
       });
-    } else if (item.entityType === "Task") {
-      openDialog("CONFIRM_DELETE", {
-        itemType: "công việc",
-        itemName: item.name || "Công việc chưa đặt tên",
-        onConfirm: () => {
-          deleteTaskById.mutate({ path: { taskId: Number(item.id) } });
+    } else if (dto.entityType === "Task") {
+      rescheduleCalendar.mutate({
+        body: {
+          taskId: Number(eventReceive.event.id),
+          newStartDate: formatISO(start),
+          newEndDate: formatISO(end),
         },
       });
     }
   };
 
+  const handleEventClick = useCallback((info: EventClickArg) => {
+    const dto = info.event.extendedProps;
+
+    // Lấy tọa độ và kích thước khung (box) của event html element
+    const rect = info.el.getBoundingClientRect();
+
+    setPopoverState({
+      isOpen: true,
+      eventData: {
+        ...dto,
+        title: info.event.title,
+        start: info.event.start,
+        end: info.event.end,
+      },
+      anchorRect: {
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      },
+    });
+  }, []);
+
+  const handleDatesSet = useCallback((info: any) => {
+    setCurrentRange({
+      from: format(info.start, "yyyy-MM-dd"),
+      to: format(info.end, "yyyy-MM-dd"),
+    });
+  }, []);
+
   return (
     <div className="relative h-full overflow-hidden p-4">
-      <div className="min-h-0">
-        <DraggableCalendar
-          key={`${currentRange.from}-${currentRange.to}`}
-          calendarEvents={calendarEvents ?? []}
-          onRangeChange={handleRangeChange}
-          currentDate={currentDate} // ← truyền xuống
-          onNavigate={setCurrentDate} // ← RBC gọi khi next/back/today
-          onSelectSlot={handleSelectSlot}
-          draggedItem={draggedItem ?? undefined}
-          onDropFromOutside={handleDropOnCalendar}
-          onEventChange={handleEventChange}
-          onEventAction={handleEventAction}
+      <div className="bg-white rounded-xl shadow p-4 h-full flex flex-col">
+        <FullCalendar
+          plugins={[
+            dayGridPlugin,
+            timeGridPlugin,
+            interactionPlugin,
+            listPlugin,
+          ]}
+          initialView="timeGridWeek"
+          locale={viLocale}
+          headerToolbar={{
+            left: "prev,next today",
+            center: "title",
+            right: "dayGridMonth,timeGridWeek,timeGridDay,listWeek",
+          }}
+          events={events}
+          editable={true}
+          selectable={true}
+          droppable={true}
+          eventReceive={handleEventReceive}
+          eventDrop={handleEventDrop}
+          select={handleSelect}
+          eventClick={handleEventClick}
+          eventResize={handleEventResize}
+          datesSet={handleDatesSet}
+          height="100%"
+          slotMinTime="00:00:00"
+          nowIndicator={true}
+          eventContent={renderEventContent}
         />
       </div>
-      {/* NÚT BẤM GỌI DRAWER (Nổi ở góc phải) */}
-      {!isDrawerOpen && (
+
+      <Popover
+        open={popoverState.isOpen}
+        onOpenChange={(open) =>
+          setPopoverState((prev) => ({ ...prev, isOpen: open }))
+        }
+      >
+        {/* MỎ NEO TÀNG HÌNH */}
+        <PopoverTrigger asChild>
+          <div
+            style={{
+              position: "fixed",
+              top: popoverState.anchorRect.top,
+              left: popoverState.anchorRect.left,
+              width: popoverState.anchorRect.width,
+              height: popoverState.anchorRect.height,
+              pointerEvents: "none", // Xuyên chuột, không làm cản trở thao tác trên lịch
+              visibility: "hidden", // Ẩn hoàn toàn
+            }}
+          />
+        </PopoverTrigger>
+
+        {/* NỘI DUNG POPOVER */}
+        <PopoverContent
+          side="right" // Ưu tiên mở sang bên phải của event
+          align="start" // Ép mép trên của Popover bằng với mép trên của event
+          className="w-70 p-4 shadow-lg"
+        >
+          {popoverState.eventData && (
+            <EventPopoverContent
+              eventData={popoverState.eventData}
+              hidePopover={() => {
+                setPopoverState((prev) => ({ ...prev, isOpen: false }));
+              }}
+            />
+          )}
+        </PopoverContent>
+      </Popover>
+
+      {!isInboxOpen && (
         <button
-          onClick={() => setIsDrawerOpen(true)}
-          className="absolute right-4 top-4 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 z-40 transition-transform hover:scale-105"
+          onClick={() => setIsInboxOpen(true)}
+          className="absolute right-4 top-20 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 z-40 transition-transform hover:scale-105"
         >
           <Menu className="w-6 h-6" />
         </button>
       )}
 
-      {/* DRAWER NỔI (OVERLAY) */}
       <div
         className={`absolute top-0 right-0 h-full w-full max-w-80 bg-white shadow-2xl border-l border-gray-200 z-50 transform transition-transform duration-300 ease-in-out ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          isInboxOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        {/* Header của Drawer có nút [X] để đóng thủ công */}
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-bold">Hộp công việc</h3>
           <button
-            onClick={() => setIsDrawerOpen(false)}
+            onClick={() => setIsInboxOpen(false)}
             className="p-1 hover:bg-gray-100 rounded-md"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -279,9 +327,6 @@ export default function CalendarPage() {
         <div className="h-[calc(100%-60px)]">
           <UnscheduledList
             inboxItems={inboxItems}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDelete={handleDeleteUnscheduledItem} // ← truyền hàm xóa vào đây
           />
         </div>
       </div>

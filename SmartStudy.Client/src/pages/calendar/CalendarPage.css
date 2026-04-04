@@ -89,4 +89,10 @@
 .inbox-item {
   touch-action: none; /* Tránh xung đột trên cảm ứng */
   user-select: none;
+  cursor: grab;
+}
+
+.inbox-item:active, 
+.fc-event-dragging {
+  cursor: grabbing !important;
 }

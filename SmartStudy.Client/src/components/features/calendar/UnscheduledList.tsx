@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Draggable } from "@fullcalendar/interaction/index.js";
 import { useLayoutStore } from "@/stores/useLayoutStore";
+import UnscheduledItemCard from "./UnscheduledItemCard";
 
 interface UnscheduledListProps {
   inboxItems: InboxResponseDto | undefined;
@@ -86,14 +87,11 @@ const renderCourseMeta = (item: UnscheduledItemDto) => {
 };
 
 interface DraggableItemListProps {
-  items: UnscheduledItemDto[];
+  items: Record<string, UnscheduledItemDto[]>; // Nhóm theo courseId (string vì có thể là "no_course")
   emptyMessage: string;
 }
 
-function DraggableItemList({
-  items,
-  emptyMessage,
-}: DraggableItemListProps) {
+function DraggableItemList({ items, emptyMessage }: DraggableItemListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,7 +129,7 @@ function DraggableItemList({
     };
   }, [items]);
 
-  if (items.length === 0) {
+  if (Object.keys(items).length === 0) {
     return (
       <div className="text-sm text-gray-500 italic p-4 text-center">
         {emptyMessage}
@@ -140,109 +138,98 @@ function DraggableItemList({
   }
 
   return (
-    <div className="flex flex-col gap-2 p-1" ref={containerRef}>
-      {items.map((item) => (
-        <div
-          key={item.id}
-          className="relative flex inbox-item"
-          data-event={JSON.stringify({
-            title: item.name,
-            duration: { minutes: item.plannedDuration || 60 },
-            backgroundColor: item.courseColor || "#3b82f6",
-            create: true, // true để FullCalendar nhận và gọi eventReceive, vẽ bóng preview
-            ...item, // để lấy extendedProps
-          })}
-        >
-          <div
-            draggable={true}
-            className="group flex-1 flex flex-col p-3 transition-all bg-white border border-gray-200 rounded-lg shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md hover:border-gray-300"
-          >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="text-sm font-medium text-gray-800 wrap-break-word leading-5">
-                  {item.name}
-                </div>
-                {renderCourseMeta(item)}
-              </div>
+    <div className="flex flex-col gap-6 p-2" ref={containerRef}>
+      {Object.entries(items).map(([courseId, itemList]) => {
+        // Lấy thông tin môn học từ item đầu tiên trong list
+        const firstItem = itemList[0];
+        const courseName = firstItem?.courseName || "Chưa phân loại";
+        const courseColor = firstItem?.courseColor || "#94a3b8"; // Màu mặc định nếu không có
 
-              <button
-                type="button"
-                onClick={() => {}}
-                className="mt-0.5 p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md opacity-0 group-hover:opacity-100 transition-all focus:opacity-100"
-                title="Xóa mục này"
-              >
-                <Trash2 size={16} />
-              </button>
+        return (
+          <div key={courseId} className="group/course flex flex-col gap-2">
+            {/* HEADER CỦA NHÓM: Sticky và có màu sắc nhẹ nhàng */}
+            <div className="flex items-center gap-2 px-1 sticky top-0 bg-white/80 backdrop-blur-sm z-10 py-1">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: courseColor }}
+              />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                {courseName}
+              </span>
+              <div className="h-px flex-1 bg-gray-100" />
+              {/* Đường kẻ ngang mờ */}
+            </div>
+
+            {/* LIST ITEMS: Có gạch dọc chạy bên cạnh */}
+            <div
+              className="flex flex-col gap-3 ml-1.5 pl-4 border-l-2 transition-colors"
+              style={{ borderLeftColor: `${courseColor}40` }} // 40 là độ mờ (alpha) 25% cho đường kẻ dọc
+            >
+              {itemList.map((item) => (
+                <div
+                  key={item.id}
+                  className="inbox-item"
+                  data-event={JSON.stringify({
+                    id: item.id,
+                    title: item.name,
+                    backgroundColor: item.courseColor || "#94a3b8",
+                    duration: { minutes: item.plannedDuration || 60 },
+                    ...item,
+                  })}
+                >
+                  <UnscheduledItemCard
+                    item={item}
+                    onEdit={() => {}}
+                    onDelete={() => {}}
+                  />
+                </div>
+              ))}
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-export default function UnscheduledList({
-  inboxItems,
-}: UnscheduledListProps) {
+export default function UnscheduledList({ inboxItems }: UnscheduledListProps) {
   const [activeTab, setActiveTab] = useState<"task" | "routine">("task");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>(ALL_COURSES);
 
   const normalizedKeyword = searchKeyword.trim().toLowerCase();
 
-  const taskItems = useMemo(
-    () => inboxItems?.floatingTasks ?? [],
-    [inboxItems?.floatingTasks],
-  );
+  const groupedTasks = useMemo(() => {
+    if (!inboxItems?.floatingTasks) return {};
 
-  const routineItems = useMemo(
-    () => inboxItems?.fixedRoutines ?? [],
-    [inboxItems?.fixedRoutines],
-  );
-
-  const courseOptions = useMemo(() => {
-    const map = new Map<string, { id: string; name: string }>();
-
-    [...taskItems, ...routineItems].forEach((item) => {
-      const courseId = item.courseId;
-      const courseName = item.courseName?.trim();
-
-      if (courseId === null || courseId === undefined || !courseName) {
-        return;
-      }
-
-      const key = String(courseId);
-      if (!map.has(key)) {
-        map.set(key, { id: key, name: courseName });
-      }
-    });
-
-    return Array.from(map.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
+    return inboxItems.floatingTasks.reduce(
+      (acc: Record<string, UnscheduledItemDto[]>, task) => {
+        const courseId = task.courseId?.toString() ?? "no_course";
+        if (!acc[courseId]) {
+          acc[courseId] = [];
+        }
+        acc[courseId].push(task);
+        return acc;
+      },
+      {},
     );
-  }, [routineItems, taskItems]);
+  }, [inboxItems?.floatingTasks]);
 
-  const applyFilters = (items: UnscheduledItemDto[]) => {
-    return items.filter((item) => {
-      const matchesName =
-        !normalizedKeyword ||
-        item.name?.toLowerCase().includes(normalizedKeyword);
+  const groupedRoutines = useMemo(() => {
+    if (!inboxItems?.fixedRoutines) return {};
 
-      const matchesCourse =
-        selectedCourseId === ALL_COURSES ||
-        String(item.courseId ?? "") === selectedCourseId;
-
-      return Boolean(matchesName && matchesCourse);
-    });
-  };
-
-  const filteredTaskItems = useMemo(() => {
-    return applyFilters(taskItems);
-  }, [normalizedKeyword, selectedCourseId, taskItems]);
-
-  const filteredRoutineItems = useMemo(() => {
-    return applyFilters(routineItems);
-  }, [normalizedKeyword, selectedCourseId, routineItems]);
+    return inboxItems.fixedRoutines.reduce(
+      (acc: Record<string, UnscheduledItemDto[]>, routine) => {
+        const courseId = routine.courseId?.toString() ?? "no_course";
+        if (!acc[courseId]) {
+          acc[courseId] = [];
+        }
+        acc[courseId].push(routine);
+        return acc;
+      },
+      {},
+    );
+  }, [inboxItems?.fixedRoutines]);
 
   return (
     <div className="h-full flex flex-col gap-3 p-3">
@@ -263,11 +250,6 @@ export default function UnscheduledList({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL_COURSES}>Tất cả môn học</SelectItem>
-            {courseOptions.map((course) => (
-              <SelectItem key={course.id} value={course.id}>
-                {course.name}
-              </SelectItem>
-            ))}
           </SelectContent>
         </Select>
       </div>
@@ -279,16 +261,26 @@ export default function UnscheduledList({
       >
         <TabsList className="w-full" variant="line">
           <TabsTrigger value="task" className="flex-1">
-            Task lẻ ({taskItems.length})
+            Task lẻ (
+            {Object.values(groupedTasks).reduce(
+              (sum, arr) => sum + arr.length,
+              0,
+            )}
+            )
           </TabsTrigger>
           <TabsTrigger value="routine" className="flex-1">
-            Routine ({routineItems.length})
+            Routine (
+            {Object.values(groupedRoutines).reduce(
+              (sum, arr) => sum + arr.length,
+              0,
+            )}
+            )
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="task" className="mt-2 overflow-y-auto">
           <DraggableItemList
-            items={filteredTaskItems}
+            items={groupedTasks}
             emptyMessage={
               normalizedKeyword || selectedCourseId !== ALL_COURSES
                 ? "Không tìm thấy task phù hợp"
@@ -299,7 +291,7 @@ export default function UnscheduledList({
 
         <TabsContent value="routine" className="mt-2 overflow-y-auto">
           <DraggableItemList
-            items={filteredRoutineItems}
+            items={groupedRoutines}
             emptyMessage={
               normalizedKeyword || selectedCourseId !== ALL_COURSES
                 ? "Không tìm thấy routine phù hợp"
