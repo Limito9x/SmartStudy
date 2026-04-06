@@ -23,7 +23,8 @@ namespace SmartStudy.Server.Dtos
         long FileSize,
         FileType Type,
         DateTime CreatedAt,
-        AssetLinkType LinkedType
+        AssetLinkType LinkedType,
+        AssetStatus Status
     );
     
     public class CourseAssetResponseDto 
@@ -35,6 +36,7 @@ namespace SmartStudy.Server.Dtos
     public DateTime CreatedAt { get; set; }
     public AssetLinkType LinkedType { get; set; }
     public string SourceName { get; set; }
+    public AssetStatus Status { get; set; }
     }
 
     public record RequestQueryAssetDto

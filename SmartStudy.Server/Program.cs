@@ -20,6 +20,7 @@ using SmartStudy.Server.Middlewares;
 using SmartStudy.Server.Services.AI;
 using Hangfire;
 using Hangfire.PostgreSql;
+using Hangfire.Redis.StackExchange;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,7 @@ builder.Services.AddOpenApi("v1", options =>
 
 // Lấy chuỗi kết nối từ file cấu hình (config)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
 
 builder.Services.AddHttpContextAccessor();
 
@@ -91,7 +93,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-var geminiApiKey = builder.Configuration["Gemini:ApiKey2"];
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
 var modelId = "gemini-2.5-flash";
 
 builder.Services.AddScoped<Kernel>(sp =>
@@ -116,7 +118,6 @@ var config = TypeAdapterConfig.GlobalSettings;
 config.Scan(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton(config);
-builder.Services.AddSingleton<AssetQueueService>();
 
 // Đăng ký dịch vụ tùy chỉnh
 builder.Services.AddScoped<IAuthService, AuthService>()
@@ -147,26 +148,35 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<StudyPlugin>()
                 .AddScoped<TaskExecutionPlugin>()
                 .AddScoped<RoutineTaskGenerator>()
+                .AddScoped<IRagJobService, RagJobService>()
                 .AddScoped<IMapper, ServiceMapper>();
 
 // Background job dọn các asset 
 builder.Services.AddHostedService<GarbageCollectorJob>();
-builder.Services.AddHostedService<RagProcessingWorker>();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = redisConnectionString;
+    options.InstanceName = "SmartStudy_";
+});
 
 builder.Services.AddHangfire(config => config
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
-    {
-        DistributedLockTimeout = TimeSpan.FromSeconds(
-            builder.Configuration.GetValue<int?>("Hangfire:DistributedLockTimeoutSeconds") ?? 120)
-    }));
+    .UseRedisStorage(redisConnectionString));
 
 builder.Services.AddHangfireServer();
 
 // Http client giao tiếp 3rd-party
-builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>();
+builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>(client =>
+{
+    var baseUrl = builder.Configuration["AiService:BaseUrl"] ?? "http://smartstudy_ai:8000";
+    client.BaseAddress = new Uri(baseUrl);
+
+    client.Timeout = TimeSpan.FromMinutes(5);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
 builder.Services.AddHttpClient<IEmbeddingService, GeminiEmbeddingService>();
 
 // Enable dynamic JSON serialization cho Npgsql

@@ -48,7 +48,7 @@ public class DocumentChunkService: IDocumentChunkService
         foreach (var page in pages)
         {
             // 2. KHÂU CHUNK NẰM Ở ĐÂY: Băm riêng cái text của trang này thôi!
-            var pageChunks = SplitMarkdownIntoChunks(page.Markdown);
+            var pageChunks = SplitMarkdownIntoChunks(page.markdown);
 
             // 3. Xử lý từng chunk của trang đó
             for (int i = 0; i < pageChunks.Count; i++)
@@ -62,7 +62,7 @@ public class DocumentChunkService: IDocumentChunkService
                 var entity = new DocumentChunk
                 {
                     AssetId = assetId,
-                    PageNumber = page.PageNumber, // <--- BÍ KÍP RAG ĐỈNH CAO Ở ĐÂY
+                    PageNumber = page.page_number,
                     TextContent = textChunk,
                     Embedding = new Vector(embeddingArray) 
                 };

@@ -14,10 +14,6 @@ namespace SmartStudy.Server.Services
         Task<ResponseTimelineEventDto?> UpdateAsync(int timelineEventId, RequestTimelineEventDto dto);
         Task<bool> DeleteAsync(int timelineEventId);
         Task BulkCreateAsync(List<RequestTimelineEventDto> dtos);
-        Task<ResponseTimelineEventDto> CreateEventRequirementAsync(int EventId, EventRequirementReqDto dto);
-        Task<bool> DeleteEventRequirementAsync(int requirementId);
-        Task<List<EventRequirementResDto>> GetEventRequirementsAsync(int timelineEventId);
-        Task<EventRequirementResDto> UpdateEventRequirementAsync(int requirementId, EventRequirementReqDto dto);
     }
 
     public class TimelineEventService : ITimelineEventService
@@ -138,42 +134,6 @@ namespace SmartStudy.Server.Services
             var events = _mapper.Map<List<TimelineEvent>>(dtos);
             _context.TimelineEvents.AddRange(events);
             await _context.SaveChangesAsync();
-        }
-
-        public async Task<ResponseTimelineEventDto> CreateEventRequirementAsync(int EventId, EventRequirementReqDto dto)
-        {
-            var requirement = _mapper.Map<EventRequirement>(dto);
-            requirement.TimelineEventId = EventId;
-            _context.EventRequirements.Add(requirement);
-            await _context.SaveChangesAsync();
-            return _mapper.Map<ResponseTimelineEventDto>(requirement);
-        }
-
-        public async Task<bool> DeleteEventRequirementAsync(int requirementId)
-        {
-            var requirement = await _context.EventRequirements.FindAsync(requirementId);
-            if (requirement == null) return false;
-            _context.Remove(requirement);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<EventRequirementResDto>> GetEventRequirementsAsync(int timelineEventId)
-        {
-            var requirements = await _context.EventRequirements
-                .Where(r => r.TimelineEventId == timelineEventId)
-                .AsNoTracking()
-                .ToListAsync();
-            return _mapper.Map<List<EventRequirementResDto>>(requirements);
-        }
-
-        public async Task<EventRequirementResDto> UpdateEventRequirementAsync(int requirementId, EventRequirementReqDto dto)
-        {
-            var requirement = await _context.EventRequirements.FindAsync(requirementId);
-            if (requirement == null) return null;
-            _mapper.Map(dto, requirement);
-            await _context.SaveChangesAsync();
-            return _mapper.Map<EventRequirementResDto>(requirement);
         }
     }
 }

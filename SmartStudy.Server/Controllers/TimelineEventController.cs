@@ -55,36 +55,6 @@ namespace SmartStudy.Server.Controllers
             if (!deleted) return NotFound();
             return NoContent();
         }
-
-        [HttpPost("{eventId}/requirements", Name = "CreateEvenetRequirement")]
-        public async Task<ActionResult<ResponseTimelineEventDto>> CreateEventRequirement(int eventId, [FromBody] EventRequirementReqDto dto)
-        {
-            var created = await _timelineEventService.CreateEventRequirementAsync(eventId, dto);
-            return Ok(created);
-        }
-
-        [HttpDelete("requirements/{requirementId}", Name = "DeleteEventRequirement")]
-        public async Task<IActionResult> DeleteEventRequirement(int requirementId)
-        {
-            var deleted = await _timelineEventService.DeleteEventRequirementAsync(requirementId);
-            if (!deleted) return NotFound();
-            return NoContent();
-        }
-
-        [HttpGet("{eventId}/requirements", Name = "GetEventRequirements")]
-        public async Task<ActionResult<List<EventRequirementResDto>>> GetEventRequirements(int eventId)
-        {
-            var requirements = await _timelineEventService.GetEventRequirementsAsync(eventId);
-            return Ok(requirements);
-        }
-
-        [HttpPatch("requirements/{requirementId}", Name = "UpdateEventRequirement")]
-        public async Task<ActionResult<EventRequirementResDto>> UpdateEventRequirement(int requirementId, [FromBody] EventRequirementReqDto dto)
-        {
-            var updated = await _timelineEventService.UpdateEventRequirementAsync(requirementId, dto);
-            if (updated == null) return NotFound();
-            return Ok(updated);
-        }
     }
 }
 

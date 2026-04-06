@@ -88,64 +88,6 @@ public class DevController : ControllerBase
         var count = await _assetService.CleanupSoftDeletedAssetsAsync();
         return Ok(new { Message = $"Đã dọn dẹp thành công {count} file rác khỏi hệ thống." });
     }
-    
-    [HttpPost("test-llamaparse")]
-    public async Task<IActionResult> TestLlamaParse(IFormFile file)
-    {
-        if (file == null || file.Length == 0)
-            return BadRequest("Chưa chọn file!");
-
-        if (!file.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
-            return BadRequest("Tạm thời test PDF!");
-
-        try
-        {
-            // Mở luồng đọc trực tiếp từ RAM, không cần lưu xuống ổ cứng
-            using var stream = file.OpenReadStream();
-                
-            // Gọi con LlamaParse đi làm việc
-            var markdown = await _parser.ParseDocumentToMarkdownAsync(stream, file.FileName);
-            var firstPageMarkdown = markdown[0].Markdown;
-            var chunks = _chunkService.SplitMarkdownIntoChunks(firstPageMarkdown);
-            
-            var firstChunk = chunks.First();
-            var firstEmbedding = await _embeddingService.GenerateEmbeddingAsync(firstChunk);
-
-            return Ok(new
-            {
-                TotalChunks = chunks.Count,
-                FirstChunk = firstChunk,
-                EmbeddingLength = firstEmbedding.Length,
-                SampleVector = firstEmbedding.Take(5)
-            });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Error: {ex.Message}");
-        }
-    }
-
-    [HttpPost("full-RAG-pipeline-test")]
-    public async Task<IActionResult> FullRagPipelineTest(IFormFile file, [FromQuery] int assetId)
-    {
-        try
-        {
-            // 1. Đọc file
-            using var stream = file.OpenReadStream();
-        
-            // 2. LlamaParse bóc text
-            var parsedPages = await _parser.ParseDocumentToMarkdownAsync(stream, file.FileName);
-
-            // 4. Nhúng Vector và cắm xuống DB (CÚ CHỐT)
-            await _chunkService.SaveChunksToDatabaseAsync(assetId, parsedPages);
-
-            return Ok($"Tuyệt vời! Đã băm và cắm thành công {parsedPages.Count} pages có chứa Vector vào Database cho Asset {assetId}.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Toang rồi bác: {ex.Message}");
-        }
-    }
 
     private async Task HardResetAsync()
     {

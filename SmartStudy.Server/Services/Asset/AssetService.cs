@@ -5,6 +5,7 @@ using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Helpers;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
+using Hangfire;
 
 namespace SmartStudy.Server.Services
 {
@@ -25,15 +26,13 @@ namespace SmartStudy.Server.Services
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetService> _logger;
-        private readonly AssetQueueService _assetQueueService;
 
         public AssetService(ICloudService cloudinaryService,
             ApplicationDbContext context,
             IMapper mapper, 
             IAssetLinkService assetLinkService,
             ICurrentUserService currentUserService,
-            ILogger<AssetService> logger,
-            AssetQueueService assetQueueService)
+            ILogger<AssetService> logger)
         {
             _cloudinaryService = cloudinaryService;
             _context = context;
@@ -41,7 +40,6 @@ namespace SmartStudy.Server.Services
             _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
             _logger = logger;
-            _assetQueueService = assetQueueService;
         }
 
         public async Task DeleteAssetAsync(string assetId)
@@ -158,7 +156,7 @@ namespace SmartStudy.Server.Services
             // RAG Pipeline -> Truyền assetId đến channel
             foreach (var asset in uploadedAssets)
             {
-                await _assetQueueService.QueueAssetForProcessingAsync(asset.Id);
+                BackgroundJob.Enqueue<IRagJobService>(service => service.ProcessAssetRagAsync(asset.Id));
             }
 
             // ==========================================
@@ -219,7 +217,8 @@ namespace SmartStudy.Server.Services
                     Type = link.Asset.Type,
                     CreatedAt = link.Asset.CreatedAt,
                     LinkedType = link.LinkedType, // Để UI biết group
-                    SourceName = sourceName // Cực kỳ quan trọng cho UI
+                    SourceName = sourceName, // Cực kỳ quan trọng cho UI
+                    Status = link.Asset.Status
                 });
             }
 

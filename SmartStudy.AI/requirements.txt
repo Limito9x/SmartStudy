@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+llama-parse>=0.4.0
+llama-index-core
+python-dotenv
+pydantic>=2.7.0
+pydantic-settings
+python-multipart
