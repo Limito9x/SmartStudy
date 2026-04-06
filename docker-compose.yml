@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  smartstudy_db:
+    image: pgvector/pgvector:pg17
+    container_name: smartstudy_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+    ports:
+      - "5433:5432"
+    volumes:
+      # Đảm bảo tắt máy không bao giờ mất data
+      - pgdata:/var/lib/postgresql/data 
+    restart: unless-stopped
+
+volumes:
+  pgdata:
