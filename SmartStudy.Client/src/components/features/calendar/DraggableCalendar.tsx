@@ -283,7 +283,7 @@ export default function DraggableCalendar({
   const onEventResize: withDragAndDropProps["onEventResize"] = useCallback(
     ({ event, start, end }: DragChangeArgs) => {
       const currentEvent = event as MyTask;
-      if (currentEvent.isVirtual) {
+      if (currentEvent.isVirtual || currentEvent.entityType !== "Task") {
         // Không drag được — nhưng không báo lỗi
         // Chỉ cần không làm gì → RBC tự revert
         return;
@@ -303,10 +303,15 @@ export default function DraggableCalendar({
   // 2. KÉO THẢ DI CHUYỂN TASK SANG Ô KHÁC (DROP)
   const onEventDrop: withDragAndDropProps["onEventDrop"] = useCallback(
     ({ event, start, end }: DragChangeArgs) => {
+      const currentEvent = event as MyTask;
+      if (currentEvent.isVirtual || currentEvent.entityType !== "Task") {
+        return;
+      }
+
       // Y chang ở trên, chỉ báo cáo lên trên
       if (onEventChange) {
         onEventChange({
-          event: event as MyTask,
+          event: currentEvent,
           start: new Date(start),
           end: new Date(end),
         });
@@ -619,7 +624,7 @@ export default function DraggableCalendar({
               }}
               resizableAccessor={(event) => {
                 const e = event as MyTask;
-                return !e.isVirtual;
+                return !e.isVirtual && e.entityType === "Task";
               }}
               // Tương tác & Giao diện
               onSelectEvent={onSelectEvent}

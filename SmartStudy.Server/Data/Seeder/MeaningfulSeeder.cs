@@ -290,6 +290,7 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
             Status = StudyPlanStatus.Active,
             StartDate = DateTime.Parse(dto.StartDate).ToUniversalTime(),
             EndDate = DateTime.Parse(dto.EndDate).ToUniversalTime(),
+            
         };
 
         await _context.StudyPlans.AddAsync(plan);

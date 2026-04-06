@@ -12,10 +12,7 @@ import { Menu, X } from "lucide-react";
 import UnscheduledList from "@/components/features/calendar/UnscheduledList";
 import { useTask } from "@/hooks/entities/useTask";
 import { useRoutine } from "@/hooks/entities/useRoutine";
-import type {
-  EventClickArg,
-  EventDropArg,
-} from "@fullcalendar/core";
+import type { EventClickArg, EventDropArg } from "@fullcalendar/core";
 import type {
   EventReceiveArg,
   EventResizeDoneArg,
@@ -114,6 +111,7 @@ export default function CalendarPage2() {
     return calendarEvents.map((dto: any) => {
       const startString = dto.startDateTime || dto.startAt;
       const endString = dto.endDateTime || dto.endAt;
+      const canReschedule = dto.entityType === "Task" && !dto.isVirtual;
 
       const isTimelineEvent = dto.entityType === "TimelineEvent";
 
@@ -129,6 +127,9 @@ export default function CalendarPage2() {
             !isTimelineEvent),
         backgroundColor: getColor(dto),
         className: dto.status === "Completed" ? "opacity-80" : "",
+        editable: canReschedule,
+        startEditable: canReschedule,
+        durationEditable: canReschedule,
         extendedProps: { ...dto },
       };
     });
@@ -325,9 +326,7 @@ export default function CalendarPage2() {
         </div>
 
         <div className="h-[calc(100%-60px)]">
-          <UnscheduledList
-            inboxItems={inboxItems}
-          />
+          <UnscheduledList inboxItems={inboxItems} />
         </div>
       </div>
     </div>

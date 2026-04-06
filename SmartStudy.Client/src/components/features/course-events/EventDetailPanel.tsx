@@ -9,6 +9,8 @@ import type {
 } from "@/services/api";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Calendar, Flag } from "lucide-react";
+import ActionMenu from "@/components/shared/ActionMenu";
+import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 
 interface EventDetailPanelProps {
   eventData: CourseEventDto;
@@ -22,6 +24,7 @@ export default function EventDetailPanel({
   eventId,
 }: EventDetailPanelProps) {
   const { openDialog } = useDialogStore();
+  const { deleteEvent } = useTimelineEvent({ courseId });
   const tasks = eventData.tasks ?? [];
   const routines = eventData.routines ?? [];
   const completedTasks = toNumber(eventData.completedTasks);
@@ -29,6 +32,26 @@ export default function EventDetailPanel({
   const progress =
     totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
   const daysLeft = getDaysLeft(eventData.endDateTime);
+
+  const handleEditEvent = () => {
+    if (eventId) {
+      openDialog("EVENT_FORM", { eventId: eventId, courseId: courseId });
+    }
+  };
+
+  const handleDeleteEvent = () => {
+    if (eventId) {
+      openDialog("CONFIRM_DELETE", {
+        itemType: "sự kiện",
+        itemName: eventData.title || "Sự kiện chưa đặt tên",
+        onConfirm: () => {
+          deleteEvent.mutate({ path: {
+            timelineEventId: eventId,
+          }});
+        },
+      });
+    }
+  };
 
   const handleOpenCreateTask = () => {
     openDialog("TASK_FORM", {
@@ -61,21 +84,32 @@ export default function EventDetailPanel({
             </p>
           </div>
 
-          <Badge
-            className={
-              daysLeft === null
-                ? "bg-slate-100 text-slate-700"
+          <div className="flex items-center gap-3">
+            <Badge
+              className={
+                daysLeft === null
+                  ? "bg-slate-100 text-slate-700"
+                  : daysLeft < 0
+                    ? "bg-rose-100 text-rose-700"
+                    : "bg-amber-100 text-amber-800"
+              }
+            >
+              {daysLeft === null
+                ? "Chưa có hạn"
                 : daysLeft < 0
-                  ? "bg-rose-100 text-rose-700"
-                  : "bg-amber-100 text-amber-800"
-            }
-          >
-            {daysLeft === null
-              ? "Chưa có hạn"
-              : daysLeft < 0
-                ? "Đã quá hạn"
-                : `⏳ Còn ${daysLeft} ngày`}
-          </Badge>
+                  ? "Đã quá hạn"
+                  : `⏳ Còn ${daysLeft} ngày`}
+            </Badge>
+
+            {eventId && (
+              <ActionMenu
+                actions={[
+                  { label: "Chỉnh sửa", onClick: handleEditEvent },
+                  { label: "Xóa", onClick: handleDeleteEvent },
+                ]}
+              />
+            )}
+          </div>
         </div>
 
         <div className="mt-4 space-y-2">

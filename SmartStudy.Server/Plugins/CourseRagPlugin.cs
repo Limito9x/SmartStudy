@@ -54,9 +54,10 @@ public class CourseRagPlugin
 
         // 2. Lấy danh sách AssetId của khóa học
         var allRelatedAssetIds = await _context.AssetLinks
-            .Where(al => al.LinkedType == AssetLinkType.Course && al.LinkedId == _courseId || 
-                         al.LinkedType == AssetLinkType.Task && taskIds.Contains(al.LinkedId) ||
-                         al.LinkedType == AssetLinkType.Log && logIds.Contains(al.LinkedId))
+            .Where(al =>
+                (al.LinkedType == AssetLinkType.Course && al.LinkedId == _courseId) ||
+                (al.LinkedType == AssetLinkType.Task && taskIds.Contains(al.LinkedId)) ||
+                (al.LinkedType == AssetLinkType.Log && logIds.Contains(al.LinkedId)))
             .Select(al => al.AssetId)
             .Distinct()
             .ToListAsync();
@@ -66,11 +67,25 @@ public class CourseRagPlugin
         // 3. Vector Search
         var topChunks = await _context.DocumentChunks
             .Where(c => allRelatedAssetIds.Contains(c.AssetId))
+            .Include(c => c.Asset)
             .OrderBy(c => c.Embedding.CosineDistance(queryVector))
             .Take(5)
-            .Select(c => c.TextContent)
+            .Select(c => new
+            {
+                c.TextContent,
+                c.PageNumber,
+                FileName = c.Asset.FileName
+            })
             .ToListAsync();
 
-        return string.Join("\n\n---\n\n", topChunks);
+        if (!topChunks.Any())
+        {
+            return "[RAG_NO_MATCH] Khong tim thay noi dung phu hop trong tai lieu khoa hoc. Hay tiep tuc ho tro bang tool lich/task hoac goi y ke hoach hoc.";
+        }
+
+        var snippets = topChunks.Select(c =>
+            $"[{c.FileName} - trang {c.PageNumber}]\n{c.TextContent}");
+
+        return string.Join("\n\n---\n\n", snippets);
     }
 }

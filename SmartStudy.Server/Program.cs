@@ -91,7 +91,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
+var geminiApiKey = builder.Configuration["Gemini:ApiKey2"];
 var modelId = "gemini-2.5-flash";
 
 builder.Services.AddScoped<Kernel>(sp =>
@@ -100,12 +100,13 @@ builder.Services.AddScoped<Kernel>(sp =>
 
     // Thêm Gemini
     builder.AddGoogleAIGeminiChatCompletion(
-        modelId: "gemini-2.5-flash",
+        modelId: "gemini-2.5-flash-lite",
         apiKey: geminiApiKey);
     
     var kernel = builder.Build();
     kernel.Plugins.AddFromObject(sp.GetRequiredService<UIPlugin>(), "UIPlugin");
     kernel.Plugins.AddFromObject(sp.GetRequiredService<StudyPlugin>(), "StudyPlugin");
+    kernel.Plugins.AddFromObject(sp.GetRequiredService<TaskExecutionPlugin>(), "TaskExecutionPlugin");
 
     return kernel;
 });
@@ -144,6 +145,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<UIWidgetCollector>()
                 .AddScoped<UIPlugin>()
                 .AddScoped<StudyPlugin>()
+                .AddScoped<TaskExecutionPlugin>()
                 .AddScoped<RoutineTaskGenerator>()
                 .AddScoped<IMapper, ServiceMapper>();
 
@@ -155,7 +157,11 @@ builder.Services.AddHangfire(config => config
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
-    .UsePostgreSqlStorage(connectionString));
+    .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
+    {
+        DistributedLockTimeout = TimeSpan.FromSeconds(
+            builder.Configuration.GetValue<int?>("Hangfire:DistributedLockTimeoutSeconds") ?? 120)
+    }));
 
 builder.Services.AddHangfireServer();
 
@@ -219,17 +225,60 @@ app.UseAuthorization(); // 2. Kiểm tra quyền hạn (Người dùng này đư
 
 // Dashboard hangfire
 app.UseHangfireDashboard("/hangfire");
-RecurringJob.AddOrUpdate<RoutineTaskGenerator>(
-    "daily-routine-task-generator",
-    generator=>generator.GenerateUpcomingTasksAsync(),
-    "0 1 * * *" // chạy 1h mỗi ngày
-    );
+await RegisterRecurringJobsWithRetryAsync(app.Services);
 
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+static async Task RegisterRecurringJobsWithRetryAsync(IServiceProvider services)
+{
+    const string jobId = "daily-routine-task-generator";
+    const string cron = "0 1 * * *"; // chạy 1h mỗi ngày
+    const int maxAttempts = 5;
+
+    using var scope = services.CreateScope();
+    var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+    var logger = loggerFactory.CreateLogger("HangfireRecurringJobs");
+    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            recurringJobManager.AddOrUpdate<RoutineTaskGenerator>(
+                jobId,
+                generator => generator.GenerateUpcomingTasksAsync(),
+                cron);
+
+            logger.LogInformation("Recurring job '{JobId}' registered successfully.", jobId);
+            return;
+        }
+        catch (PostgreSqlDistributedLockException ex) when (attempt < maxAttempts)
+        {
+            var delay = TimeSpan.FromSeconds(Math.Min(30, attempt * 5));
+            logger.LogWarning(
+                ex,
+                "Could not acquire distributed lock while registering recurring job '{JobId}' (attempt {Attempt}/{MaxAttempts}). Retrying in {DelaySeconds}s.",
+                jobId,
+                attempt,
+                maxAttempts,
+                delay.TotalSeconds);
+            await Task.Delay(delay);
+        }
+        catch (PostgreSqlDistributedLockException ex)
+        {
+            logger.LogError(
+                ex,
+                "Failed to register recurring job '{JobId}' after {MaxAttempts} attempts due to distributed lock timeout. App will continue running.",
+                jobId,
+                maxAttempts);
+            return;
+        }
+    }
+}
 
 // Document Transformer để thêm Bearer Authentication vào OpenAPI
 internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer

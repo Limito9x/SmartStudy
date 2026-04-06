@@ -75,7 +75,7 @@ export default function EventsTab({ courseId }: EventsTabProps) {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold">Sự kiện & Mục tiêu học tập</h2>
+          <h2 className="text-lg font-semibold">Sự kiện</h2>
           <p className="text-xs text-muted-foreground">
             Theo dõi các mốc quan trọng và tiến độ hoàn thành mục tiêu.
           </p>

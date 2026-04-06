@@ -293,6 +293,16 @@ public class PlanTemplateService: IPlanTemplateService
     var payload = template.Payload
         ?? throw new AppException("Template không có dữ liệu");
 
+    if (template.Type == StudyPlanType.Academic)
+    {
+        var hasActiveAcademicPlan = await _context.StudyPlans
+            .AnyAsync(sp => sp.UserId == userId 
+                            && sp.Type == StudyPlanType.Academic 
+                            && sp.Status == StudyPlanStatus.Active);
+        if (hasActiveAcademicPlan)
+            throw new AppException("Bạn đã có kế hoạch học tập đại học đang hoạt động, không thể clone thêm.");
+    }
+
     var startDate = DateTime.SpecifyKind(dto.StartDate, DateTimeKind.Utc);
     var endDate = startDate.AddDays(payload.DurationDays);
     

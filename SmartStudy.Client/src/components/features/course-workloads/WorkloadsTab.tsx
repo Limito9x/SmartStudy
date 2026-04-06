@@ -60,7 +60,7 @@ export default function WorkloadsTab({ courseId }: WorkloadsTabProps) {
       <div className="flex flex-col items-start gap-4 md:flex-row md:items-end md:justify-between">
         <div className="w-full space-y-3 md:w-auto">
           <h2 className="text-lg font-semibold">
-            Danh sách Tiến độ & Công việc
+            Danh sách Công việc
           </h2>
           <Input
             placeholder="Tìm kiếm công việc..."

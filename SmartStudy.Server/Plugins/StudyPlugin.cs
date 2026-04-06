@@ -69,7 +69,7 @@ namespace SmartStudy.Server.Plugins
             [Description("Ngày công việc, định dạng yyyy-MM-dd")] string dateString,
             [Description("Thời gian bắt đầu, định dạng HH:mm")] string timeString,
             [Description("Thời lượng dự kiến")] int duration,
-            [Description("ID kế hoạch học tập")]  int? studyPlanId,
+            [Description("ID kế hoạch học tập. Co the bo trong, he thong se tu chon plan dang active.")]  int? studyPlanId = null,
             [Description("Loại công việc")]TaskType type = TaskType.SelfStudy,
         [Description("Mô tả công việc")] string? description = null)
         {
@@ -84,11 +84,63 @@ namespace SmartStudy.Server.Plugins
             var startDateTime = taskDate.ToDateTime(startTime);
             var endDateTime = startDateTime.AddMinutes(duration);
 
+            if (!studyPlanId.HasValue)
+            {
+                studyPlanId = await _context.StudyPlans
+                    .AsNoTracking()
+                    .Where(sp => sp.UserId == _currentUserService.UserId &&
+                                 sp.Status == Entities.Enums.StudyPlanStatus.Active)
+                    .OrderByDescending(sp => sp.UpdatedAt)
+                    .Select(sp => (int?)sp.Id)
+                    .FirstOrDefaultAsync();
+            }
+
             var dto = new RequestTaskDto
                 (name,description, startDateTime, endDateTime, type,null, null, studyPlanId);
             
             var response = await _taskService.CreateTaskAsync(dto);
             return $"Công việc '{response.Name}' đã được tạo thành công cho ngày {response.StartDateTime:yyyy-MM-dd}.";
+        }
+
+        [KernelFunction("get_upcoming_tasks")]
+        [Description("Lay danh sach task sap toi theo khoang so ngay. Dung cho cau hoi nhu 'tu hom nay den cuoi tuan' hoac '7 ngay toi'.")]
+        public async Task<string> GetUpcomingTasksAsync(
+            [Description("So ngay sap toi can xem, mac dinh 7, toi da 30")] int days = 7)
+        {
+            var userId = _currentUserService.UserId;
+            var clampedDays = Math.Clamp(days, 1, 30);
+            var start = DateTime.UtcNow.AddHours(7).Date;
+            var end = start.AddDays(clampedDays);
+
+            var tasks = await _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.UserId == userId &&
+                            t.StartDateTime.HasValue &&
+                            t.StartDateTime.Value >= start &&
+                            t.StartDateTime.Value < end)
+                .OrderBy(t => t.StartDateTime)
+                .Select(t => new
+                {
+                    t.Name,
+                    t.StartDateTime,
+                    t.EndDateTime,
+                    t.Status
+                })
+                .ToListAsync();
+
+            if (!tasks.Any())
+            {
+                return $"Khong co lich hoc/task nao trong {clampedDays} ngay toi.";
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine($"Lich hoc va task trong {clampedDays} ngay toi:");
+            foreach (var task in tasks)
+            {
+                sb.AppendLine($"- {task.StartDateTime:yyyy-MM-dd HH:mm}: {task.Name} ({task.Status})");
+            }
+
+            return sb.ToString();
         }
         
         // ── PLUGIN 1: WEEKLY SUMMARY ──────────────────────────────

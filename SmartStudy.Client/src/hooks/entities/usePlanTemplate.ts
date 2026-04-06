@@ -17,6 +17,41 @@ import type {
 } from "@/services/api";
 import { toast } from "sonner";
 
+const getApiErrorMessage = (error: unknown): string | null => {
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+
+  const errorWithResponse = error as {
+    response?: {
+      data?: {
+        message?: string;
+        title?: string;
+        detail?: string;
+      };
+    };
+    message?: string;
+  };
+
+  const apiMessage =
+    errorWithResponse.response?.data?.message ||
+    errorWithResponse.response?.data?.detail ||
+    errorWithResponse.response?.data?.title;
+
+  if (typeof apiMessage === "string" && apiMessage.trim() !== "") {
+    return apiMessage;
+  }
+
+  if (
+    typeof errorWithResponse.message === "string" &&
+    errorWithResponse.message.trim() !== ""
+  ) {
+    return errorWithResponse.message;
+  }
+
+  return null;
+};
+
 interface GetPlanTemplatesParams {
   pageIndex?: number;
   pageSize?: number;
@@ -119,8 +154,10 @@ export const useClonePlanTemplate = () => {
       invalidateTemplateQueries();
       toast.success("Nhân bản template thành công");
     },
-    onError: () => {
-      toast.error("Không thể nhân bản template");
+    onError: (error) => {
+      const errorMessage =
+        getApiErrorMessage(error) || "Không thể nhân bản template";
+      toast.error(errorMessage);
     },
   });
 };

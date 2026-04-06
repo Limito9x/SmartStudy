@@ -40,7 +40,7 @@ export function formatDayMonth(value: string | null | undefined): {
   if (Number.isNaN(date.getTime())) return { day: "--", month: "--" };
 
   return {
-    day: date.toLocaleDateString("vi-VN", { day: "2-digit" }),
-    month: date.toLocaleDateString("vi-VN", { month: "2-digit" }),
+    day: date.getDate().toString().padStart(2, "0"),
+    month: (date.getMonth() + 1).toString().padStart(2, "0"),
   };
 }

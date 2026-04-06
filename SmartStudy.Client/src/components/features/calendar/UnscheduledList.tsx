@@ -1,5 +1,5 @@
 import type { UnscheduledItemDto, InboxResponseDto } from "@/services/api";
-import { Search, Trash2 } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
@@ -9,10 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Draggable } from "@fullcalendar/interaction/index.js";
 import { useLayoutStore } from "@/stores/useLayoutStore";
+import { useDialogStore } from "@/stores/useDialogStore";
+import { useTask } from "@/hooks/entities/useTask";
+import { useRoutine } from "@/hooks/entities/useRoutine";
+import { toast } from "sonner";
 import UnscheduledItemCard from "./UnscheduledItemCard";
 
 interface UnscheduledListProps {
@@ -21,77 +24,27 @@ interface UnscheduledListProps {
 
 const ALL_COURSES = "all";
 
-const hexToRgba = (hexColor: string, alpha: number) => {
-  const normalized = hexColor.replace("#", "").trim();
-
-  if (!/^[0-9a-fA-F]{6}$/.test(normalized)) {
-    return undefined;
-  }
-
-  const r = parseInt(normalized.slice(0, 2), 16);
-  const g = parseInt(normalized.slice(2, 4), 16);
-  const b = parseInt(normalized.slice(4, 6), 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
-const getCourseStyles = (courseColor?: string | null) => {
-  if (!courseColor) {
-    return {
-      dotColor: "#9ca3af",
-      badgeStyle: undefined,
-    };
-  }
-
-  const lightBackground = hexToRgba(courseColor, 0.14);
-  const borderColor = hexToRgba(courseColor, 0.35);
-
-  if (!lightBackground || !borderColor) {
-    return {
-      dotColor: "#9ca3af",
-      badgeStyle: undefined,
-    };
-  }
-
-  return {
-    dotColor: courseColor,
-    badgeStyle: {
-      backgroundColor: lightBackground,
-      color: courseColor,
-      borderColor,
-    },
-  };
-};
-
-const renderCourseMeta = (item: UnscheduledItemDto) => {
-  if (!item.courseName) {
-    return (
-      <div className="text-xs text-gray-500 italic mt-1">Chưa phân loại</div>
-    );
-  }
-
-  const courseStyle = getCourseStyles(item.courseColor);
-
-  return (
-    <Badge
-      className="mt-1.5 flex w-fit items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-semibold leading-none"
-      style={courseStyle.badgeStyle}
-    >
-      <span
-        className="w-2 h-2 rounded-full shrink-0"
-        style={{ backgroundColor: courseStyle.dotColor }}
-      />
-      {item.courseName}
-    </Badge>
-  );
-};
-
 interface DraggableItemListProps {
   items: Record<string, UnscheduledItemDto[]>; // Nhóm theo courseId (string vì có thể là "no_course")
   emptyMessage: string;
+  fallbackEntityType: "Task" | "Routine";
+  onEditItem: (
+    item: UnscheduledItemDto,
+    fallbackEntityType: "Task" | "Routine",
+  ) => void;
+  onDeleteItem: (
+    item: UnscheduledItemDto,
+    fallbackEntityType: "Task" | "Routine",
+  ) => void;
 }
 
-function DraggableItemList({ items, emptyMessage }: DraggableItemListProps) {
+function DraggableItemList({
+  items,
+  emptyMessage,
+  fallbackEntityType,
+  onEditItem,
+  onDeleteItem,
+}: DraggableItemListProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -179,8 +132,8 @@ function DraggableItemList({ items, emptyMessage }: DraggableItemListProps) {
                 >
                   <UnscheduledItemCard
                     item={item}
-                    onEdit={() => {}}
-                    onDelete={() => {}}
+                    onEdit={() => onEditItem(item, fallbackEntityType)}
+                    onDelete={() => onDeleteItem(item, fallbackEntityType)}
                   />
                 </div>
               ))}
@@ -196,8 +149,92 @@ export default function UnscheduledList({ inboxItems }: UnscheduledListProps) {
   const [activeTab, setActiveTab] = useState<"task" | "routine">("task");
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>(ALL_COURSES);
+  const { openDialog } = useDialogStore();
+  const { deleteTaskById } = useTask();
+  const { deleteRoutine } = useRoutine();
 
   const normalizedKeyword = searchKeyword.trim().toLowerCase();
+
+  const getEntityType = (
+    item: UnscheduledItemDto,
+    fallbackEntityType: "Task" | "Routine",
+  ) => {
+    return item.entityType === "Routine"
+      ? "Routine"
+      : item.entityType === "Task"
+        ? "Task"
+        : fallbackEntityType;
+  };
+
+  const handleEditItem = (
+    item: UnscheduledItemDto,
+    fallbackEntityType: "Task" | "Routine",
+  ) => {
+    const entityType = getEntityType(item, fallbackEntityType);
+    const itemId = Number(item.id);
+    if (!itemId) {
+      toast.error("Không xác định được item để chỉnh sửa");
+      return;
+    }
+
+    if (entityType === "Routine") {
+      openDialog("ROUTINE_FORM", {
+        routineId: itemId,
+        courseId: item.courseId ? Number(item.courseId) : undefined,
+      });
+      return;
+    }
+
+    openDialog("TASK_FORM", {
+      taskId: itemId,
+      courseId: item.courseId ? Number(item.courseId) : undefined,
+    });
+  };
+
+  const handleDeleteItem = (
+    item: UnscheduledItemDto,
+    fallbackEntityType: "Task" | "Routine",
+  ) => {
+    const entityType = getEntityType(item, fallbackEntityType);
+    const itemId = Number(item.id);
+
+    if (!itemId) {
+      toast.error("Không xác định được item để xóa");
+      return;
+    }
+
+    const itemTypeLabel = entityType === "Routine" ? "routine" : "công việc";
+    const itemName = item.name || `${itemTypeLabel} chưa đặt tên`;
+
+    openDialog("CONFIRM_DELETE", {
+      itemType: itemTypeLabel,
+      itemName,
+      onConfirm: () => {
+        if (entityType === "Routine") {
+          deleteRoutine.mutate(
+            {
+              path: { id: itemId },
+            },
+            {
+              onSuccess: () => toast.success("Đã xóa routine"),
+              onError: () => toast.error("Không thể xóa routine"),
+            },
+          );
+          return;
+        }
+
+        deleteTaskById.mutate(
+          {
+            path: { taskId: itemId },
+          },
+          {
+            onSuccess: () => toast.success("Đã xóa công việc"),
+            onError: () => toast.error("Không thể xóa công việc"),
+          },
+        );
+      },
+    });
+  };
 
   const groupedTasks = useMemo(() => {
     if (!inboxItems?.floatingTasks) return {};
@@ -281,6 +318,9 @@ export default function UnscheduledList({ inboxItems }: UnscheduledListProps) {
         <TabsContent value="task" className="mt-2 overflow-y-auto">
           <DraggableItemList
             items={groupedTasks}
+            fallbackEntityType="Task"
+            onEditItem={handleEditItem}
+            onDeleteItem={handleDeleteItem}
             emptyMessage={
               normalizedKeyword || selectedCourseId !== ALL_COURSES
                 ? "Không tìm thấy task phù hợp"
@@ -292,6 +332,9 @@ export default function UnscheduledList({ inboxItems }: UnscheduledListProps) {
         <TabsContent value="routine" className="mt-2 overflow-y-auto">
           <DraggableItemList
             items={groupedRoutines}
+            fallbackEntityType="Routine"
+            onEditItem={handleEditItem}
+            onDeleteItem={handleDeleteItem}
             emptyMessage={
               normalizedKeyword || selectedCourseId !== ALL_COURSES
                 ? "Không tìm thấy routine phù hợp"

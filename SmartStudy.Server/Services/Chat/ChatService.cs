@@ -97,9 +97,11 @@ namespace SmartStudy.Server.Services
                 {
                     using var scope = _serviceProvider.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var ai = scope.ServiceProvider.GetRequiredService<IChatCompletionService>();
+                    var kernel = scope.ServiceProvider.GetRequiredService<Kernel>();
+                    var ai = kernel.GetRequiredService<IChatCompletionService>();
 
-                    string titlePrompt = $"Tạo tiêu đề ngắn (tối đa 10 từ) cho câu hỏi này: '{firstMessage}'";
+                    string titlePrompt = $"Ngay lập tức tạo tiêu đề ngắn (tối đa 5 từ) cho cuộc trò chuyện với câu hỏi này: '{firstMessage}'" +
+                                         $"Tuyệt đối không đưa ra nhiều phương án, câu trả lời của bạn sẽ trở thành tiêu đề của cuộc trò chuyện, nên hãy trả lời thật ngắn gọn và súc tích. Nếu không thể tạo tiêu đề từ câu hỏi này, hãy trả lời 'Cuộc trò chuyện mới'";
                     var result = await ai.GetChatMessageContentAsync(titlePrompt);
                     string newTitle = result.Content ?? "Cuộc trò chuyện mới";
 
@@ -132,6 +134,7 @@ namespace SmartStudy.Server.Services
             }
             
             var session = await _context.ChatSessions
+                .Include(s => s.Course)
                 .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId)
                 ?? throw new Exception("Chat session not found or access denied.");
 
@@ -142,9 +145,11 @@ namespace SmartStudy.Server.Services
                 .Where(m => m.SessionId == sessionId)
                 .OrderBy(m => m.CreatedAt)
                 .Select(m => new { m.Role, m.Content })
-                .ToList();
+                .ToListAsync();
 
-            if (dbMessages.Count == 0)
+            var messages = await dbMessages;
+
+            if (messages.Count == 0)
             {
                 Console.WriteLine("Khởi tạo trò chuyện, AI đặt tên session");
                 await InitializeChat(message, sessionId);
@@ -170,9 +175,15 @@ namespace SmartStudy.Server.Services
                 systemMsg = AiPersonaConfig.GetGlobalButlerPrompt();
             }
             history.AddSystemMessage(systemMsg);
+            history.AddSystemMessage(AiPersonaConfig.GetToolPolicyPrompt(courseId.HasValue));
+            history.AddSystemMessage(BuildIntentRoutingPrompt(message, courseId.HasValue));
+            history.AddSystemMessage(AiPersonaConfig.GetOutputContractPrompt());
+
+            var runtimeContext = await BuildRuntimeContextPromptAsync(userId, courseId);
+            history.AddSystemMessage(runtimeContext);
 
             // 3. Load lịch sử chat
-            foreach (var msg in dbMessages)
+            foreach (var msg in messages)
             {
                 if (msg.Role == "user")
                 {
@@ -272,6 +283,70 @@ namespace SmartStudy.Server.Services
             var chatCompletion = _kernel.GetRequiredService<IChatCompletionService>();
             var result = await chatCompletion.GetChatMessageContentAsync(prompt);
             return result.Content ?? "";
+        }
+
+        private async Task<string> BuildRuntimeContextPromptAsync(int userId, int? courseId)
+        {
+            var vnNow = DateTime.UtcNow.AddHours(7);
+            var activeTaskQuery = _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.UserId == userId &&
+                            t.Status != SmartStudy.Server.Entities.Enums.TaskStatus.Completed &&
+                            t.Status != SmartStudy.Server.Entities.Enums.TaskStatus.Cancelled);
+
+            if (courseId.HasValue)
+            {
+                activeTaskQuery = activeTaskQuery.Where(t => t.CourseId == courseId.Value);
+            }
+
+            var overdueCount = await activeTaskQuery
+                .CountAsync(t => t.EndDateTime.HasValue && t.EndDateTime.Value < vnNow);
+
+            var nextTask = await activeTaskQuery
+                .Where(t => t.StartDateTime.HasValue && t.StartDateTime.Value >= vnNow)
+                .OrderBy(t => t.StartDateTime)
+                .Select(t => new { t.Name, t.StartDateTime, t.EndDateTime })
+                .FirstOrDefaultAsync();
+
+            var nextTaskLine = nextTask == null
+                ? "- Khong co task sap toi trong du lieu hien tai."
+                : $"- Task gan nhat: {nextTask.Name} ({nextTask.StartDateTime:yyyy-MM-dd HH:mm} -> {nextTask.EndDateTime:yyyy-MM-dd HH:mm}).";
+
+            return $"""
+                   BOI CANH THOI GIAN THUC:
+                   - Bay gio (UTC+7): {vnNow:yyyy-MM-dd HH:mm}.
+                   - So task dang tre han: {overdueCount}.
+                   {nextTaskLine}
+                   - Uu tien goi y theo muc do khan cap va tac dong hoc tap.
+                   """;
+        }
+
+        private static string BuildIntentRoutingPrompt(string userMessage, bool hasCourseContext)
+        {
+            var normalized = userMessage.ToLowerInvariant();
+            var planningKeywords = new[]
+            {
+                "lich", "lịch", "task", "cong viec", "công việc", "deadline",
+                "hom nay", "hôm nay", "ngay mai", "ngày mai", "tuan", "tuần",
+                "thang", "tháng", "sap toi", "sắp tới", "ke hoach", "kế hoạch",
+                "tu hom nay", "từ hôm nay", "x ngay", "ngay toi", "ngày tới"
+            };
+
+            var isPlanningIntent = planningKeywords.Any(normalized.Contains);
+
+            if (!isPlanningIntent)
+            {
+                return hasCourseContext
+                    ? "ROUTING: Neu cau hoi la kien thuc mon hoc, uu tien CourseRagPlugin; neu la quan ly lich/task thi uu tien StudyPlugin." 
+                    : "ROUTING: Uu tien StudyPlugin cho cau hoi lich/task/tien do.";
+            }
+
+            return """
+                   ROUTING (BAT BUOC CHO TIN NHAN NAY):
+                   - Day la intent quan ly lich/task, uu tien StudyPlugin hoac TaskExecutionPlugin.
+                   - KHONG hoi xac nhan ngay hien tai neu user dung moc thoi gian tuong doi (hom nay, ngay mai, X ngay toi).
+                   - KHONG goi CourseRagPlugin tru khi user hoi ro rang ve noi dung tai lieu mon hoc.
+                   """;
         }
     }
 }

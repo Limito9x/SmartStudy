@@ -397,16 +397,4 @@ public class DatabaseSeeder : IDatabaseSeeder
             ? value
             : DateTime.SpecifyKind(value, DateTimeKind.Utc);
     }
-
-    private static DateTime NextOccurrence(DayOfWeek day, TimeOnly time)
-    {
-        var today = DateTime.UtcNow.Date;
-        var daysUntil = ((int)day - (int)today.DayOfWeek + 7) % 7;
-        if (daysUntil == 0)
-        {
-            daysUntil = 7;
-        }
-
-        return Utc(today.AddDays(daysUntil).Add(time.ToTimeSpan()));
-    }
 }

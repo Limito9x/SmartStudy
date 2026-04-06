@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   asNumber,
   formatDayMonth,
+  formatTime,
 } from "@/components/features/main/today-formatters";
 import type { UpcomingEventDto } from "@/services/api";
 
@@ -26,8 +27,16 @@ export default function TodayUpcomingEventsSection({
         ) : (
           events.map((event, index) => {
             const { day, month } = formatDayMonth(event.dueDate);
-            const daysUntil = Math.max(asNumber(event.daysUntil), 0);
-            const urgent = daysUntil < 7;
+            const time = formatTime(event.dueDate);
+            const rawDaysUntil = asNumber(event.daysUntil);
+            const urgent = rawDaysUntil < 7 && rawDaysUntil >= 0;
+
+            let daysUntilText = "";
+            if (rawDaysUntil === 0) daysUntilText = "Hôm nay";
+            else if (rawDaysUntil === 1) daysUntilText = "Ngày mai";
+            else if (rawDaysUntil < 0)
+              daysUntilText = `Quá hạn ${Math.abs(rawDaysUntil)} ngày`;
+            else daysUntilText = `${rawDaysUntil} ngày`;
 
             return (
               <div
@@ -48,12 +57,13 @@ export default function TodayUpcomingEventsSection({
                     {event.title ?? "Sự kiện"}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {event.courseName ?? "Không có môn học"}
+                    {event.courseName ?? "Không có môn học"}{" "}
+                    {time !== "--:--" ? `• ${time}` : ""}
                   </p>
                 </div>
 
                 <Badge variant={urgent ? "destructive" : "secondary"}>
-                  {daysUntil === 0 ? "Hôm nay" : `${daysUntil} ngày`}
+                  {daysUntilText}
                 </Badge>
               </div>
             );
