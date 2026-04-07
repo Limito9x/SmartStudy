@@ -6,7 +6,7 @@ namespace SmartStudy.Server.Dtos
     {
         public string Type { get; set; } // "Text" hoặc "UI"
         public string? Content { get; set; } // Lời nói của AI
-        public object? Data { get; set; }    // Dữ liệu UI (nếu có)
+        public string? Data { get; set; }    // Dữ liệu UI (nếu có)
     }
     public class SemesterUIData
     {

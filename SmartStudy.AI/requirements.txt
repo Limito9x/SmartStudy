@@ -6,3 +6,11 @@ python-dotenv
 pydantic>=2.7.0
 pydantic-settings
 python-multipart
+llama-index-core
+llama-index-llms-openrouter
+llama-index-vector-stores-postgres
+psycopg2-binary
+llama-index-embeddings-google-genai
+sqlalchemy
+langchain-openai
+langchain_google_genai

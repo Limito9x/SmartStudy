@@ -11,16 +11,17 @@ using System.Text;
 using System.Text.Json;
 using SmartStudy.Server.Helpers;
 using SmartStudy.Server.Services.AI;
+using System.Runtime.CompilerServices;
 
 namespace SmartStudy.Server.Services
 {
     public interface IChatService
     {
         public Task<List<ChatHistoryDto>> GetMessagesBySessionId(int sessionId);
-        public IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message);
+        public IAsyncEnumerable<AiResponseChunk> StreamChatAsync(int sessionId, string message,
+        CancellationToken cancellationToken = default);
         public Task<int> CreateSession(SessionDto sessionDto);
         public Task<List<SessionResponseDto>> GetSessions(int? courseId);
-        public Task<string> GetInsight(DashboardSummaryDto summaryDto);
     }
     
     public class ChatService: IChatService
@@ -28,31 +29,31 @@ namespace SmartStudy.Server.Services
         private readonly Kernel _kernel;
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly UIPlugin _uIPlugin;
         private readonly IMapper _mapper;
-        private readonly UIWidgetCollector _uIWidgetCollector;
         private readonly IServiceProvider _serviceProvider;
         private readonly IEmbeddingService _embeddingService;
+        private readonly HttpClient _aiHttpClient;
+        private readonly IConfiguration _configuration;
 
         public ChatService(
             ApplicationDbContext context,
             ICurrentUserService currentUserService,
             Kernel kernel,
             IMapper mapper,
-            UIPlugin uIPlugin,
+            IConfiguration configuration,
             IEmbeddingService embeddingService,
-            UIWidgetCollector uIWidgetCollector,
-            IServiceProvider serviceProvider
+            IServiceProvider serviceProvider,
+            HttpClient aiHttpClient
             )
         {
             _context = context;
             _currentUserService = currentUserService;
             _kernel = kernel;
             _mapper = mapper;
-            _uIPlugin = uIPlugin;
-            _uIWidgetCollector = uIWidgetCollector;
             _serviceProvider = serviceProvider;
             _embeddingService = embeddingService;
+            _aiHttpClient = aiHttpClient;
+            _configuration = configuration;
         }
 
         public async Task<int> CreateSession(SessionDto sessionDto)
@@ -123,15 +124,10 @@ namespace SmartStudy.Server.Services
             });
         }
 
-        public async IAsyncEnumerable<string> StreamChatAsync(int sessionId, string message)
+        public async IAsyncEnumerable<AiResponseChunk> StreamChatAsync(int sessionId, string message,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var userId = _currentUserService.UserId;
-            _uIWidgetCollector.Clear();
-
-            if (!_kernel.Plugins.Contains("UIPlugin")) {
-                _kernel.Plugins.AddFromObject(_uIPlugin, "UIPlugin");
-                Console.WriteLine($"📌 Plugins registered: {string.Join(", ", _kernel.Plugins.Select(p => p.Name))}");
-            }
             
             var session = await _context.ChatSessions
                 .Include(s => s.Course)
@@ -141,13 +137,11 @@ namespace SmartStudy.Server.Services
             var courseId = session.CourseId;
             
             // 1. Load chat history từ database
-            var dbMessages = _context.ChatMessages
+            var messages = await _context.ChatMessages
                 .Where(m => m.SessionId == sessionId)
                 .OrderBy(m => m.CreatedAt)
-                .Select(m => new { m.Role, m.Content })
+                .Select(m => new { role = m.Role, content = m.Content })
                 .ToListAsync();
-
-            var messages = await dbMessages;
 
             if (messages.Count == 0)
             {
@@ -155,79 +149,69 @@ namespace SmartStudy.Server.Services
                 await InitializeChat(message, sessionId);
             }
 
-            var history = new ChatHistory();
-
             // 2. Thêm system message TRƯỚC lịch sử
-            var systemMsg = "";
-            if (courseId.HasValue)
-            {
-                systemMsg = AiPersonaConfig.GetCourseTutorPrompt(courseTitle: session.Course?.Name ?? "khóa học", courseId: courseId.Value);
-                var ragPlugin = new CourseRagPlugin(_context,_embeddingService, courseId.Value,userId);
-                
-                if(!_kernel.Plugins.Contains("CourseRagPlugin"))
-                {
-                    _kernel.Plugins.AddFromObject(ragPlugin, "CourseRagPlugin");
-                    Console.WriteLine($"📌 Plugins registered: {string.Join(", ", _kernel.Plugins.Select(p => p.Name))}");
-                }
-            }
-            else
-            {
-                systemMsg = AiPersonaConfig.GetGlobalButlerPrompt();
-            }
-            history.AddSystemMessage(systemMsg);
-            history.AddSystemMessage(AiPersonaConfig.GetToolPolicyPrompt(courseId.HasValue));
-            history.AddSystemMessage(BuildIntentRoutingPrompt(message, courseId.HasValue));
-            history.AddSystemMessage(AiPersonaConfig.GetOutputContractPrompt());
+            var systemMsg = courseId.HasValue
+                    ? AiPersonaConfig.GetCourseTutorPrompt(session.Course?.Name ?? "khóa học", courseId.Value)
+                    : AiPersonaConfig.GetGlobalButlerPrompt();
 
-            var runtimeContext = await BuildRuntimeContextPromptAsync(userId, courseId);
-            history.AddSystemMessage(runtimeContext);
-
-            // 3. Load lịch sử chat
-            foreach (var msg in messages)
+            // 3. Gói dữ liệu sang Python
+            var requestBody = new
             {
-                if (msg.Role == "user")
-                {
-                    history.AddUserMessage(msg.Content);
-                }
-                else if (msg.Role == "assistant")
-                {
-                    history.AddAssistantMessage(msg.Content);
-                }
-            }
-
-            // 4. Thêm tin nhắn mới của user
-            history.AddUserMessage(message);
-
-            // 5. Cấu hình settings
-            var settings = new GeminiPromptExecutionSettings
-            {
-                ToolCallBehavior = GeminiToolCallBehavior.AutoInvokeKernelFunctions
+                query = message,
+                history = messages,
+                user_id = userId,
+                system_prompt = systemMsg,
+                course_id = courseId
             };
 
-            var chatCompletion = _kernel.GetRequiredService<IChatCompletionService>();
+            var request = new HttpRequestMessage(HttpMethod.Post, "/api/chat");
+            request.Content = JsonContent.Create(requestBody);
+            request.Headers.Add("X-Internal-Service-Key", _configuration["InternalServiceKey"]);
 
-            // 6. Stream response từ AI
-            var streamingResult = chatCompletion.GetStreamingChatMessageContentsAsync(
-                history,
-                settings,
-                _kernel
-            );
+            using var response = await _aiHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            response.EnsureSuccessStatusCode();
 
-            // Buffers để lưu trữ data
+            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            using var reader = new StreamReader(stream);
+
             var fullTextResponse = new StringBuilder();
+            var capturedUiData = "";
 
-            await foreach (var content in streamingResult)
+            // 5. Đọc stream từng dòng (chunk) từ Python trả về
+            while (!reader.EndOfStream)
             {
-                // In ra console để debug xem nó có trả về Metadata tool call không
-                if (content.Metadata != null && content.Metadata.ContainsKey("FunctionToolCalls"))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var line = await reader.ReadLineAsync(cancellationToken);
+                if(string.IsNullOrWhiteSpace(line)) continue;
+
+                AiResponseChunk? chunk = null;
+                try
                 {
-                    Console.WriteLine("⚡ AI IS CALLING A TOOL!");
+                    chunk = JsonSerializer.Deserialize<AiResponseChunk>(line, new JsonSerializerOptions 
+                    { 
+                        PropertyNameCaseInsensitive = true 
+                    });
+                }
+                catch (Exception)
+                {
+
                 }
 
-                if (!string.IsNullOrEmpty(content.Content))
+                if(chunk!=null)
                 {
-                    fullTextResponse.Append(content.Content);
-                    yield return content.Content;
+                    if (chunk.Type == "Text" && !string.IsNullOrEmpty(chunk.Content))
+                    {
+                        fullTextResponse.Append(chunk.Content);
+                    }
+                    // Tích lũy UI Data nếu AI sinh ra Component
+                    else if (chunk.Type == "UI" && !string.IsNullOrEmpty(chunk.Data))
+                    {
+                        capturedUiData = chunk.Data; 
+                    }
+
+                    // Nhả (yield) từng khúc về cho Controller đẩy ra Frontend
+                    yield return chunk;
                 }
             }
 
@@ -236,15 +220,29 @@ namespace SmartStudy.Server.Services
                 sessionId,
                 message,
                 fullTextResponse.ToString(),
-                _uIWidgetCollector.CapturedData
+                capturedUiData
             );
         }
 
         // Hàm phụ để lưu DB (Tách ra cho gọn)
-        private async Task SaveToDatabaseAsync(int sessionId, string userMsg, string aiMsg, List<object> uiData)
+        private async Task SaveToDatabaseAsync(int sessionId, string userMsg, string aiMsg, string uiData)
         {
             // Save User Msg
             _context.ChatMessages.Add(new Entities.ChatMessage{ SessionId = sessionId, Role = "user", Content = userMsg });
+
+            JsonElement? uiJsonElement = null;
+            if (!string.IsNullOrEmpty(uiData))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(uiData);
+                    uiJsonElement = doc.RootElement.Clone(); // Clone để tránh bị dispose khi doc bị dispose sau khối using
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Lỗi khi phân tích cú pháp UI Data: {ex.Message}");
+                }
+            }
 
             // Save AI Msg
             var aiMessageEntity = new Entities.ChatMessage
@@ -253,100 +251,13 @@ namespace SmartStudy.Server.Services
                 Role = "assistant",
                 Content = aiMsg,
                 // Nếu có UI Data trong collector thì serialize lưu vào cột Data
-                Data = uiData.Any() ? JsonSerializer.SerializeToElement(uiData.First(), new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                }) : null,
+                Data = uiJsonElement,
                 Type = uiData.Any() ? MessageType.UI : MessageType.Text
             };
 
             _context.ChatMessages.Add(aiMessageEntity);
             await _context.SaveChangesAsync();
         }
-        
-        public async Task<string> GetInsight(DashboardSummaryDto summary)
-        {
-            var prompt = $"""
-                          Bạn là trợ lý học tập. Phân tích dữ liệu và đưa ra 1-2 câu gợi ý ngắn gọn bằng tiếng Việt.
-                          Không dùng bullet points. Tối đa 2 câu.
 
-                          Dữ liệu tuần này:
-                          - Giờ học: {summary.WeeklyStudyHours}h
-                          - Năng suất: {summary.WeeklyProductivity}%
-                          - Hoàn thành: {summary.WeeklyCompletionRate}% tasks
-                          - Việc quá hạn: {summary.OverdueTasks.Count}
-                          - Sự kiện sắp tới: {string.Join(", ", summary.UpcomingEvents
-                              .Take(2)
-                              .Select(e => $"{e.Title} còn {e.DaysUntil} ngày"))}
-                          """;
-
-            var chatCompletion = _kernel.GetRequiredService<IChatCompletionService>();
-            var result = await chatCompletion.GetChatMessageContentAsync(prompt);
-            return result.Content ?? "";
-        }
-
-        private async Task<string> BuildRuntimeContextPromptAsync(int userId, int? courseId)
-        {
-            var vnNow = DateTime.UtcNow.AddHours(7);
-            var activeTaskQuery = _context.Tasks
-                .AsNoTracking()
-                .Where(t => t.UserId == userId &&
-                            t.Status != SmartStudy.Server.Entities.Enums.TaskStatus.Completed &&
-                            t.Status != SmartStudy.Server.Entities.Enums.TaskStatus.Cancelled);
-
-            if (courseId.HasValue)
-            {
-                activeTaskQuery = activeTaskQuery.Where(t => t.CourseId == courseId.Value);
-            }
-
-            var overdueCount = await activeTaskQuery
-                .CountAsync(t => t.EndDateTime.HasValue && t.EndDateTime.Value < vnNow);
-
-            var nextTask = await activeTaskQuery
-                .Where(t => t.StartDateTime.HasValue && t.StartDateTime.Value >= vnNow)
-                .OrderBy(t => t.StartDateTime)
-                .Select(t => new { t.Name, t.StartDateTime, t.EndDateTime })
-                .FirstOrDefaultAsync();
-
-            var nextTaskLine = nextTask == null
-                ? "- Khong co task sap toi trong du lieu hien tai."
-                : $"- Task gan nhat: {nextTask.Name} ({nextTask.StartDateTime:yyyy-MM-dd HH:mm} -> {nextTask.EndDateTime:yyyy-MM-dd HH:mm}).";
-
-            return $"""
-                   BOI CANH THOI GIAN THUC:
-                   - Bay gio (UTC+7): {vnNow:yyyy-MM-dd HH:mm}.
-                   - So task dang tre han: {overdueCount}.
-                   {nextTaskLine}
-                   - Uu tien goi y theo muc do khan cap va tac dong hoc tap.
-                   """;
-        }
-
-        private static string BuildIntentRoutingPrompt(string userMessage, bool hasCourseContext)
-        {
-            var normalized = userMessage.ToLowerInvariant();
-            var planningKeywords = new[]
-            {
-                "lich", "lịch", "task", "cong viec", "công việc", "deadline",
-                "hom nay", "hôm nay", "ngay mai", "ngày mai", "tuan", "tuần",
-                "thang", "tháng", "sap toi", "sắp tới", "ke hoach", "kế hoạch",
-                "tu hom nay", "từ hôm nay", "x ngay", "ngay toi", "ngày tới"
-            };
-
-            var isPlanningIntent = planningKeywords.Any(normalized.Contains);
-
-            if (!isPlanningIntent)
-            {
-                return hasCourseContext
-                    ? "ROUTING: Neu cau hoi la kien thuc mon hoc, uu tien CourseRagPlugin; neu la quan ly lich/task thi uu tien StudyPlugin." 
-                    : "ROUTING: Uu tien StudyPlugin cho cau hoi lich/task/tien do.";
-            }
-
-            return """
-                   ROUTING (BAT BUOC CHO TIN NHAN NAY):
-                   - Day la intent quan ly lich/task, uu tien StudyPlugin hoac TaskExecutionPlugin.
-                   - KHONG hoi xac nhan ngay hien tai neu user dung moc thoi gian tuong doi (hom nay, ngay mai, X ngay toi).
-                   - KHONG goi CourseRagPlugin tru khi user hoi ro rang ve noi dung tai lieu mon hoc.
-                   """;
-        }
     }
 }

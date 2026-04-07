@@ -46,6 +46,7 @@ builder.Services.AddControllers()
 // Cấu hình OpenAPI với .NET 10
 builder.Services.AddOpenApi("v1", options =>
 {
+    options.ShouldInclude=(desc)=>desc.GroupName!="Internal"; // Loại bỏ các endpoint có GroupName là "Internal" ra khỏi tài liệu OpenAPI
     options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     options.AddDocumentTransformer((document, context, cancellationToken) =>
     {
@@ -57,6 +58,17 @@ builder.Services.AddOpenApi("v1", options =>
         };
         return Task.CompletedTask;
     });
+});
+
+builder.Services.AddOpenApi("ai-tools", options => {
+    options.AddDocumentTransformer((document, context, cancellationToken) => {
+        document.Info.Title = "Smart Study AI Internal Tools";
+        document.Info.Description = "Danh sách các hàm hỗ trợ RAG và xử lý Task dành riêng cho AI Agent";
+        return Task.CompletedTask;
+    });
+
+    // QUAN TRỌNG: Chỉ lấy các endpoint thuộc nhóm "internal"
+    options.ShouldInclude = (description) => description.GroupName == "Internal";
 });
 
 // Lấy chuỗi kết nối từ file cấu hình (config)
@@ -149,6 +161,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<TaskExecutionPlugin>()
                 .AddScoped<RoutineTaskGenerator>()
                 .AddScoped<IRagJobService, RagJobService>()
+                .AddScoped<IInternalService, InternalService>()
                 .AddScoped<IMapper, ServiceMapper>();
 
 // Background job dọn các asset 
@@ -176,6 +189,13 @@ builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>(client =>
 
     client.Timeout = TimeSpan.FromMinutes(5);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
+});
+builder.Services.AddHttpClient<IChatService, ChatService>(client =>
+{
+    var baseUrl = builder.Configuration["AiService:BaseUrl"] ?? "http://smartstudy_ai:8000";
+    client.BaseAddress = new Uri(baseUrl);
+
+    client.Timeout = TimeSpan.FromMinutes(5);
 });
 builder.Services.AddHttpClient<IEmbeddingService, GeminiEmbeddingService>();
 

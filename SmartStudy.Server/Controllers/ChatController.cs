@@ -46,31 +46,9 @@ namespace SmartStudy.Server.Controllers
 
             try
             {
-                var collector = HttpContext.RequestServices.GetRequiredService<UIWidgetCollector>();
-                collector.OnWidgetReceived += async (type, data) =>
-                {
-                    var widgetChunk = new AiResponseChunk
-                    {
-                        Type = "UI",
-                        Data = data
-                    };
-
-                    var widgetJson = JsonSerializer.Serialize(widgetChunk, new JsonSerializerOptions
-                    {
-                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                    });
-                    var sseWidgetMessage = $"data: {widgetJson}\n\n";
-                    await Response.WriteAsync(sseWidgetMessage);
-                    await Response.Body.FlushAsync();
-                };
-                await foreach (var text in _chatService.StreamChatAsync(sessionId, chatDto.prompt))
+                await foreach (var chunk in _chatService.StreamChatAsync(sessionId, chatDto.prompt))
                 {
                     // Serialize chunk thành JSON
-                    var chunk = new AiResponseChunk
-                    {
-                        Type = "Text",
-                        Content = text
-                    };
                     var json = JsonSerializer.Serialize(chunk);
                     
                     // Format SSE: data: {json}\n\n
@@ -100,11 +78,6 @@ namespace SmartStudy.Server.Controllers
                 await Response.WriteAsync($"data: {errorJson}\n\n");
                 await Response.Body.FlushAsync();
             }
-        }
-
-        private Task Collector_OnWidgetReceived(string arg1, object arg2)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>

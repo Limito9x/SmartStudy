@@ -25,12 +25,4 @@ public class DashboardController: ControllerBase
         var summary = await _dashboardService.GetSummary();
         return Ok(summary);
     }
-
-    [HttpGet("/students/insight", Name = "GetStudentDashboardInsight")]
-    public async Task<ActionResult<string>> GetStudentDashboardInsight()
-    {
-        var summary = await _dashboardService.GetSummary();
-        var insight = await _chatService.GetInsight(summary);
-        return Ok(insight);
-    }
 }
