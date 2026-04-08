@@ -1,99 +1,45 @@
-from typing import List, Optional
+from typing import Optional
 import httpx
-from sqlalchemy import text
-from langchain_core.retrievers import BaseRetriever
-from langchain_core.documents import Document
-from core.config import engine, embeddings, logger
-
-class SmartStudyRetriever(BaseRetriever):
-    user_id: int
-    course_id: Optional[int] = None # Khai báo để LangChain nhận diện
-
-    def _get_relevant_documents(self, query: str) -> List[Document]:
-        allowed_asset_ids=[]
-
-        try:
-            with httpx.Client() as client:
-                # Gọi tới endpoint bạn vừa làm bên .NET
-                response = client.get(
-                    f"http://host.docker.internal:5037/api/internal/allowed-assets",
-                    params={"courseId": self.course_id, "userId": self.user_id},
-                    timeout=5.0
-                )
-                if response.status_code == 200:
-                    allowed_asset_ids = response.json() # Ví dụ: [101, 102, 105]
-        except Exception as e:
-            logger.error(f"Lỗi gọi .NET lấy quyền: {e}")
-            return [] # Nếu lỗi phân quyền thì không trả về gì cả cho an toàn
-
-        # 1. Chuyển query sang vector
-        query_vector = embeddings.embed_query(query)
-        vector_str = f"[{','.join(map(str, query_vector))}]"
-
-        # 2. SQL JOIN để lọc chính xác theo CourseId
-        # Chúng ta dùng JOIN giữa DocumentChunks và Assets dựa trên AssetId
-        # SQL lọc theo danh sách ID từ .NET trả về
-        sql = text("""
-            SELECT "TextContent", "AssetId", "PageNumber"
-            FROM "DocumentChunks"
-            WHERE "AssetId" = ANY(:ids) 
-            ORDER BY "Embedding" <=> :v
-            LIMIT 5
-        """)
-
-        docs = []
-        with engine.connect() as conn:
-            results = conn.execute(sql, {"v": vector_str, "ids": allowed_asset_ids}).mappings().all()
-            for res in results:
-                docs.append(Document(
-                    page_content=res["TextContent"],
-                    metadata={"AssetId": res["AssetId"], "PageNumber": res["PageNumber"]}
-                ))
-        return docs
+from core.database_services import get_vector_store
+from core.config import embeddings, logger, db_url_async
     
-    async def _aget_relevant_documents(self, query: str) -> List[Document]:
-        allowed_asset_ids=[]
+async def get_smart_retriever(user_id: int, course_id: Optional[int] = None):
+    """
+    Hàm gọi sang .NET để check quyền, sau đó trả về công cụ tìm kiếm (Retriever) của LangChain.
+    """
+    allowed_asset_ids = []
 
-        try:
-            async with httpx.AsyncClient() as client:
-                # Gọi tới endpoint bạn vừa làm bên .NET
-                response = await client.get(
-                    f"http://host.docker.internal:5037/api/internal/allowed-assets",
-                    params={"courseId": self.course_id, "userId": self.user_id},
-                    timeout=5.0
-                )
-                if response.status_code == 200:
-                    allowed_asset_ids = response.json() # Ví dụ: [101, 102, 105]
-        except Exception as e:
-            logger.error(f"Lỗi gọi .NET lấy quyền: {e}")
-            return [] # Nếu lỗi phân quyền thì không trả về gì cả cho an toàn
+    # 1. Gọi .NET lấy danh sách AssetId được phép
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"http://host.docker.internal:5037/api/internal/allowed-assets",
+                params={"courseId": course_id, "userId": user_id},
+                timeout=5.0
+            )
+            if response.status_code == 200:
+                allowed_asset_ids = response.json() 
+    except Exception as e:
+        logger.error(f"Lỗi gọi .NET lấy quyền: {e}")
+        # Nếu lỗi, có thể trả về None hoặc xử lý ngắt luồng chat ở đây
+        return None 
 
-        logger.info(f"🔍 Đang RAG cho câu hỏi: {query}")
-        logger.info(f"✅ .NET cho phép search trong AssetIds: {allowed_asset_ids}")
+    logger.info(f"✅ .NET cho phép user {user_id} search trong AssetIds: {allowed_asset_ids}")
 
-        # 1. Chuyển query sang vector
-        query_vector = embeddings.embed_query(query)
-        vector_str = f"[{','.join(map(str, query_vector))}]"
+    # Xử lý trường hợp User không có quyền xem file nào
+    if not allowed_asset_ids:
+        logger.warning("Danh sách Asset trống. Trả về None.")
+        return None
+    
+    vector_store = await get_vector_store()
 
-        # 2. SQL JOIN để lọc chính xác theo CourseId
-        # Chúng ta dùng JOIN giữa DocumentChunks và Assets dựa trên AssetId
-        # SQL lọc theo danh sách ID từ .NET trả về
-        sql = text("""
-            SELECT "TextContent", "AssetId", "PageNumber"
-            FROM "DocumentChunks"
-            WHERE "AssetId" = ANY(:ids) 
-            ORDER BY "Embedding" <=> :v
-            LIMIT 5
-        """)
+    # 3. Phép màu nằm ở đây: Gọi as_retriever với bộ lọc Metadata
+    retriever = vector_store.as_retriever(
+        search_type="similarity",
+        search_kwargs={
+            "k": 5,
+            "filter": {"AssetId": {"$in": [str(id) for id in allowed_asset_ids]}}
+        }
+    )
 
-        docs = []
-        with engine.connect() as conn:
-            results = conn.execute(sql, {"v": vector_str, "ids": allowed_asset_ids}).mappings().all()
-            logger.info(f"📚 Tìm thấy {len(results)} đoạn tài liệu liên quan.")
-            for res in results:
-                logger.info(f"--- [Trang {res['PageNumber']}] {res['TextContent'][:50]}...")
-                docs.append(Document(
-                    page_content=res["TextContent"],
-                    metadata={"AssetId": res["AssetId"], "PageNumber": res["PageNumber"]}
-                ))
-        return docs
+    return retriever

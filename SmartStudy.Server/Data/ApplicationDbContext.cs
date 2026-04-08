@@ -35,7 +35,6 @@ namespace SmartStudy.Server.Data
         public DbSet<PlanTemplate> PlanTemplates { get; set; } = null!;
         public DbSet<AcademicTerm> AcademicTerms { get; set; } = null!;
         public DbSet<AcademicYear> AcademicYears { get; set; } = null!;
-        public DbSet<DocumentChunk> DocumentChunks { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

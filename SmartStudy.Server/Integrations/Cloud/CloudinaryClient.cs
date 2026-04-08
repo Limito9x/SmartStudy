@@ -3,14 +3,14 @@ using CloudinaryDotNet.Actions;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
 
-namespace SmartStudy.Server.Services
+namespace SmartStudy.Server.Integrations.Cloud
 {
-    public class CloudinaryService : ICloudService
+    public class CloudinaryClient : ICloudClient
     {
         private readonly Cloudinary _cloudinary;
         private readonly string baseFolder = "SmartStudy";
 
-        public CloudinaryService(IConfiguration config)
+        public CloudinaryClient(IConfiguration config)
         {
             var account = new Account
             (

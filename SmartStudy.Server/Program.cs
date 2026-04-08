@@ -10,17 +10,17 @@ using Npgsql;
 using Scalar.AspNetCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities;
-using SmartStudy.Server.Plugins;
 using SmartStudy.Server.Services;
 using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using SmartStudy.Server.Middlewares;
-using SmartStudy.Server.Services.AI;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Hangfire.Redis.StackExchange;
+using SmartStudy.Server.Jobs;
+using SmartStudy.Server.Integrations.Cloud;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,10 +118,6 @@ builder.Services.AddScoped<Kernel>(sp =>
         apiKey: geminiApiKey);
     
     var kernel = builder.Build();
-    kernel.Plugins.AddFromObject(sp.GetRequiredService<UIPlugin>(), "UIPlugin");
-    kernel.Plugins.AddFromObject(sp.GetRequiredService<StudyPlugin>(), "StudyPlugin");
-    kernel.Plugins.AddFromObject(sp.GetRequiredService<TaskExecutionPlugin>(), "TaskExecutionPlugin");
-
     return kernel;
 });
 
@@ -138,7 +134,6 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IStudyPlanService, StudyPlanService>()
                 .AddScoped<IScheduleService, ScheduleService>()
                 .AddScoped<ITaskService, TaskService>()
-                .AddScoped<ICloudService, CloudinaryService>()
                 .AddScoped<IAssetService, AssetService>()
                 .AddScoped<IAssetLinkService, AssetLinkService>()
                 .AddScoped<IRoutineService, RoutineService>()
@@ -154,15 +149,14 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IMeaningfulSeeder,MeaningfulSeeder>()
                 .AddScoped<IPlanTemplateService, PlanTemplateService>()
                 .AddScoped<ICalendarService, CalendarService>()
-                .AddScoped<IDocumentChunkService,DocumentChunkService>()
-                .AddScoped<UIWidgetCollector>()
-                .AddScoped<UIPlugin>()
-                .AddScoped<StudyPlugin>()
-                .AddScoped<TaskExecutionPlugin>()
-                .AddScoped<RoutineTaskGenerator>()
+                .AddScoped<IRoutineTaskGenerator,RoutineTaskGenerator>()
                 .AddScoped<IRagJobService, RagJobService>()
                 .AddScoped<IInternalService, InternalService>()
                 .AddScoped<IMapper, ServiceMapper>();
+
+// Đăng ký dịch vụ Cloudinary
+builder.Services.AddScoped<ICloudClient, CloudinaryClient>();
+builder.Services.AddScoped<IAiApiClient, AiApiClient>();
 
 // Background job dọn các asset 
 builder.Services.AddHostedService<GarbageCollectorJob>();
@@ -182,7 +176,7 @@ builder.Services.AddHangfire(config => config
 builder.Services.AddHangfireServer();
 
 // Http client giao tiếp 3rd-party
-builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>(client =>
+builder.Services.AddHttpClient<IAiApiClient, AiApiClient>(client =>
 {
     var baseUrl = builder.Configuration["AiService:BaseUrl"] ?? "http://smartstudy_ai:8000";
     client.BaseAddress = new Uri(baseUrl);
@@ -190,14 +184,6 @@ builder.Services.AddHttpClient<ILlamaParseService, LlamaParseService>(client =>
     client.Timeout = TimeSpan.FromMinutes(5);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
-builder.Services.AddHttpClient<IChatService, ChatService>(client =>
-{
-    var baseUrl = builder.Configuration["AiService:BaseUrl"] ?? "http://smartstudy_ai:8000";
-    client.BaseAddress = new Uri(baseUrl);
-
-    client.Timeout = TimeSpan.FromMinutes(5);
-});
-builder.Services.AddHttpClient<IEmbeddingService, GeminiEmbeddingService>();
 
 // Enable dynamic JSON serialization cho Npgsql
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);

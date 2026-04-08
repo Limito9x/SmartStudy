@@ -2,11 +2,11 @@ import json
 from operator import itemgetter
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnableLambda
 from models.schemas import ChatRequest
 from core.config import logger, llm
-from services.retriever import SmartStudyRetriever
+from services.retriever import get_smart_retriever
 from typing import AsyncGenerator
 
 async def stream_chat_generator(request: ChatRequest) -> AsyncGenerator[str,None]:
@@ -14,7 +14,24 @@ async def stream_chat_generator(request: ChatRequest) -> AsyncGenerator[str,None
     Hàm Generator xử lý luồng chat và trả về từng chunk
     """
     try:
-        retriever=SmartStudyRetriever(user_id=request.user_id,course_id=request.course_id)
+        retriever= await get_smart_retriever(
+            user_id=request.user_id,
+            course_id=request.course_id
+        )
+
+        async def fetch_context(inputs: dict) -> str:
+            if retriever is None: return "Hiện tại không có tài liệu..."
+            
+            docs = await retriever.ainvoke(inputs["question"])
+            
+            if not docs: return "Không có thông tin liên quan trong tài liệu."
+            
+            formatted_docs = []
+            for d in docs:
+                page_no = d.metadata.get('PageNumber', 'Không rõ')
+                formatted_docs.append(f"--- [Trang {page_no}] ---\n{d.page_content}")
+                
+            return "\n\n".join(formatted_docs)
 
         prompt = ChatPromptTemplate.from_messages([
             ("system", request.system_prompt),
@@ -32,7 +49,7 @@ async def stream_chat_generator(request: ChatRequest) -> AsyncGenerator[str,None
         # Pipeline LCEL
         chain = (
             {
-                "context": itemgetter("question") | retriever | (lambda docs: "\n\n".join(d.page_content for d in docs)),
+                "context": RunnableLambda(fetch_context),
                 "question": itemgetter("question"),
                 "history": itemgetter("history")
             }

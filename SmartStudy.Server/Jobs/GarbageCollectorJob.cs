@@ -1,4 +1,6 @@
-namespace SmartStudy.Server.Services;
+using SmartStudy.Server.Services;
+
+namespace SmartStudy.Server.Jobs;
 
 public class GarbageCollectorJob: BackgroundService
 {

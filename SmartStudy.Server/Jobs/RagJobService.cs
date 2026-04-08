@@ -2,7 +2,7 @@ using Hangfire;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities.Enums;
 
-namespace SmartStudy.Server.Services;
+namespace SmartStudy.Server.Jobs;
 
 public interface IRagJobService
 {
@@ -12,19 +12,16 @@ public interface IRagJobService
 public class RagJobService: IRagJobService
 {
     private readonly ApplicationDbContext _context;
-    private readonly ILlamaParseService _llamaService;
-    private readonly IDocumentChunkService _chunkService;
+    private readonly IAiApiClient _aiApiClient;
     private readonly ILogger<RagJobService> _logger;
     
     public RagJobService(
         ApplicationDbContext context, 
-        ILlamaParseService llamaService, 
-        IDocumentChunkService chunkService, 
+        IAiApiClient llamaService,
         ILogger<RagJobService> logger)
     {
         _context = context;
-        _llamaService = llamaService;
-        _chunkService = chunkService;
+        _aiApiClient = llamaService;
         _logger = logger;
     }
 
@@ -48,15 +45,8 @@ public class RagJobService: IRagJobService
             await _context.SaveChangesAsync();
 
             // 2. Giao việc cho Python Service (Chỉ 1 dòng code, đợi Python lo hết)
-            _logger.LogInformation("⏳ Đang nhờ AI Service đọc file...");
-            var markdown = await _llamaService.ParseFromUrlAsync(asset.Url, assetId);
-
-            // 3. Xử lý Chunking & Embedding (Gửi cho Gemini rôi lưu Vector DB)
-            _logger.LogInformation("🧠 Đã có Markdown, tiến hành cắt nhỏ và nhúng Vector...");
-            
-            // Lưu ý: Đoạn này chunkService của bạn đang nhận List<ParsedPage> ở code cũ
-            // Nếu Python trả về chuỗi Markdown liền mạch, bạn cần điều chỉnh hàm SaveChunksToDatabaseAsync lại một chút
-            await _chunkService.SaveChunksToDatabaseAsync(assetId, markdown); 
+            _logger.LogInformation("⏳ Đang nhờ AI Service ingest asset...");
+            await _aiApiClient.IngestAssetAsync(assetId, asset.Url);
 
             // 4. Hoàn thành
             asset.Status = AssetStatus.Analyzed;

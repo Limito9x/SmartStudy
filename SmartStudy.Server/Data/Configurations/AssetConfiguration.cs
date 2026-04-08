@@ -30,10 +30,6 @@ namespace SmartStudy.Server.Data.Configurations
                 .WithOne(al=>al.Asset)
                 .HasForeignKey(al=>al.AssetId)
                 .OnDelete(DeleteBehavior.Cascade);
-             builder.HasMany(a=>a.DocumentChunks)
-                .WithOne(dc=>dc.Asset)
-                .HasForeignKey(dc=>dc.AssetId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

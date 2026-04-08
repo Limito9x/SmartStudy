@@ -49,7 +49,10 @@ namespace SmartStudy.Server.Controllers
                 await foreach (var chunk in _chatService.StreamChatAsync(sessionId, chatDto.prompt))
                 {
                     // Serialize chunk thành JSON
-                    var json = JsonSerializer.Serialize(chunk);
+                    var json = JsonSerializer.Serialize(chunk, new JsonSerializerOptions 
+                    { 
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase 
+                    });
                     
                     // Format SSE: data: {json}\n\n
                     var sseMessage = $"data: {json}\n\n";

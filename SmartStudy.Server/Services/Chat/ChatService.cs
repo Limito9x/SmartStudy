@@ -2,15 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.Google;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
-using SmartStudy.Server.Plugins;
 using System.Text;
 using System.Text.Json;
 using SmartStudy.Server.Helpers;
-using SmartStudy.Server.Services.AI;
 using System.Runtime.CompilerServices;
 
 namespace SmartStudy.Server.Services
@@ -26,34 +23,25 @@ namespace SmartStudy.Server.Services
     
     public class ChatService: IChatService
     {
-        private readonly Kernel _kernel;
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IEmbeddingService _embeddingService;
-        private readonly HttpClient _aiHttpClient;
-        private readonly IConfiguration _configuration;
+        private readonly IAiApiClient _aiApiClient;
 
         public ChatService(
             ApplicationDbContext context,
             ICurrentUserService currentUserService,
-            Kernel kernel,
             IMapper mapper,
-            IConfiguration configuration,
-            IEmbeddingService embeddingService,
-            IServiceProvider serviceProvider,
-            HttpClient aiHttpClient
+            IAiApiClient aiApiClient,
+            IServiceProvider serviceProvider
             )
         {
             _context = context;
             _currentUserService = currentUserService;
-            _kernel = kernel;
             _mapper = mapper;
             _serviceProvider = serviceProvider;
-            _embeddingService = embeddingService;
-            _aiHttpClient = aiHttpClient;
-            _configuration = configuration;
+            _aiApiClient = aiApiClient;
         }
 
         public async Task<int> CreateSession(SessionDto sessionDto)
@@ -83,11 +71,30 @@ namespace SmartStudy.Server.Services
 
         public async Task<List<ChatHistoryDto>> GetMessagesBySessionId(int sessionId)
         {
-            var messages = await _context.ChatMessages
+            var userId = _currentUserService.UserId;
+
+            var hasAccess = await _context.ChatSessions
+                .AnyAsync(s => s.Id == sessionId && s.UserId == userId);
+
+            if (!hasAccess)
+            {
+                throw new Exception("Chat session not found or access denied.");
+            }
+
+            var rawMessages = await _context.ChatMessages
                 .Where(m => m.SessionId == sessionId)
                 .OrderBy(m => m.CreatedAt)
                 .ToListAsync();
-            return _mapper.Map<List<ChatHistoryDto>>(messages);
+
+            return rawMessages
+                .Select(m => new ChatHistoryDto(
+                    m.Id,
+                    m.Role,
+                    m.Content,
+                    m.Data.HasValue ? m.Data.Value.GetRawText() : null,
+                    m.Type.ToString()
+                ))
+                .ToList();
         }
 
         public async Task InitializeChat(string firstMessage, int sessionId)
@@ -155,80 +162,99 @@ namespace SmartStudy.Server.Services
                     : AiPersonaConfig.GetGlobalButlerPrompt();
 
             // 3. Gói dữ liệu sang Python
-            var requestBody = new
+            var requestBody = new ChatRequestDto
             {
-                query = message,
-                history = messages,
-                user_id = userId,
-                system_prompt = systemMsg,
-                course_id = courseId
+                SystemPrompt = systemMsg,
+                History = messages.Select(m => new ChatMessageDto { Role = m.role, Content = m.content }).ToList(),
+                Query = message,
+                CourseId = courseId,
+                UserId = userId,
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Post, "/api/chat");
-            request.Content = JsonContent.Create(requestBody);
-            request.Headers.Add("X-Internal-Service-Key", _configuration["InternalServiceKey"]);
+            // Lưu user message trước khi gọi AI để tránh mất dữ liệu nếu stream lỗi giữa chừng.
+            await SaveUserMessageAsync(sessionId, message, cancellationToken);
 
-            using var response = await _aiHttpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            // 4. Gọi API streaming của Python, nhận từng khúc (chunk) trả về và nhả (yield) về cho Controller đẩy ra Frontend ngay lập tức mà không cần đợi toàn bộ câu trả lời hoàn chỉnh
+            var stream = await _aiApiClient.StreamingChatAsync(requestBody, cancellationToken);
 
-            var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var reader = new StreamReader(stream);
 
             var fullTextResponse = new StringBuilder();
             var capturedUiData = "";
+            var capturedErrorText = "";
 
-            // 5. Đọc stream từng dòng (chunk) từ Python trả về
-            while (!reader.EndOfStream)
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var line = await reader.ReadLineAsync(cancellationToken);
-                if(string.IsNullOrWhiteSpace(line)) continue;
-
-                AiResponseChunk? chunk = null;
-                try
+                string? line;
+                while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
                 {
-                    chunk = JsonSerializer.Deserialize<AiResponseChunk>(line, new JsonSerializerOptions 
-                    { 
-                        PropertyNameCaseInsensitive = true 
-                    });
-                }
-                catch (Exception)
-                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (string.IsNullOrWhiteSpace(line)) continue;
 
-                }
+                    var normalizedLine = line.Trim();
+                    if (normalizedLine.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+                        normalizedLine = normalizedLine[5..].Trim();
+                    if (string.Equals(normalizedLine, "[DONE]", StringComparison.OrdinalIgnoreCase))
+                        continue;
 
-                if(chunk!=null)
-                {
-                    if (chunk.Type == "Text" && !string.IsNullOrEmpty(chunk.Content))
+                    AiResponseChunk? chunk = null;
+                    try
                     {
-                        fullTextResponse.Append(chunk.Content);
+                        chunk = JsonSerializer.Deserialize<AiResponseChunk>(normalizedLine,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                     }
-                    // Tích lũy UI Data nếu AI sinh ra Component
-                    else if (chunk.Type == "UI" && !string.IsNullOrEmpty(chunk.Data))
+                    catch (Exception ex)
                     {
-                        capturedUiData = chunk.Data; 
+                        Console.WriteLine($"[WARN] Parse chunk lỗi: {ex.Message}");
+                        continue;
                     }
 
-                    // Nhả (yield) từng khúc về cho Controller đẩy ra Frontend
-                    yield return chunk;
+                    if (chunk != null)
+                    {
+                        if (chunk.Type == "Text" && !string.IsNullOrEmpty(chunk.Content))
+                            fullTextResponse.Append(chunk.Content);
+                        else if (chunk.Type == "UI" && !string.IsNullOrEmpty(chunk.Data))
+                            capturedUiData = chunk.Data;
+                        else if (chunk.Type == "Error" && !string.IsNullOrEmpty(chunk.Content))
+                            capturedErrorText = chunk.Content;
+
+                        yield return chunk;
+                    }
                 }
             }
+            finally
+            {
+                // Luôn lưu dù stream thành công, lỗi, hay client cancel
+                var assistantMessage = fullTextResponse.Length > 0
+                    ? fullTextResponse.ToString()
+                    : capturedErrorText;
 
-            // 7. Lưu tin nhắn vào DB
-            await SaveToDatabaseAsync(
-                sessionId,
-                message,
-                fullTextResponse.ToString(),
-                capturedUiData
-            );
+                if (!string.IsNullOrEmpty(assistantMessage) || !string.IsNullOrEmpty(capturedUiData))
+                {
+                    await SaveAssistantMessageAsync(
+                        sessionId,
+                        assistantMessage,
+                        capturedUiData,
+                        CancellationToken.None  // ← quan trọng
+                    );
+                }
+            }
         }
 
-        // Hàm phụ để lưu DB (Tách ra cho gọn)
-        private async Task SaveToDatabaseAsync(int sessionId, string userMsg, string aiMsg, string uiData)
+        private async Task SaveUserMessageAsync(int sessionId, string userMsg, CancellationToken cancellationToken)
         {
-            // Save User Msg
-            _context.ChatMessages.Add(new Entities.ChatMessage{ SessionId = sessionId, Role = "user", Content = userMsg });
+            _context.ChatMessages.Add(new Entities.ChatMessage
+            {
+                SessionId = sessionId,
+                Role = "user",
+                Content = userMsg
+            });
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        // Hàm phụ để lưu AI message
+        private async Task SaveAssistantMessageAsync(int sessionId, string aiMsg, string uiData, CancellationToken cancellationToken)
+        {
 
             JsonElement? uiJsonElement = null;
             if (!string.IsNullOrEmpty(uiData))
@@ -244,7 +270,6 @@ namespace SmartStudy.Server.Services
                 }
             }
 
-            // Save AI Msg
             var aiMessageEntity = new Entities.ChatMessage
             {
                 SessionId = sessionId,
@@ -256,7 +281,7 @@ namespace SmartStudy.Server.Services
             };
 
             _context.ChatMessages.Add(aiMessageEntity);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
         }
 
     }

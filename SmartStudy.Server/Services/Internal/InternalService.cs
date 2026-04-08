@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities.Enums;
-using SmartStudy.Server.Services.AI;
 
 namespace SmartStudy.Server.Services;
 
@@ -14,8 +13,7 @@ public class InternalService: IInternalService
 {
     private readonly ApplicationDbContext _context;
     
-    public InternalService(ApplicationDbContext context,
-        IEmbeddingService embeddingService)
+    public InternalService(ApplicationDbContext context)
     {
         _context = context;
     }

@@ -5,9 +5,15 @@ using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
-namespace SmartStudy.Server.Services;
+namespace SmartStudy.Server.Jobs;
 
-public class RoutineTaskGenerator
+public interface IRoutineTaskGenerator
+{
+    Task GenerateForSingleRoutineAsync(int routineId);
+    Task GenerateUpcomingTasksAsync();
+}
+
+public class RoutineTaskGenerator: IRoutineTaskGenerator
 {
     private readonly ILogger<RoutineTaskGenerator> _logger;
     private readonly ApplicationDbContext _context;

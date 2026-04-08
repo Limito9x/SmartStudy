@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Services;
-using SmartStudy.Server.Services.AI;
 
 namespace SmartStudy.Server.Controllers;
 
@@ -19,9 +18,6 @@ public class DevController : ControllerBase
     private readonly IDatabaseSeeder _seeder;
     private readonly IMeaningfulSeeder _meaningfulSeeder;
     private readonly IAssetService _assetService;
-    private readonly ILlamaParseService _parser;
-    private readonly IDocumentChunkService _chunkService;
-    private readonly IEmbeddingService _embeddingService;
 
     public DevController(
         ApplicationDbContext context,
@@ -29,10 +25,7 @@ public class DevController : ControllerBase
         IWebHostEnvironment env,
         IDatabaseSeeder seeder,
         IMeaningfulSeeder meaningfulSeeder,
-        IAssetService assetService,
-        ILlamaParseService parser,
-        IDocumentChunkService chunkService,
-        IEmbeddingService embeddingService)
+        IAssetService assetService)
     {
         _context = context;
         _userManager = userManager;
@@ -40,9 +33,6 @@ public class DevController : ControllerBase
         _seeder = seeder;
         _meaningfulSeeder = meaningfulSeeder;
         _assetService = assetService;
-        _parser = parser;
-        _chunkService = chunkService;
-        _embeddingService = embeddingService;
     }
 
     // POST /api/dev/seed — chạy seeder nếu chưa có data

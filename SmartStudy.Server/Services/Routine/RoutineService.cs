@@ -7,6 +7,7 @@ using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Services
 {
@@ -85,7 +86,7 @@ namespace SmartStudy.Server.Services
             // 3. Lúc này Routine và Schedules đã yên vị trong DB, chỉ việc đẻ Task
             if (routine.Schedules != null && routine.Schedules.Any())
             {
-                BackgroundJob.Enqueue<RoutineTaskGenerator>(
+                BackgroundJob.Enqueue<IRoutineTaskGenerator>(
                     generator=>generator.GenerateForSingleRoutineAsync(routine.Id)
                 );
             }
@@ -217,7 +218,7 @@ namespace SmartStudy.Server.Services
             else
             {
                 // Nếu bật lại routine thì gen Task cho các lịch học (nếu có)
-                BackgroundJob.Enqueue<RoutineTaskGenerator>(
+                BackgroundJob.Enqueue<IRoutineTaskGenerator>(
                     generator=>generator.GenerateForSingleRoutineAsync(existingRoutine.Id)
                 );
             }

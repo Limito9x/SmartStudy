@@ -26,7 +26,7 @@ if not GEMINI_API_KEY:
 
 llm = ChatOpenAI(
     api_key=OPEN_ROUTER_API_KEY,
-    model="qwen/qwen3.6-plus:free",
+    model="z-ai/glm-4.5-air:free",
     openai_api_base="https://openrouter.ai/api/v1",
     temperature=0.1,
     streaming=True
@@ -38,5 +38,9 @@ embeddings = GoogleGenerativeAIEmbeddings(
     output_dimensionality=768
 )
 
-db_url_str=os.getenv("DATABASE_URL")
-engine=create_engine(db_url_str)
+# Đọc chuỗi gốc từ file .env
+raw_db_url = os.getenv("DATABASE_URL")
+
+db_url_async = raw_db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+engine = create_engine(db_url_async)
+

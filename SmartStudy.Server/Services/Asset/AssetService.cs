@@ -6,6 +6,8 @@ using SmartStudy.Server.Helpers;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using Hangfire;
+using SmartStudy.Server.Jobs;
+using SmartStudy.Server.Integrations.Cloud;
 
 namespace SmartStudy.Server.Services
 {
@@ -21,18 +23,20 @@ namespace SmartStudy.Server.Services
     public class AssetService: IAssetService
     {
         private readonly ApplicationDbContext _context;
-        private readonly ICloudService _cloudinaryService;
+        private readonly ICloudClient _cloudinaryService;
         private readonly IAssetLinkService _assetLinkService;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IAiApiClient _aiApiClient;
         private readonly IMapper _mapper;
         private readonly ILogger<AssetService> _logger;
 
-        public AssetService(ICloudService cloudinaryService,
+        public AssetService(ICloudClient cloudinaryService,
             ApplicationDbContext context,
             IMapper mapper, 
             IAssetLinkService assetLinkService,
             ICurrentUserService currentUserService,
-            ILogger<AssetService> logger)
+            ILogger<AssetService> logger,
+            IAiApiClient aiApiClient)
         {
             _cloudinaryService = cloudinaryService;
             _context = context;
@@ -40,6 +44,7 @@ namespace SmartStudy.Server.Services
             _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
             _logger = logger;
+            _aiApiClient = aiApiClient;
         }
 
         public async Task DeleteAssetAsync(string assetId)
@@ -248,7 +253,7 @@ namespace SmartStudy.Server.Services
 
         var successfullyDeletedIds = new List<int>();
 
-        // 2. Xóa trên Cloudinary trước
+        // 2. Xóa trên Cloudinary và IngestedAsset bên Python server trước
         foreach (var asset in trashAssets)
         {
             try
@@ -257,6 +262,7 @@ namespace SmartStudy.Server.Services
                 {
                     await _cloudinaryService.DeleteFileAsync(asset.PublicId, asset.Type);
                 }
+                await _aiApiClient.DeleteIngestedAssetAsync(asset.Id); // Xóa asset đã ingest trên Python API (nếu có)
                 successfullyDeletedIds.Add(asset.Id); // Xóa Cloud thành công mới đưa vào list
             }
             catch (Exception ex)

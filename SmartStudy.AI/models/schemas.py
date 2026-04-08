@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 # 1. Dùng cho luồng Hangfire (Đọc file)
-class ParseRequest(BaseModel):
+class IngestRequest(BaseModel):
     file_url: str
     asset_id: int
 
