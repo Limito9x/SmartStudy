@@ -33,14 +33,35 @@ export function useChatRuntime({
     fetch(`http://localhost:5037/api/chat/sessions/${sessionId}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) {
+          throw new Error(`Load chat history failed: ${r.status}`);
+        }
+        return r.json();
+      })
       .then((history) => {
-        const mapped = history.map((m: any) => ({
-          role: m.role,
-          content: [{ type: "text", text: m.content }],
+        if (!Array.isArray(history)) {
+          throw new Error("History payload is not an array");
+        }
+        const mapped: ThreadMessageLike[] = history.map((m: any) => ({
+          role: (m.role ?? m.Role) === "assistant" ? "assistant" : "user",
+          content: [
+            {
+              type: "text" as const,
+              text:
+                typeof (m.content ?? m.Content) === "string"
+                  ? (m.content ?? m.Content)
+                  : "",
+            },
+          ],
         }));
         messagesRef.current = mapped;
         setMessages(mapped);
+      })
+      .catch((error) => {
+        console.error("Load chat history error:", error);
+        messagesRef.current = [];
+        setMessages([]);
       });
   }, [sessionId, token]);
 
@@ -76,6 +97,11 @@ export function useChatRuntime({
               body: JSON.stringify({ title: "New Chat", courseId: courseId }),
             },
           );
+
+          if (!createRes.ok) {
+            throw new Error(`Create session failed: ${createRes.status}`);
+          }
+
           const createData = await createRes.json();
           targetSessionId = createData.id;
           onSessionCreated?.(Number(targetSessionId));
@@ -94,7 +120,11 @@ export function useChatRuntime({
           },
         );
 
-        const reader = response.body!.getReader();
+        if (!response.ok || !response.body) {
+          throw new Error(`Stream request failed: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
         let aiText = "";
@@ -114,8 +144,10 @@ export function useChatRuntime({
 
             try {
               const chunk = JSON.parse(data);
-              if (chunk.Type === "Text" && chunk.Content) {
-                aiText += chunk.Content;
+              const type = chunk.Type || chunk.type;
+              const content = chunk.Content || chunk.content;
+              if (type && type.toLowerCase() === "text" && content) {
+                aiText += content;
                 const assistantMsg: ThreadMessageLike = {
                   role: "assistant",
                   content: [{ type: "text", text: aiText }],
