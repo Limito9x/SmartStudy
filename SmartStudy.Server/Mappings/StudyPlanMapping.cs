@@ -12,8 +12,6 @@ namespace SmartStudy.Server.Mappings
             config.NewConfig<RequestStudyPlanDto, StudyPlan>()
                 .Ignore(dest => dest.Id)
                 .IgnoreNullValues(true);
-
-            
         }
     }
 }

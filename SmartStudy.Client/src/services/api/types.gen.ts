@@ -36,15 +36,14 @@ export type AssetResponseDto = {
     type: FileType;
     createdAt: string;
     linkedType: AssetLinkType;
+    status: AssetStatus;
 };
+
+export type AssetStatus = number;
 
 export type BehaviorChartDto = {
     taskType?: string;
     totalHours?: number | string;
-};
-
-export type BulkCreateStudyPlanDto = {
-    studyPlans: Array<RequestStudyPlanDto>;
 };
 
 export type CalendarEntityType = 'Task' | 'Routine' | 'TimelineEvent';
@@ -96,6 +95,7 @@ export type CourseAssetResponseDto = {
     createdAt?: string;
     linkedType?: AssetLinkType;
     sourceName?: string;
+    status?: AssetStatus;
 };
 
 export type CourseEventDto = {
@@ -149,23 +149,6 @@ export type DashboardSummaryDto = {
 export type DayOfWeek = number;
 
 export type DifficultyLevel = number;
-
-export type EventRequirementReqDto = {
-    name: string;
-    expectedValue: number | string;
-    unit: string;
-    strategy: RequirementStrategy;
-    timelineEventId: number | string;
-};
-
-export type EventRequirementResDto = {
-    id: number | string;
-    name: string;
-    expectedValue: number | string;
-    unit: string;
-    strategy: RequirementStrategy;
-    timelineEventId: number | string;
-};
 
 export type EventRoutineDto = {
     id?: number | string;
@@ -368,8 +351,6 @@ export type RequestTimelineEventDto = {
     notes: null | string;
 };
 
-export type RequirementStrategy = 'Additive' | 'Averaging' | 'MaxValue' | 'TaskBased';
-
 export type RescheduleTaskDto = {
     taskId: number | string;
     newStartDate: string;
@@ -424,16 +405,19 @@ export type ResponseStudentInfoDto = {
 };
 
 export type ResponseStudyPlanDto = {
-    id: number | string;
-    name: string;
-    startDate: string;
-    endDate: string;
-    createdAt: string;
-    updatedAt: null | string;
-    status: StudyPlanStatus;
-    type: StudyPlanType;
-    termId: null | number | string;
-    yearId: null | number | string;
+    id?: number | string;
+    name?: string;
+    startDate?: string;
+    endDate?: string;
+    createdAt?: string;
+    updatedAt?: null | string;
+    status?: StudyPlanStatus;
+    type?: StudyPlanType;
+    termId?: null | number | string;
+    yearId?: null | number | string;
+    courses?: Array<SimpleResponseCourseDto>;
+    totalCredits?: number | string;
+    gpa?: number | string;
 };
 
 export type ResponseSubjectDto = {
@@ -493,6 +477,18 @@ export type SessionResponseDto = {
     courseId: null | number | string;
 };
 
+export type SimpleResponseCourseDto = {
+    id?: number | string;
+    name?: string;
+    targetScore?: null | number | string;
+    finalScore?: null | number | string;
+    goal?: null | string;
+    status?: CourseStatus;
+    color?: null | string;
+    subjectId?: null | number | string;
+    subject?: null | ResponseSubjectDto;
+};
+
 export type SimpleResponseRoutineDto = {
     id: number | string;
     name: string;
@@ -531,6 +527,11 @@ export type StudyPlanStatsDto = {
 export type StudyPlanStatus = 'Active' | 'Completed' | 'Archived';
 
 export type StudyPlanType = 'Academic' | 'Personal';
+
+export type SummaryPlanProgressDto = {
+    totalCredits?: number | string;
+    gpa?: number | string;
+};
 
 export type TaskDetailDto = {
     task?: ResponseTaskDto;
@@ -669,6 +670,25 @@ export type UserResponseDto = {
     studentInfo?: ResponseStudentInfoDto;
     roles?: Array<string>;
 };
+
+export type GetAllowedAssetsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        userId?: number | string;
+        courseId?: number | string;
+    };
+    url: '/api/internal/allowed-assets';
+};
+
+export type GetAllowedAssetsResponses = {
+    /**
+     * OK
+     */
+    200: Array<number | string>;
+};
+
+export type GetAllowedAssetsResponse = GetAllowedAssetsResponses[keyof GetAllowedAssetsResponses];
 
 export type GetKpiData = {
     body?: never;
@@ -1215,22 +1235,6 @@ export type GetStudentDashboardSummaryResponses = {
 
 export type GetStudentDashboardSummaryResponse = GetStudentDashboardSummaryResponses[keyof GetStudentDashboardSummaryResponses];
 
-export type GetStudentDashboardInsightData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/students/insight';
-};
-
-export type GetStudentDashboardInsightResponses = {
-    /**
-     * OK
-     */
-    200: string;
-};
-
-export type GetStudentDashboardInsightResponse = GetStudentDashboardInsightResponses[keyof GetStudentDashboardInsightResponses];
-
 export type PostApiDevSeedBogusData = {
     body?: never;
     path?: never;
@@ -1281,40 +1285,6 @@ export type PostApiDevTriggerGarbageCollectorData = {
 };
 
 export type PostApiDevTriggerGarbageCollectorResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
-export type PostApiDevTestLlamaparseData = {
-    body: {
-        file?: IFormFile;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/dev/test-llamaparse';
-};
-
-export type PostApiDevTestLlamaparseResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
-export type PostApiDevFullRagPipelineTestData = {
-    body: {
-        file?: IFormFile;
-    };
-    path?: never;
-    query?: {
-        assetId?: number | string;
-    };
-    url: '/api/dev/full-RAG-pipeline-test';
-};
-
-export type PostApiDevFullRagPipelineTestResponses = {
     /**
      * OK
      */
@@ -1755,20 +1725,6 @@ export type CreateStudyPlanResponses = {
 
 export type CreateStudyPlanResponse = CreateStudyPlanResponses[keyof CreateStudyPlanResponses];
 
-export type BulkCreateStudyPlansData = {
-    body: BulkCreateStudyPlanDto;
-    path?: never;
-    query?: never;
-    url: '/api/study-plans/bulk';
-};
-
-export type BulkCreateStudyPlansResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
 export type DeleteStudyPlanData = {
     body?: never;
     path: {
@@ -1870,6 +1826,22 @@ export type GetStudyPlanStatsResponses = {
 };
 
 export type GetStudyPlanStatsResponse = GetStudyPlanStatsResponses[keyof GetStudyPlanStatsResponses];
+
+export type GetSummaryPlanProgressData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/study-plans/summary-progress';
+};
+
+export type GetSummaryPlanProgressResponses = {
+    /**
+     * OK
+     */
+    200: SummaryPlanProgressDto;
+};
+
+export type GetSummaryPlanProgressResponse = GetSummaryPlanProgressResponses[keyof GetSummaryPlanProgressResponses];
 
 export type GetSubjectsData = {
     body?: never;
@@ -2203,76 +2175,6 @@ export type UpdateEventResponses = {
 };
 
 export type UpdateEventResponse = UpdateEventResponses[keyof UpdateEventResponses];
-
-export type GetEventRequirementsData = {
-    body?: never;
-    path: {
-        eventId: number | string;
-    };
-    query?: never;
-    url: '/api/events/{eventId}/requirements';
-};
-
-export type GetEventRequirementsResponses = {
-    /**
-     * OK
-     */
-    200: Array<EventRequirementResDto>;
-};
-
-export type GetEventRequirementsResponse = GetEventRequirementsResponses[keyof GetEventRequirementsResponses];
-
-export type CreateEvenetRequirementData = {
-    body: EventRequirementReqDto;
-    path: {
-        eventId: number | string;
-    };
-    query?: never;
-    url: '/api/events/{eventId}/requirements';
-};
-
-export type CreateEvenetRequirementResponses = {
-    /**
-     * OK
-     */
-    200: ResponseTimelineEventDto;
-};
-
-export type CreateEvenetRequirementResponse = CreateEvenetRequirementResponses[keyof CreateEvenetRequirementResponses];
-
-export type DeleteEventRequirementData = {
-    body?: never;
-    path: {
-        requirementId: number | string;
-    };
-    query?: never;
-    url: '/api/events/requirements/{requirementId}';
-};
-
-export type DeleteEventRequirementResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
-export type UpdateEventRequirementData = {
-    body: EventRequirementReqDto;
-    path: {
-        requirementId: number | string;
-    };
-    query?: never;
-    url: '/api/events/requirements/{requirementId}';
-};
-
-export type UpdateEventRequirementResponses = {
-    /**
-     * OK
-     */
-    200: EventRequirementResDto;
-};
-
-export type UpdateEventRequirementResponse = UpdateEventRequirementResponses[keyof UpdateEventRequirementResponses];
 
 export type SettingStudentInfoData = {
     body: StudentInfoDto;

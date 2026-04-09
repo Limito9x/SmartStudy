@@ -48,8 +48,8 @@ namespace SmartStudy.Server.Services
             routine.UserId = userId;
             var now = DateTime.UtcNow;
             // 1. LOGIC TÍNH START DATE: 
-// Nếu UI có gửi lên -> Dùng của UI. 
-// Nếu UI gửi rỗng -> Dùng ngày của Plan (nhưng lấy >= hiện tại để không gen Task trong quá khứ)
+        // Nếu UI có gửi lên -> Dùng của UI. 
+        // Nếu UI gửi rỗng -> Dùng ngày của Plan (nhưng lấy >= hiện tại để không gen Task trong quá khứ)
             if (RoutineDto.StartDate.HasValue)
             {
                 // Đảm bảo lưu UTC để không lệch múi giờ
@@ -60,9 +60,9 @@ namespace SmartStudy.Server.Services
                 routine.StartDate = course.StudyPlan.StartDate > now ? course.StudyPlan.StartDate : now;
             }
 
-// 2. LOGIC TÍNH END DATE:
-// Nếu UI có gửi lên -> Dùng của UI. 
-// Nếu UI gửi rỗng -> Kế thừa ngày kết thúc của Plan
+            // 2. LOGIC TÍNH END DATE:
+            // Nếu UI có gửi lên -> Dùng của UI. 
+            // Nếu UI gửi rỗng -> Kế thừa ngày kết thúc của Plan
             if (RoutineDto.EndDate.HasValue)
             {
                 routine.EndDate = RoutineDto.EndDate.Value.ToUniversalTime();
@@ -72,8 +72,8 @@ namespace SmartStudy.Server.Services
                 routine.EndDate = course.StudyPlan.EndDate;
             }
 
-// 3. (Tùy chọn nhưng RẤT NÊN CÓ) Validate: 
-// StartDate không được lớn hơn EndDate
+            // 3. (Tùy chọn nhưng RẤT NÊN CÓ) Validate: 
+            // StartDate không được lớn hơn EndDate
             if (routine.EndDate.HasValue && routine.StartDate > routine.EndDate.Value)
             {
                 throw new ArgumentException("Ngày bắt đầu lịch trình không được lớn hơn ngày kết thúc!");
@@ -159,23 +159,18 @@ namespace SmartStudy.Server.Services
             }
         );
 
-        // 3. Dọn rác: Xóa các Pending Task KHÔNG có log trong tương lai
-        await _context.Tasks
-            .Where(t => t.RoutineId == RoutineId 
-                     && t.UserId == _currentUserService.UserId 
-                     && t.Status == Entities.Enums.TaskStatus.Pending
-                     && t.Logs.Count == 0
-                     && t.StartDateTime >= DateTime.UtcNow.Date)
-            .ExecuteDeleteAsync();
-
         await _context.SaveChangesAsync();
 
-                if (existingRoutine.Schedules.Count > 0)
-                {
-                                    BackgroundJob.Enqueue<RoutineTaskGenerator>(
-                    generator=>generator.GenerateForSingleRoutineAsync(existingRoutine.Id)
-                );
-                }
+        BackgroundJob.Enqueue<IRoutineClearJob>(
+            job => job.CleanupTasksForRoutineAsync(RoutineId) // Xóa các Task cũ không còn phù hợp sau khi chỉnh sửa Routine
+        );
+
+        if (existingRoutine.Schedules.Count > 0)
+        {
+            BackgroundJob.Enqueue<RoutineTaskGenerator>(
+                generator=>generator.GenerateForSingleRoutineAsync(existingRoutine.Id)
+            );
+        }
 
         await transaction.CommitAsync();
         return _mapper.Map<ResponseRoutineDto>(existingRoutine);
@@ -190,16 +185,11 @@ namespace SmartStudy.Server.Services
         {
             var existingRoutine = await _context.Routines.FindAsync(RoutineId);
             if (existingRoutine == null) return false;
-            var tasks = await _context.Tasks
-                .Where(t => t.RoutineId == RoutineId 
-                            && t.UserId == _currentUserService.UserId 
-                            && t.Status == Entities.Enums.TaskStatus.Completed)
-                .ToListAsync();
-            if (tasks.Any())
-            {
-                return false; // Không cho xóa nếu còn Task đã hoàn thành
-            }
-            await ClearFuturePendingTasksAsync(RoutineId); // Xóa các Task pending trong tương lai
+            
+            BackgroundJob.Enqueue<IRoutineClearJob>(
+                job => job.CleanupTasksForRoutineAsync(RoutineId, isRoutineDeleted: true) // Xóa các Task liên quan khi xóa Routine
+            );
+
             _context.Routines.Remove(existingRoutine);
             await _context.SaveChangesAsync();
             return true;
@@ -213,7 +203,9 @@ namespace SmartStudy.Server.Services
             existingRoutine.IsActive = !existingRoutine.IsActive;
             if(!existingRoutine.IsActive)
             {
-                await ClearFuturePendingTasksAsync(RoutineId); // Nếu tắt routine thì xóa các Task pending trong tương lai
+                BackgroundJob.Enqueue<IRoutineClearJob>(
+                    job => job.CleanupTasksForRoutineAsync(RoutineId) 
+                );
             }
             else
             {
@@ -224,16 +216,6 @@ namespace SmartStudy.Server.Services
             }
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseRoutineDto>(existingRoutine);
-        }
-
-        private async Task ClearFuturePendingTasksAsync(int RoutineId)
-        {
-            await _context.Tasks
-                .Where(t => t.RoutineId == RoutineId 
-                            && t.UserId == _currentUserService.UserId 
-                            && t.Status == Entities.Enums.TaskStatus.Pending
-                            && t.StartDateTime >= DateTime.UtcNow.Date)
-                .ExecuteDeleteAsync();
         }
 
         public async Task GenerateTasksAsync(int RoutineId, DateTime Until)

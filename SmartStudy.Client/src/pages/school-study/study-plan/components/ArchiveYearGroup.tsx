@@ -3,54 +3,62 @@ import ArchivePlanRow from "./ArchivePlanRow";
 
 interface ArchivePlanMeta {
   courseCount: number;
-  progressPercent: number;
 }
 
 interface ArchiveYearGroupProps {
   yearLabel: string;
   plans: ResponseStudyPlanDto[];
   termYearByPlanId: Map<number, string>;
-  metaByPlanId: Map<number, ArchivePlanMeta>;
   restoringPlanId: number | null;
-  onOpenPlan: (plan: ResponseStudyPlanDto) => void;
+  expandedPlanId: number | null;
+  savingCourseId: number | null;
+  onToggleExpand: (planId: number) => void;
+  onUpdateCourseFinalScore: (
+    planId: number,
+    courseId: number,
+    score: number,
+  ) => Promise<void>;
   onRestorePlan: (plan: ResponseStudyPlanDto) => void;
 }
 
 export default function ArchiveYearGroup({
-  yearLabel,
+  yearLabel: _yearLabel,
   plans,
   termYearByPlanId,
-  metaByPlanId,
   restoringPlanId,
-  onOpenPlan,
+  expandedPlanId,
+  savingCourseId,
+  onToggleExpand,
+  onUpdateCourseFinalScore,
   onRestorePlan,
 }: ArchiveYearGroupProps) {
   return (
     <section className="space-y-2">
-      <h3 className="px-2 text-xs font-semibold tracking-wide text-muted-foreground">
-        {yearLabel}
-      </h3>
-
       <div className="space-y-1">
         {plans.map((plan) => {
           const planId = Number(plan.id);
-          const meta = metaByPlanId.get(planId) ?? {
-            courseCount: 0,
-            progressPercent: plan.status === "Completed" ? 100 : 0,
+          const courses = plan.courses || [];
+          const meta: ArchivePlanMeta = {
+            courseCount: courses.length,
           };
 
           return (
             <ArchivePlanRow
               key={planId}
               plan={plan}
+              courses={courses}
               termYearLabel={
                 termYearByPlanId.get(planId) ||
                 `HK ${String(plan.termId ?? "-")} - Năm ${String(plan.yearId ?? "-")}`
               }
               courseCount={meta.courseCount}
-              progressPercent={meta.progressPercent}
+              isExpanded={expandedPlanId === planId}
+              savingCourseId={savingCourseId}
               isRestoring={restoringPlanId === planId}
-              onOpen={() => onOpenPlan(plan)}
+              onToggleExpand={() => onToggleExpand(planId)}
+              onUpdateCourseFinalScore={(courseId, score) =>
+                onUpdateCourseFinalScore(planId, courseId, score)
+              }
               onRestore={() => onRestorePlan(plan)}
             />
           );

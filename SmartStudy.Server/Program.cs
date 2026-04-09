@@ -150,6 +150,7 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IPlanTemplateService, PlanTemplateService>()
                 .AddScoped<ICalendarService, CalendarService>()
                 .AddScoped<IRoutineTaskGenerator,RoutineTaskGenerator>()
+                .AddScoped<IRoutineClearJob, RoutineClearJob>()
                 .AddScoped<IRagJobService, RagJobService>()
                 .AddScoped<IInternalService, InternalService>()
                 .AddScoped<IMapper, ServiceMapper>();
@@ -241,60 +242,13 @@ app.UseAuthorization(); // 2. Kiểm tra quyền hạn (Người dùng này đư
 
 // Dashboard hangfire
 app.UseHangfireDashboard("/hangfire");
-await RegisterRecurringJobsWithRetryAsync(app.Services);
+app.UseHangfireJobs(); // Đăng ký các recurring job với Hangfire
 
 app.MapControllers();
 
 app.MapFallbackToFile("/index.html");
 
 app.Run();
-
-static async Task RegisterRecurringJobsWithRetryAsync(IServiceProvider services)
-{
-    const string jobId = "daily-routine-task-generator";
-    const string cron = "0 1 * * *"; // chạy 1h mỗi ngày
-    const int maxAttempts = 5;
-
-    using var scope = services.CreateScope();
-    var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
-    var logger = loggerFactory.CreateLogger("HangfireRecurringJobs");
-    var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-
-    for (var attempt = 1; attempt <= maxAttempts; attempt++)
-    {
-        try
-        {
-            recurringJobManager.AddOrUpdate<RoutineTaskGenerator>(
-                jobId,
-                generator => generator.GenerateUpcomingTasksAsync(),
-                cron);
-
-            logger.LogInformation("Recurring job '{JobId}' registered successfully.", jobId);
-            return;
-        }
-        catch (PostgreSqlDistributedLockException ex) when (attempt < maxAttempts)
-        {
-            var delay = TimeSpan.FromSeconds(Math.Min(30, attempt * 5));
-            logger.LogWarning(
-                ex,
-                "Could not acquire distributed lock while registering recurring job '{JobId}' (attempt {Attempt}/{MaxAttempts}). Retrying in {DelaySeconds}s.",
-                jobId,
-                attempt,
-                maxAttempts,
-                delay.TotalSeconds);
-            await Task.Delay(delay);
-        }
-        catch (PostgreSqlDistributedLockException ex)
-        {
-            logger.LogError(
-                ex,
-                "Failed to register recurring job '{JobId}' after {MaxAttempts} attempts due to distributed lock timeout. App will continue running.",
-                jobId,
-                maxAttempts);
-            return;
-        }
-    }
-}
 
 // Document Transformer để thêm Bearer Authentication vào OpenAPI
 internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer

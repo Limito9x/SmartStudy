@@ -187,10 +187,14 @@ namespace SmartStudy.Server.Services
             var userId = _currentUserService.UserId;
 
             // 1. Lấy danh sách ID của các Task thuộc Course này
-            var taskIds = await _context.Tasks
+            var relatedTasks = await _context.Tasks
+                .Include(t=>t.Routine)
+                .Include(t=>t.Logs)
                 .Where(t => t.CourseId == courseId && t.UserId == userId)
-                .Select(t => t.Id)
                 .ToListAsync();
+
+            var taskIds = relatedTasks.Select(t => t.Id).ToList();
+            var logIds = relatedTasks.SelectMany(t => t.Logs).Select(l => l.Id).ToList();
 
             // 2. Query AssetLink (Bao trọn 2 nguồn)
             var assetLinks = await _context.AssetLinks
@@ -198,7 +202,8 @@ namespace SmartStudy.Server.Services
                 .Where(al => al.UserId == userId && 
                              (
                                  (al.LinkedType == AssetLinkType.Course && al.LinkedId == courseId) || 
-                                 (al.LinkedType == AssetLinkType.Task && taskIds.Contains(al.LinkedId))
+                                 (al.LinkedType == AssetLinkType.Task && taskIds.Contains(al.LinkedId)) || 
+                                (al.LinkedType == AssetLinkType.Log && logIds.Contains(al.LinkedId))
                              ))
                 .ToListAsync();
 
@@ -207,11 +212,17 @@ namespace SmartStudy.Server.Services
             foreach (var link in assetLinks)
             {
                 string sourceName = "Tài liệu chung";
-                if (link.LinkedType == AssetLinkType.Task)
+                var task = relatedTasks.FirstOrDefault(t =>
+                    (link.LinkedType == AssetLinkType.Task && t.Id == link.LinkedId) ||
+                    (link.LinkedType == AssetLinkType.Log && t.Logs.Any(l => l.Id == link.LinkedId))
+                );
+                if(task.Routine != null)
                 {
-                    // Phải join hoặc fetch tên Task ra đây
-                    var taskName = await _context.Tasks.Where(t => t.Id == link.LinkedId).Select(t => t.Name).FirstOrDefaultAsync();
-                    sourceName = $"Đính kèm từ: {taskName}";
+                    sourceName = $"Routine: {task.Routine.Name}";
+                }
+                else
+                {
+                    sourceName = $"Task: {task.Name}";
                 }
 
                 result.Add(new CourseAssetResponseDto 
@@ -221,7 +232,7 @@ namespace SmartStudy.Server.Services
                     Url = link.Asset.Url,
                     Type = link.Asset.Type,
                     CreatedAt = link.Asset.CreatedAt,
-                    LinkedType = link.LinkedType, // Để UI biết group
+                    LinkedType = link.LinkedType,
                     SourceName = sourceName, // Cực kỳ quan trọng cho UI
                     Status = link.Asset.Status
                 });

@@ -1,3 +1,5 @@
+import AssetPreviewDialog from "@/components/files/AssetPreviewDialog";
+import { useAssetPreview } from "@/hooks/useAssetPreview";
 import type { AssetResponseDto } from "@/services/api";
 import AssetListItem from "../shared/AssetListItem";
 import ContextUploader from "../shared/ContextUploader";
@@ -8,6 +10,8 @@ interface TaskInputProps {
 }
 
 export default function TaskInput({ docs, taskId }: TaskInputProps) {
+  const { previewAsset, openPreview, closePreview } = useAssetPreview();
+
   return (
     <section className="space-y-3 border-b pb-5">
       <div className="flex items-center justify-between gap-3">
@@ -29,11 +33,17 @@ export default function TaskInput({ docs, taskId }: TaskInputProps) {
         ) : (
           <div className="space-y-2">
             {docs.map((doc) => (
-              <AssetListItem key={String(doc.id)} asset={doc} />
+              <AssetListItem
+                key={String(doc.id)}
+                asset={doc}
+                onPreview={openPreview}
+              />
             ))}
           </div>
         )}
       </div>
+
+      <AssetPreviewDialog asset={previewAsset} onClose={closePreview} />
     </section>
   );
 }

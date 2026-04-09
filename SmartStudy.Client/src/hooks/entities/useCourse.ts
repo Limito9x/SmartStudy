@@ -11,6 +11,7 @@ import {
   updateCourseGoalMutation,
   createCourseMutation,
   deleteCourseMutation,
+  getSummaryPlanProgressQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 
 interface UseCourseOptions {
@@ -25,6 +26,9 @@ export const useCourse = ({ studyPlanId }: UseCourseOptions) => {
       queryKey: getCoursesQueryKey({
         query: { studyPlanId: studyPlanId },
       }),
+    });
+    queryClient.invalidateQueries({
+      queryKey: getSummaryPlanProgressQueryKey(),
     });
   };
 

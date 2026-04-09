@@ -13,18 +13,50 @@ import { formDataBodySerializer } from "@/services/api/client";
 import { useLoadingStore } from "@/stores/useLoadingStore";
 import { toast } from "sonner";
 
-export default function LogFormContainer() {
+interface LogFormContainerProps {
+  taskId?: number;
+  logId?: number;
+  defaultValues?: LogFormValues;
+  onSuccess?: () => void;
+}
+
+export default function LogFormContainer({
+  taskId: externalTaskId,
+  logId: externalLogId,
+  defaultValues: externalDefaultValues,
+  onSuccess,
+}: LogFormContainerProps = {}) {
   const { data, closeDialog } = useDialogStore();
   const { showLoading, hideLoading } = useLoadingStore();
-  const { logId, taskId, defaultValues } =
-    data as DialogDataMap["LOG_WORK_FORM"];
+  const dialogData = data as DialogDataMap["LOG_WORK_FORM"] | null;
+
+  const taskId = externalTaskId ?? dialogData?.taskId;
+  const logId = externalLogId ?? dialogData?.logId;
+  const defaultValues = externalDefaultValues ?? dialogData?.defaultValues;
+
+  const handleSuccess = () => {
+    if (onSuccess) {
+      onSuccess();
+      return;
+    }
+
+    closeDialog();
+  };
+
+  if (!taskId) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Không tìm thấy thông tin công việc để ghi nhận.
+      </p>
+    );
+  }
 
   const isEditMode = !!logId;
   const { createTaskLogWork, getTaskById } = useTask();
   const { getLogById, updateLog } = useLog();
 
   // NẾU LÀ EDIT: Fetch data ngầm.
-  const { data: logData, isLoading } = getLogById(logId!);
+  const { data: logData, isLoading } = getLogById(logId ?? 0);
 
   // NẾU LÀ EDIT MÀ DATA CHƯA VỀ -> HIỆN KHUNG XƯƠNG LOADING
   if (isEditMode && isLoading) {
@@ -84,7 +116,7 @@ export default function LogFormContainer() {
             onSuccess: (data) => {
               const totalUpload = data?.length ?? 0;
               toast.success(`Tải lên ${totalUpload} tệp thành công`);
-              closeDialog();
+              handleSuccess();
             },
             onSettled: () => {
               hideLoading();
@@ -95,7 +127,7 @@ export default function LogFormContainer() {
         toast.success(
           isEditMode ? "Cập nhật log thành công" : "Tạo log thành công",
         );
-        closeDialog();
+        handleSuccess();
       }
     };
 

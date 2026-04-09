@@ -1,3 +1,4 @@
+using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -30,19 +31,16 @@ namespace SmartStudy.Server.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IRoutineService _routineService;
         private readonly IMapper _mapper;
 
         public CourseService(
             ApplicationDbContext context,
             ICurrentUserService currentUserService,
-            IRoutineService routineService,
             IMapper mapper
             )
         {
             _context = context;
             _currentUserService = currentUserService;
-            _routineService = routineService;
             _mapper = mapper;
         }
 
@@ -173,6 +171,17 @@ namespace SmartStudy.Server.Services
             {
                 _context.Tasks.Where(t => taskIds.Contains(t.Id)).SoftDeleteBulkAsync();
             }
+
+            var routineIds = await _context.Routines.Where(r => r.CourseId == courseId).Select(r => r.Id).ToListAsync();
+            if (routineIds.Any()){
+                _context.Routines.Where(r => routineIds.Contains(r.Id)).SoftDeleteBulkAsync();
+                foreach (var routineId in routineIds)
+                {
+                    BackgroundJob.Enqueue<IRoutineClearJob>(
+                        job => job.CleanupTasksForRoutineAsync(routineId, isRoutineDeleted: true) 
+                    );
+                }
+            }
             
             await _context.CascadeSoftDeleteLinkAsync(courseId, AssetLinkType.Course);
             _context.Remove(existingCourse);
@@ -198,6 +207,18 @@ namespace SmartStudy.Server.Services
                     .Where(t => t.CourseId == courseId && t.StartDateTime.HasValue && t.StartDateTime.Value.Date >= today.Date)
                     .ToListAsync();
                 _context.Tasks.RemoveRange(futureTasks);
+
+                var futureRoutines = await _context.Routines
+                    .Where(r => r.CourseId == courseId && r.StartDate.Date >= today.Date)
+                    .Select(r => r.Id)
+                    .ToListAsync();
+
+                foreach (var routineId in futureRoutines)
+                {
+                    BackgroundJob.Enqueue<IRoutineClearJob>(
+                        job => job.CleanupTasksForRoutineAsync(routineId) 
+                    );
+                }
             }
 
             await _context.SaveChangesAsync();

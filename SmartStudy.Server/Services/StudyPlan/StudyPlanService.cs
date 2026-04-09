@@ -1,3 +1,4 @@
+using Hangfire;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
@@ -14,9 +15,7 @@ namespace SmartStudy.Server.Services
         Task<ResponseStudyPlanDto?> GetStudyPlanByIdAsync(int studyPlanId);
         Task<ResponseStudyPlanDto?> UpdateStudyPlanAsync(int studyPlanId, RequestStudyPlanDto studyPlanDto);
         Task<bool> DeleteStudyPlanAsync(int studyPlanId);
-        Task BulkSetupStudyPlansAsync(BulkCreateStudyPlanDto dto);
-        //Task SyncDraftCoursesAsync(int planId, SyncDraftCoursesDto dto);
-        //Task CommitStudyPlanAsync(int planId);
+        Task<SummaryPlanProgressDto> GetSummaryPlanProgressAsync();
         Task UpdateStudyPlanStatusAsync(int planId, UpdateStudyPlanStatusDto dto);
         Task<StudyPlanStatsDto> GetStudyPlanStatsAsync(int planId);
         Task<AcademicContextDto> GetAcademicContextAsync();
@@ -27,21 +26,18 @@ namespace SmartStudy.Server.Services
         private readonly ApplicationDbContext _context;
         private readonly IAssetLinkService _assetLinkService;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IRoutineService _routineService;
         private readonly IMapper _mapper;
 
         public StudyPlanService(
             ApplicationDbContext context,
             IAssetLinkService assetLinkService,
             ICurrentUserService currentUserService,
-            IRoutineService routingService,
             IMapper mapper
         )
         {
             _context = context;
             _assetLinkService = assetLinkService;
             _currentUserService = currentUserService;
-            _routineService = routingService;
             _mapper = mapper;
         }
 
@@ -61,6 +57,9 @@ namespace SmartStudy.Server.Services
                 
                 var term = await _context.AcademicTerms.FindAsync(studyPlanDto.TermId.Value);
                 var year = await _context.AcademicYears.FindAsync(studyPlanDto.YearId.Value);
+
+                if (term == null || year == null)
+                    throw new ArgumentException("Term hoặc Year không hợp lệ cho KHHT học thuật");
                 
                 var name = $"HK {term.TermNumber} {year.StartYear} - {year.EndYear}";
                 studyPlan.Name = name;
@@ -71,7 +70,6 @@ namespace SmartStudy.Server.Services
             await _context.SaveChangesAsync();
 
             var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
-                ReorderStudyPlans(spList);
                 await _context.SaveChangesAsync();
 
             return _mapper.Map<ResponseStudyPlanDto>(studyPlan);
@@ -94,6 +92,7 @@ namespace SmartStudy.Server.Services
             
             var query = _context.StudyPlans
                 .Include(p => p.Courses)
+                .ThenInclude(c => c.Subject)
                 .Where(p => p.UserId == userId);
 
             if (isActive.HasValue)
@@ -107,7 +106,32 @@ namespace SmartStudy.Server.Services
                 .OrderBy(p => p.StartDate)
                 .ToListAsync();
 
-            return _mapper.Map<List<ResponseStudyPlanDto>>(studyPlans);
+            var dto = _mapper.Map<List<ResponseStudyPlanDto>>(studyPlans);
+            foreach (var sp in dto)
+            {
+                if (sp.Type != StudyPlanType.Academic)
+                {
+                    sp.TotalCredits = 0;
+                    sp.GPA = 0;
+                    continue;
+                }
+
+                sp.TotalCredits = sp.Courses.Sum(c => c.Subject?.Credits ?? 0);
+
+                var totalGradePoints = sp.Courses.Sum(c =>
+                {
+                    var credits = c.Subject?.Credits;
+                    if (!credits.HasValue || !c.FinalScore.HasValue)
+                    {
+                        return 0;
+                    }
+
+                    return credits.Value * c.FinalScore.Value;
+                });
+
+                sp.GPA = sp.TotalCredits > 0 ? (totalGradePoints / sp.TotalCredits) : 0;
+            }
+            return dto;
         }
 
         public async Task<ResponseStudyPlanDto?> UpdateStudyPlanAsync(int studyPlanId, RequestStudyPlanDto studyPlanDto)
@@ -124,7 +148,6 @@ namespace SmartStudy.Server.Services
             await _context.SaveChangesAsync();
 
             var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
-                    ReorderStudyPlans(spList);
                     await _context.SaveChangesAsync();
 
             return _mapper.Map<ResponseStudyPlanDto>(studyPlan);
@@ -138,74 +161,33 @@ namespace SmartStudy.Server.Services
             var studyPlan = await _context.StudyPlans.FindAsync(studyPlanId);
             if (studyPlan == null) return false;
 
+            var futureRoutines = await _context.Routines
+                .Where(r => r.Course.StudyPlanId == studyPlanId 
+                            && r.IsActive)
+                .Select(r => r.Id)
+                .ToListAsync();
+
+                
+             await DisableAllTasksAsync(studyPlanId);
+
+             foreach (var routineId in futureRoutines)
+             {
+                 BackgroundJob.Enqueue<IRoutineClearJob>(
+                     job => job.CleanupTasksForRoutineAsync(routineId, isRoutineDeleted: true) 
+                 );
+             }
+
+             await _context.Courses
+                .Where(c => c.StudyPlanId == studyPlanId)
+                .ExecuteUpdateAsync(s => s.SetProperty(c => c.StudyPlanId, (int?) null));
+
             _context.StudyPlans.Remove(studyPlan);
             await _context.SaveChangesAsync();
              isDeleted = true;
 
-            var spList = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
-                    ReorderStudyPlans(spList);
-                    await _context.SaveChangesAsync();
-
-            if (isDeleted) await _assetLinkService.RemoveAssetLinkByAsync(studyPlanId, AssetLinkType.StudyPlan);
-
             return isDeleted;
         }
-
-        private void ReorderStudyPlans(List<Entities.StudyPlan> plans)
-        {
-            // Sắp xếp theo ngày bắt đầu
-            var sortedPlans = plans.OrderBy(s => s.StartDate).ToList();
-
-            // Đánh lại số thứ tự
-            for (int i = 0; i < sortedPlans.Count; i++)
-            {
-                sortedPlans[i].Order = i + 1;
-            }
-        }
-
-        public async Task BulkSetupStudyPlansAsync(BulkCreateStudyPlanDto dtos)
-        {
-            var userId = _currentUserService.UserId;
-
-            // 1. Dọn rác cũ (Nếu dùng EF 7/8 thì xài ExecuteDeleteAsync cho lẹ)
-            var oldPlans = await _context.StudyPlans.Where(s => s.UserId == userId).ToListAsync();
-            _context.StudyPlans.RemoveRange(oldPlans);
-
-            // 2. Map data mới
-            var newPlans = _mapper.Map<List<Entities.StudyPlan>>(dtos.StudyPlans);
-            newPlans.ForEach(p => p.UserId = userId);
-
-            // 3. TÁI SỬ DỤNG HÀM ĐÁNH SỐ Ở ĐÂY
-            ReorderStudyPlans(newPlans);
-
-            // 4. Lưu vào DB
-            _context.StudyPlans.AddRange(newPlans);
-            await _context.SaveChangesAsync();
-        }
-
-        //public async Task SyncDraftCoursesAsync(int planId, SyncDraftCoursesDto dto)
-        //{
-        //    var studyPlan = await _context.StudyPlans.Include(sp=>sp.Courses).FirstOrDefaultAsync(p => p.Id == planId);
-        //    if (studyPlan == null) return;
-        //    _currentUserService.CheckAuthorized(studyPlan.UserId, nameof(Entities.StudyPlan));
-
-        //    var courses = studyPlan.Courses;
-        //    if(courses!=null && courses.Count>0)
-        //    {
-        //        foreach (var course in courses)
-        //        {
-        //            if (dto.SelectedCourseIds.Contains(course.Id))
-        //            {
-        //                course.Status = CourseStatus.Enrolled;
-        //            }
-        //            else
-        //            {
-        //                course.Status = CourseStatus.Draft;
-        //            }
-        //        }
-        //    }    
         
-
         public async Task UpdateStudyPlanStatusAsync(int planId, UpdateStudyPlanStatusDto dto)
         {
             var studyPlan = await _context.StudyPlans
@@ -228,6 +210,19 @@ namespace SmartStudy.Server.Services
                 }
                 
                 await DisableAllTasksAsync(planId);
+
+                var routinesToDisable = await _context.Routines
+                    .Where(r => 
+                    r.Course.StudyPlanId == planId && r.IsActive)
+                    .Select(r => r.Id)
+                    .ToListAsync();
+
+                foreach (var routineId in routinesToDisable)
+                {
+                    BackgroundJob.Enqueue<IRoutineClearJob>(
+                        job => job.CleanupTasksForRoutineAsync(routineId) 
+                    );
+                }
             }
 
             studyPlan.Status = dto.Status;
@@ -322,6 +317,57 @@ namespace SmartStudy.Server.Services
 
             // 3. Update siêu tốc
             await tasksToArchive.ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, TaskStatus.Archived));
+        }
+
+        public async Task<SummaryPlanProgressDto> GetSummaryPlanProgressAsync()
+        {
+            var userId = _currentUserService.UserId;
+
+            // 1. Lấy tất cả các môn đã hoàn thành từ tất cả StudyPlan (cả Active và Archived) của User này
+            // để tính toán tích lũy toàn khóa.
+            var allCompletedCourses = await _context.Courses
+                .Include(c => c.Subject)
+                .Where(c => c.StudyPlan.UserId == userId 
+                            && c.StudyPlan.Type == StudyPlanType.Academic
+                            && c.Status == CourseStatus.Completed
+                            && c.FinalScore.HasValue 
+                            && c.SubjectId.HasValue)
+                .ToListAsync();
+
+            if (!allCompletedCourses.Any())
+            {
+                return new SummaryPlanProgressDto { TotalCredits = 0, GPA = 0 };
+            }
+
+            // 2. Xử lý trùng môn: Nhóm theo SubjectId và chỉ lấy bản ghi có FinalScore cao nhất (điểm cải thiện)
+            var distinctCourses = allCompletedCourses
+                .GroupBy(c => c.SubjectId)
+                .Select(g => g.OrderByDescending(c => c.FinalScore).First())
+                .ToList();
+
+            // 3. Tính toán trên danh sách đã lọc trùng
+            var totalCredits = distinctCourses
+                .Sum(c => c.Subject?.Credits ?? 0);
+
+            var totalGradePoints = distinctCourses
+                .Sum(c =>
+                {
+                    var credits = c.Subject?.Credits;
+                    if (!credits.HasValue || !c.FinalScore.HasValue)
+                    {
+                        return 0;
+                    }
+
+                    return credits.Value * c.FinalScore.Value;
+                });
+
+            return new SummaryPlanProgressDto
+            {
+                TotalCredits = totalCredits,
+                // Chỗ này nên để double, nếu DTO của bạn là int thì hãy làm tròn, 
+                // nhưng GPA thường là decimal/double (VD: 3.2)
+                GPA = totalCredits > 0 ? Math.Round(totalGradePoints / totalCredits, 2) : 0
+            };
         }
     }
 }

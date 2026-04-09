@@ -10,6 +10,7 @@ import CourseTaskCard from "./CourseTaskCard";
 import ActionMenu from "@/components/shared/ActionMenu";
 import { useRoutine } from "@/hooks/entities/useRoutine";
 import { useDialogStore } from "@/stores/useDialogStore";
+import { toast } from "sonner";
 
 interface RoutineGroupProps {
   routine: CourseRoutineDto;
@@ -19,8 +20,9 @@ interface RoutineGroupProps {
 export default function RoutineGroup({ routine, value }: RoutineGroupProps) {
   const routineName = routine.routine?.name || "Routine chưa đặt tên";
   const tasks = routine.tasks ?? [];
-  const { deleteRoutine } = useRoutine();
+  const { deleteRoutine, toggleRoutineStatus } = useRoutine();
   const { openDialog } = useDialogStore();
+  const isRoutineActive = Boolean(routine.routine?.isActive);
 
   const handleEdit = () => {
     if (routine.routine?.id) {
@@ -38,6 +40,27 @@ export default function RoutineGroup({ routine, value }: RoutineGroupProps) {
         },
       });
     }
+  };
+
+  const handleToggleStatus = () => {
+    const routineId = Number(routine.routine?.id ?? 0);
+    if (!routineId) {
+      return;
+    }
+
+    toggleRoutineStatus.mutate(
+      {
+        path: { id: routineId },
+      },
+      {
+        onSuccess: (data) => {
+          toast.success(data.isActive ? "Đã bật routine" : "Đã tắt routine");
+        },
+        onError: () => {
+          toast.error("Không thể cập nhật trạng thái routine");
+        },
+      },
+    );
   };
 
   return (
@@ -60,12 +83,22 @@ export default function RoutineGroup({ routine, value }: RoutineGroupProps) {
             >
               {tasks.length} {tasks.length === 1 ? "task" : "tasks"}
             </Badge>
+            <Badge
+              variant={isRoutineActive ? "default" : "secondary"}
+              className="h-6 shrink-0 rounded-full px-2 text-xs"
+            >
+              {isRoutineActive ? "Đang bật" : "Đã tắt"}
+            </Badge>
           </div>
         </AccordionTrigger>
         {routine.routine?.id && (
           <div className="flex items-center">
             <ActionMenu
               actions={[
+                {
+                  label: isRoutineActive ? "Tắt routine" : "Bật routine",
+                  onClick: handleToggleStatus,
+                },
                 { label: "Chỉnh sửa", onClick: handleEdit },
                 { label: "Xóa", onClick: handleDelete },
               ]}

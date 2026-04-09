@@ -1,9 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import AssetPreviewDialog from "@/components/files/AssetPreviewDialog";
+import { useAssetPreview } from "@/hooks/useAssetPreview";
 import type { LogDoc } from "@/services/api";
 import AssetListItem from "../shared/AssetListItem";
-import { useDialogStore } from "@/stores/useDialogStore";
+import { format } from "date-fns";
+import { Pencil } from "lucide-react";
+import { useState } from "react";
+import LogFormContainer from "@/components/form-containers/LogFormContainer";
 
 interface TaskOutputProps {
   logs: LogDoc[];
@@ -11,7 +16,8 @@ interface TaskOutputProps {
 }
 
 export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
-  const { openDialog } = useDialogStore();
+  const [isInlineFormOpen, setIsInlineFormOpen] = useState(false);
+  const { previewAsset, openPreview, closePreview } = useAssetPreview();
 
   return (
     <section className="space-y-3 pb-2">
@@ -23,15 +29,21 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
           variant="outline"
           size="sm"
           className="h-8"
-          onClick={() =>
-            openDialog("LOG_WORK_FORM", {
-              taskId,
-            })
-          }
+          onClick={() => setIsInlineFormOpen((prev) => !prev)}
         >
-          Ghi nhận
+          <Pencil size={14} className="mr-1" />
+          {isInlineFormOpen ? "Đóng" : "Ghi nhận"}
         </Button>
       </div>
+
+      {isInlineFormOpen ? (
+        <div className="rounded-md border bg-background p-3">
+          <LogFormContainer
+            taskId={taskId}
+            onSuccess={() => setIsInlineFormOpen(false)}
+          />
+        </div>
+      ) : null}
 
       <div>
         {logs.length === 0 ? (
@@ -77,7 +89,11 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
                     {(entry.assets?.length ?? 0) > 0 ? (
                       <div className="space-y-2">
                         {entry.assets?.map((asset) => (
-                          <AssetListItem key={String(asset.id)} asset={asset} />
+                          <AssetListItem
+                            key={String(asset.id)}
+                            asset={asset}
+                            onPreview={openPreview}
+                          />
                         ))}
                       </div>
                     ) : null}
@@ -85,7 +101,10 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
                     <div className="pt-1">
                       <Badge variant="outline" className="text-[11px]">
                         {log.completedAt
-                          ? new Date(log.completedAt).toLocaleString("vi-VN")
+                          ? format(
+                              new Date(log.completedAt),
+                              "hh:mm dd/MM/yyyy",
+                            )
                           : "Chưa có thời gian hoàn thành"}
                       </Badge>
                     </div>
@@ -96,6 +115,8 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
           </ScrollArea>
         )}
       </div>
+
+      <AssetPreviewDialog asset={previewAsset} onClose={closePreview} />
     </section>
   );
 }

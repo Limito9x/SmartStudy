@@ -1,20 +1,23 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ResponseTaskDto } from "@/services/api";
+import { useTask } from "@/hooks/entities/useTask";
+import ActionMenu from "@/components/shared/ActionMenu";
+import { useDialogStore } from "@/stores/useDialogStore";
 import type { PanelDataMap } from "@/stores/usePanelStore";
 import { usePanelStore } from "@/stores/usePanelStore";
-import {
-  CalendarClock,
-  ChevronRight,
-} from "lucide-react";
+import { CalendarClock, ChevronRight } from "lucide-react";
 import { formatTaskDateTime } from "@/utils/dateUtils";
 import { renderTaskIcon, getStatusStyle } from "../../task/FormatTask";
+import { toast } from "sonner";
 
 interface CourseTaskCardProps {
   taskData: ResponseTaskDto;
 }
 
 export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
+  const { updateTaskStatus, deleteTaskById } = useTask();
+  const { openDialog } = useDialogStore();
   const { openPanel, isOpen, type, data } = usePanelStore();
   const task = taskData;
 
@@ -32,6 +35,59 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
 
   const handleOpenTaskDetail = () => {
     openPanel("TASK_DETAIL", { taskId });
+  };
+
+  const handleEditTask = () => {
+    openDialog("TASK_FORM", {
+      taskId,
+      courseId: Number(task.courseId ?? 0),
+      eventId: Number(task.timelineEventId ?? 0),
+    });
+  };
+
+  const handleToggleTaskStatus = () => {
+    const nextStatus = task.status === "Completed" ? "InProgress" : "Completed";
+
+    updateTaskStatus.mutate(
+      {
+        path: { taskId },
+        body: { status: nextStatus },
+      },
+      {
+        onSuccess: () => {
+          toast.success(
+            nextStatus === "Completed"
+              ? "Đã đánh dấu hoàn thành task"
+              : "Đã chuyển task về trạng thái đang làm",
+          );
+        },
+        onError: () => {
+          toast.error("Không thể cập nhật trạng thái task");
+        },
+      },
+    );
+  };
+
+  const handleDeleteTask = () => {
+    openDialog("CONFIRM_DELETE", {
+      itemType: "task",
+      itemName: task.name,
+      onConfirm: () => {
+        deleteTaskById.mutate(
+          {
+            path: { taskId },
+          },
+          {
+            onSuccess: () => {
+              toast.success("Đã xóa task");
+            },
+            onError: () => {
+              toast.error("Không thể xóa task");
+            },
+          },
+        );
+      },
+    });
   };
 
   return (
@@ -86,6 +142,20 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <ActionMenu
+            actions={[
+              { label: "Mở chi tiết", onClick: handleOpenTaskDetail },
+              { label: "Chỉnh sửa", onClick: handleEditTask },
+              {
+                label:
+                  task.status === "Completed"
+                    ? "Đánh dấu đang làm"
+                    : "Đánh dấu hoàn thành",
+                onClick: handleToggleTaskStatus,
+              },
+              { label: "Xóa", onClick: handleDeleteTask },
+            ]}
+          />
           <Badge className={cn("border", statusStyle.badgeClass)}>
             {statusStyle.label}
           </Badge>

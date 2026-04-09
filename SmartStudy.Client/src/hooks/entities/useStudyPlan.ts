@@ -6,12 +6,12 @@ import {
   getStudyPlanByIdQueryKey,
   createStudyPlanMutation,
   updateStudyPlanMutation,
-  bulkCreateStudyPlansMutation,
   deleteStudyPlanMutation,
   getAcademicContextOptions,
   updateStudyPlanStatusMutation,
   getStudyPlanStatsOptions,
   getStudyPlanStatsQueryKey,
+  getSummaryPlanProgressOptions,
 } from "@/services/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 
@@ -20,6 +20,10 @@ export const useStudyPlan = () => {
 
   const getAcademicContext = useQuery({
     ...getAcademicContextOptions(),
+  });
+
+  const getSummaryPlanProgress = useQuery({
+    ...getSummaryPlanProgressOptions(),
   });
 
   const getAllStudyPlans = (isActive?: boolean) =>
@@ -54,16 +58,6 @@ export const useStudyPlan = () => {
         queryKey: getStudyPlansQueryKey(),
       });
       toast.success("Tạo kế hoạch học tập thành công");
-    },
-  });
-
-  const bulkCreateStudyPlans = useMutation({
-    ...bulkCreateStudyPlansMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getStudyPlansQueryKey(),
-      });
-      toast.success("Tạo hàng loạt kế hoạch học tập thành công");
     },
   });
 
@@ -115,12 +109,12 @@ export const useStudyPlan = () => {
 
   return {
     getAcademicContext,
+    getSummaryPlanProgress,
     getAllStudyPlans,
     getStudyPlanById,
     getStudyPlanStats,
     updateStudyPlanStatus,
     createStudyPlan,
-    bulkCreateStudyPlans,
     updateStudyPlan,
     deleteStudyPlan,
   };

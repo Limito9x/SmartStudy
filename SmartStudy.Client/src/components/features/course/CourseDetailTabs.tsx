@@ -54,12 +54,12 @@ export default function CourseDetailTabs({
           >
             Sự kiện
           </TabsTrigger>
-          {/* <TabsTrigger
+          <TabsTrigger
             value="assets"
             className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
             Tài liệu
-          </TabsTrigger> */}
+          </TabsTrigger>
         </TabsList>
       </div>
 
@@ -83,9 +83,9 @@ export default function CourseDetailTabs({
           <EventsTab courseId={courseId} />
         </TabsContent>
 
-        {/* <TabsContent value="assets" className="mt-6">
+        <TabsContent value="assets" className="mt-6">
           <AssetsVaultTab courseId={courseId} />
-        </TabsContent> */}
+        </TabsContent>
       </div>
     </Tabs>
   );

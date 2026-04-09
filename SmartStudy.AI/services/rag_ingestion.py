@@ -62,7 +62,7 @@ async def run_indexing(documents):
 
     record_manager=get_record_manager()
 
-    await record_manager.acreate_schema()
+    record_manager.create_schema()
 
     indexing_result = await aindex(
         docs_source=documents,

@@ -31,6 +31,19 @@ namespace SmartStudy.Server.Dtos
         public List<ResponseTimelineEventDto>? TimelineEvents { get; set; }
     }
 
+    public class SimpleResponseCourseDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public double? TargetScore { get; set; }
+        public double? FinalScore { get; set; }
+        public string? Goal { get; set; }
+        public CourseStatus Status { get; set; }
+        public string? Color { get; set; }
+        public int? SubjectId { get; set; }
+        public ResponseSubjectDto? Subject { get; set; }
+    }
+
     public class CourseProgressDto
     {
         public double Progress { get; set; }

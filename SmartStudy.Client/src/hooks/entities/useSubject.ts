@@ -17,8 +17,8 @@ export const useSubject = () => {
     pageIndex,
     pageSize,
     search,
-    type
-  }:{
+    type,
+  }: {
     pageIndex: number;
     pageSize: number;
     search?: string;
@@ -30,7 +30,7 @@ export const useSubject = () => {
           PageIndex: pageIndex,
           PageSize: pageSize,
           SearchTerm: search,
-          type: type
+          type: type,
         },
       }),
     });

@@ -1,17 +1,19 @@
 import AcademicContext from "@/components/features/plan/AcademicContext";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 import {
-  getCoursesOptions,
-  getStudyPlanStatsOptions,
+  getCoursesQueryKey,
+  getStudyPlansQueryKey,
+  updateCourseFinalScoreMutation,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { ResponseStudyPlanDto } from "@/services/api";
-import { useQueries } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Archive, BarChart3, GraduationCap, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import ArchiveYearGroup from "./components/ArchiveYearGroup";
 
 type ArchiveTypeFilter = "all" | "Academic" | "Personal";
@@ -22,20 +24,22 @@ interface GroupedPlans {
   sortKey: number;
 }
 
-const toNumber = (value?: number | string | null) => {
-  const parsed = Number(value ?? 0);
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
 const getYearLabel = (plan: ResponseStudyPlanDto) => {
-  const start = new Date(plan.startDate);
-  const end = new Date(plan.endDate || plan.startDate);
+  const start = new Date(plan.startDate || "");
+  const end = new Date(plan.endDate || plan.startDate || "");
 
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     return "Năm học khác";
   }
 
-  return `${start.getFullYear()} - ${end.getFullYear()}`;
+  const startYear = start.getFullYear();
+  const endYear = end.getFullYear();
+
+  if (startYear === endYear) {
+    return String(startYear);
+  }
+
+  return `${startYear} - ${endYear}`;
 };
 
 const getSortKey = (yearLabel: string) => {
@@ -44,17 +48,28 @@ const getSortKey = (yearLabel: string) => {
 };
 
 export default function ArchivePage() {
-  const navigate = useNavigate();
-  const { getAllStudyPlans, updateStudyPlanStatus, getAcademicContext } =
-    useStudyPlan();
+  const queryClient = useQueryClient();
+  const {
+    getAllStudyPlans,
+    updateStudyPlanStatus,
+    getAcademicContext,
+    getSummaryPlanProgress,
+  } = useStudyPlan();
 
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState<ArchiveTypeFilter>("all");
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [restoringPlanId, setRestoringPlanId] = useState<number | null>(null);
+  const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
+  const [savingCourseId, setSavingCourseId] = useState<number | null>(null);
+
+  const updateCourseFinalScore = useMutation({
+    ...updateCourseFinalScoreMutation(),
+  });
 
   const { data: allPlans, isLoading, error } = getAllStudyPlans();
+  const summaryProgress = getSummaryPlanProgress.data;
   const academicContext = getAcademicContext.data;
 
   const archivePlans = useMemo(() => {
@@ -91,30 +106,6 @@ export default function ArchivePage() {
     });
   }, [archivePlans, searchText, selectedType, selectedTerm, selectedYear]);
 
-  const statsQueries = useQueries({
-    queries: filteredPlans.map((plan) => {
-      const planId = Number(plan.id);
-      return {
-        ...getStudyPlanStatsOptions({
-          path: { planId },
-        }),
-        enabled: planId > 0,
-      };
-    }),
-  });
-
-  const courseQueries = useQueries({
-    queries: filteredPlans.map((plan) => {
-      const studyPlanId = Number(plan.id);
-      return {
-        ...getCoursesOptions({
-          query: { studyPlanId },
-        }),
-        enabled: studyPlanId > 0,
-      };
-    }),
-  });
-
   const groupedPlans = useMemo(() => {
     const map = new Map<string, GroupedPlans>();
 
@@ -139,7 +130,8 @@ export default function ArchivePage() {
         ...group,
         plans: [...group.plans].sort(
           (a, b) =>
-            new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+            new Date(b.startDate || "").getTime() -
+            new Date(a.startDate || "").getTime(),
         ),
       }))
       .sort((a, b) => b.sortKey - a.sortKey);
@@ -171,36 +163,6 @@ export default function ArchivePage() {
     return map;
   }, [filteredPlans, academicContext]);
 
-  const metaByPlanId = useMemo(() => {
-    const map = new Map<
-      number,
-      { courseCount: number; progressPercent: number }
-    >();
-
-    filteredPlans.forEach((plan, index) => {
-      const planId = Number(plan.id);
-      const stats = statsQueries[index]?.data;
-      const courses = courseQueries[index]?.data || [];
-
-      const totalTasks = toNumber(stats?.totalTasks);
-      const completedTasks = toNumber(stats?.completedTasks);
-
-      const progressPercent =
-        totalTasks > 0
-          ? Math.round((completedTasks / totalTasks) * 100)
-          : plan.status === "Completed"
-            ? 100
-            : 0;
-
-      map.set(planId, {
-        courseCount: courses.length,
-        progressPercent: Math.max(0, Math.min(100, progressPercent)),
-      });
-    });
-
-    return map;
-  }, [filteredPlans, statsQueries, courseQueries]);
-
   const handleRestorePlan = (plan: ResponseStudyPlanDto) => {
     const planId = Number(plan.id);
     if (!planId) return;
@@ -219,13 +181,102 @@ export default function ArchivePage() {
     );
   };
 
+  const handleToggleExpand = (planId: number) => {
+    setExpandedPlanId((current) => (current === planId ? null : planId));
+  };
+
+  const handleUpdateCourseFinalScore = async (
+    planId: number,
+    courseId: number,
+    score: number,
+  ) => {
+    if (!planId || !courseId || !Number.isFinite(score)) {
+      return;
+    }
+
+    try {
+      setSavingCourseId(courseId);
+
+      await updateCourseFinalScore.mutateAsync({
+        path: { courseId },
+        body: score,
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: getStudyPlansQueryKey(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: getCoursesQueryKey({ query: { studyPlanId: planId } }),
+        }),
+      ]);
+    } catch {
+      toast.error("Không thể cập nhật điểm tổng kết.");
+    } finally {
+      setSavingCourseId(null);
+    }
+  };
+
   return (
-    <div className="space-y-4 p-4">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Kho lưu trữ</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {completedCount} kế hoạch đã hoàn thành
-        </p>
+    <div className="h-full space-y-4 overflow-y-auto p-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr),420px] lg:items-start">
+        <div className="text-left">
+          <h1 className="text-left text-2xl font-semibold text-slate-900">
+            Kho lưu trữ
+          </h1>
+          <p className="mt-1 text-left text-sm text-muted-foreground">
+            Quản lý kế hoạch đã hoàn thành và chỉnh sửa điểm nhanh ngay tại danh
+            sách.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          <Card>
+            <CardContent className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Kế hoạch hoàn thành
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
+                  {completedCount}
+                </p>
+              </div>
+              <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700">
+                <Archive className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Tín chỉ tích lũy
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
+                  {Number(summaryProgress?.totalCredits ?? 0)}
+                </p>
+              </div>
+              <div className="rounded-lg bg-sky-100 p-2 text-sky-700">
+                <GraduationCap className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">GPA</p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900">
+                  {Number(summaryProgress?.gpa ?? 0).toFixed(2)}
+                </p>
+              </div>
+              <div className="rounded-lg bg-amber-100 p-2 text-amber-700">
+                <BarChart3 className="h-4 w-4" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -272,38 +323,38 @@ export default function ArchivePage() {
         ) : null}
       </div>
 
-      <div className="rounded-lg border p-3">
-        {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-18 w-full" />
-            <Skeleton className="h-18 w-full" />
-            <Skeleton className="h-18 w-full" />
-          </div>
-        ) : error ? (
-          <p className="py-8 text-center text-sm text-destructive">
-            Không thể tải danh sách kho lưu trữ.
-          </p>
-        ) : groupedPlans.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">
-            Không có kế hoạch phù hợp với bộ lọc hiện tại.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {groupedPlans.map((group) => (
-              <ArchiveYearGroup
-                key={group.yearLabel}
-                yearLabel={group.yearLabel}
-                plans={group.plans}
-                termYearByPlanId={termYearByPlanId}
-                metaByPlanId={metaByPlanId}
-                restoringPlanId={restoringPlanId}
-                onOpenPlan={(plan) => navigate(`/app/study-plans/${plan.id}`)}
-                onRestorePlan={handleRestorePlan}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+      {isLoading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-18 w-full" />
+          <Skeleton className="h-18 w-full" />
+          <Skeleton className="h-18 w-full" />
+        </div>
+      ) : error ? (
+        <p className="py-8 text-center text-sm text-destructive">
+          Không thể tải danh sách kho lưu trữ.
+        </p>
+      ) : groupedPlans.length === 0 ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Không có kế hoạch phù hợp với bộ lọc hiện tại.
+        </p>
+      ) : (
+        <div className="space-y-4">
+          {groupedPlans.map((group) => (
+            <ArchiveYearGroup
+              key={group.yearLabel}
+              yearLabel={group.yearLabel}
+              plans={group.plans}
+              termYearByPlanId={termYearByPlanId}
+              restoringPlanId={restoringPlanId}
+              expandedPlanId={expandedPlanId}
+              savingCourseId={savingCourseId}
+              onToggleExpand={handleToggleExpand}
+              onUpdateCourseFinalScore={handleUpdateCourseFinalScore}
+              onRestorePlan={handleRestorePlan}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

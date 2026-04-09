@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import InlineEditableInput from "@/components/shared/InlineEditableInput";
 import CourseCompletionForm from "@/components/features/course-tabs/CourseCompletionForm";
 import { useCourse } from "@/hooks/entities/useCourse";
 import { useDialogStore } from "@/stores/useDialogStore";
@@ -84,11 +79,10 @@ export default function OverviewTab({
     updateCourseStatus,
     updateCourseTargetScore,
     updateCourseFinalScore,
+    updateCourseGoal,
     deleteCourse,
   } = useCourse({ studyPlanId });
 
-  const [isEditingTarget, setIsEditingTarget] = useState(false);
-  const [targetDraft, setTargetDraft] = useState("");
   const [isCompletionDialogOpen, setIsCompletionDialogOpen] = useState(false);
 
   const courseColor = normalizeHexColor(course?.color) ?? "#3b82f6";
@@ -101,47 +95,59 @@ export default function OverviewTab({
   const completionPending =
     updateCourseFinalScore.isPending || updateCourseStatus.isPending;
 
-  useEffect(() => {
-    setTargetDraft(targetScoreValue);
-  }, [targetScoreValue]);
-
   const upcomingEvents = useMemo(() => {
     return sortTimelineEventsByPriority(course?.timelineEvents ?? []);
   }, [course?.timelineEvents]);
 
-  const handleSaveTargetScore = () => {
-    const trimmed = targetDraft.trim();
+  const handleSaveTargetScore = async (nextValue: string) => {
+    const trimmed = nextValue.trim();
     const numeric = Number(trimmed);
 
     if (!trimmed || Number.isNaN(numeric)) {
       toast.error("Vui lòng nhập điểm mục tiêu hợp lệ.");
-      return;
+      throw new Error("Điểm mục tiêu không hợp lệ");
     }
 
     if (trimmed === targetScoreValue) {
-      setIsEditingTarget(false);
       return;
     }
 
-    updateCourseTargetScore.mutate(
-      {
+    try {
+      await updateCourseTargetScore.mutateAsync({
         path: { courseId },
         body: numeric,
-      },
-      {
-        onSuccess: () => {
-          toast.success("Đã cập nhật mục tiêu điểm.");
-          setIsEditingTarget(false);
-        },
-        onError: (error) => {
-          const message =
-            error instanceof Error
-              ? error.message
-              : "Không thể cập nhật mục tiêu.";
-          toast.error(message);
-        },
-      },
-    );
+      });
+      toast.success("Đã cập nhật mục tiêu điểm.");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Không thể cập nhật mục tiêu.";
+      toast.error(message);
+      throw error;
+    }
+  };
+
+  const handleSaveGoal = async (nextValue: string) => {
+    const trimmed = nextValue.trim();
+    const currentGoal = String(course?.goal ?? "").trim();
+
+    if (trimmed === currentGoal) {
+      return;
+    }
+
+    try {
+      await updateCourseGoal.mutateAsync({
+        path: { courseId },
+        body: trimmed,
+      });
+      toast.success("Đã cập nhật mục tiêu khóa học.");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Không thể cập nhật mục tiêu khóa học.";
+      toast.error(message);
+      throw error;
+    }
   };
 
   const handleOpenEditCourse = () => {
@@ -263,9 +269,14 @@ export default function OverviewTab({
                 </h1>
                 <StatusBadge status={status} />
               </div>
-              <p className="text-left text-sm italic text-muted-foreground">
-                {course?.goal || "Chưa đặt mục tiêu cho khóa học này."}
-              </p>
+              <InlineEditableInput
+                value={course?.goal}
+                onSave={handleSaveGoal}
+                type="text"
+                emptyDisplay="Chưa đặt mục tiêu cho khóa học này."
+                displayClassName="text-left text-sm italic text-muted-foreground"
+                inputClassName="h-8 text-sm"
+              />
               <Progress
                 value={progressValue}
                 indicatorStyle={
@@ -280,18 +291,15 @@ export default function OverviewTab({
                   label="Mục tiêu"
                   backgroundColor={hexToRgba(courseColor, 0.1)}
                 >
-                  <InlineTargetScore
-                    isEditing={isEditingTarget}
-                    value={targetDraft}
-                    displayValue={targetScoreValue}
-                    isPending={updateCourseTargetScore.isPending}
-                    onStartEdit={() => setIsEditingTarget(true)}
-                    onChange={setTargetDraft}
+                  <InlineEditableInput
+                    value={targetScoreValue}
                     onSave={handleSaveTargetScore}
-                    onCancel={() => {
-                      setTargetDraft(targetScoreValue);
-                      setIsEditingTarget(false);
-                    }}
+                    type="number"
+                    step="0.1"
+                    emptyDisplay="--"
+                    disabled={updateCourseTargetScore.isPending}
+                    displayClassName="text-left text-2xl font-bold text-slate-800"
+                    inputClassName="h-8 text-sm"
                   />
                 </StatTile>
 
@@ -462,60 +470,6 @@ function StatTile({
       </p>
       <div className="text-left">{children}</div>
     </div>
-  );
-}
-
-function InlineTargetScore({
-  isEditing,
-  value,
-  displayValue,
-  isPending,
-  onStartEdit,
-  onChange,
-  onSave,
-  onCancel,
-}: {
-  isEditing: boolean;
-  value: string;
-  displayValue: string;
-  isPending: boolean;
-  onStartEdit: () => void;
-  onChange: (value: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-}) {
-  if (!isEditing) {
-    return (
-      <button
-        type="button"
-        onClick={onStartEdit}
-        className="text-left text-2xl font-bold text-slate-800"
-      >
-        {displayValue}
-      </button>
-    );
-  }
-
-  return (
-    <Input
-      autoFocus
-      value={value}
-      disabled={isPending}
-      onChange={(event) => onChange(event.target.value)}
-      onBlur={onCancel}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          onSave();
-        }
-
-        if (event.key === "Escape") {
-          event.preventDefault();
-          onCancel();
-        }
-      }}
-      className="h-8 text-sm"
-    />
   );
 }
 

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services;
@@ -27,13 +26,6 @@ namespace SmartStudy.Server.Controllers
         {
             var createdStudyPlan = await _studyPlanService.CreateStudyPlanAsync(studyPlanDto);
             return Ok(createdStudyPlan);
-        }
-
-        [HttpPost("bulk", Name ="BulkCreateStudyPlans")]
-        public async Task<IActionResult> BulkCreateStudyPlans([FromBody] BulkCreateStudyPlanDto studyPlanDtos)
-        {
-            await _studyPlanService.BulkSetupStudyPlansAsync(studyPlanDtos);
-            return Ok();
         }
 
         [HttpGet(Name = "GetStudyPlans")]
@@ -87,6 +79,13 @@ namespace SmartStudy.Server.Controllers
         {
             var stats = await _studyPlanService.GetStudyPlanStatsAsync(planId);
             return Ok(stats);
+        }
+
+        [HttpGet("summary-progress", Name = "GetSummaryPlanProgress")]
+        public async Task<ActionResult<SummaryPlanProgressDto>> GetSummaryPlanProgress()
+        {
+            var summary = await _studyPlanService.GetSummaryPlanProgressAsync();
+            return Ok(summary);
         }
     }
 }

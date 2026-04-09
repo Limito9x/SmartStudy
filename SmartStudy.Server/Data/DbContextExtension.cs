@@ -1,6 +1,8 @@
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Entities.Interfaces;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Data;
 
@@ -30,5 +32,17 @@ namespace SmartStudy.Server.Data;
             where T : class, ISoftDeletable
         {
             await query.ExecuteUpdateAsync(s => s.SetProperty(x => x.DeletedAt, DateTime.UtcNow));
+        }
+
+        public static IApplicationBuilder UseHangfireJobs(this IApplicationBuilder app)
+        {
+            var manager = app.ApplicationServices.GetRequiredService<IRecurringJobManager>();
+            
+            manager.AddOrUpdate<RoutineTaskGenerator>(
+                "daily-routine-task-generator",
+                generator => generator.GenerateUpcomingTasksAsync(),
+                Cron.Daily(1));
+
+            return app;
         }
     }

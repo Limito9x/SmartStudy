@@ -1,207 +1,72 @@
-// components/ui/custom/AssetViewer.tsx
-import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { X, Download, ExternalLink, Trash2 } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAssets, deleteAsset } from "@/services/api";
-import type { AssetLinkType } from "@/services/api";
+import React from "react";
 
 interface AssetViewerProps {
-  linkedId: number;
-  linkedType: AssetLinkType;
+  url: string; // VD: https://res.cloudinary.com/.../file.docx
+  fileName: string; // VD: bai_tap.docx
 }
 
-export default function AssetViewer({
-  linkedId,
-  linkedType,
-}: AssetViewerProps) {
-  const [previewAsset, setPreviewAsset] = useState<any>(null);
+const AssetViewer: React.FC<AssetViewerProps> = ({ url, fileName }) => {
+  // 1. Lấy đuôi file để biết nó là loại gì
+  const extension = fileName.split(".").pop()?.toLowerCase() || "";
 
-  const { data: assets } = useQuery({
-    queryKey: ["assets", linkedId, linkedType],
-    queryFn: () =>
-      getAssets({ query: { linkedId, linkedType } }).then((r) => r.data),
-  });
-
-  const handleClick = (asset: any) => {
-    if (["Image", "Video", "Audio", "Document", "Pdf"].includes(asset.type)) {
-      setPreviewAsset(asset);
-    } else {
-      window.open(asset.url, "_blank");
-    }
-  };
-
-  return (
-    <>
-      <div className="space-y-2">
-        {assets?.map((asset) => (
-          <AssetItem
-            key={asset.id}
-            asset={asset}
-            onClick={() => handleClick(asset)}
-          />
-        ))}
-      </div>
-
-      <Dialog open={!!previewAsset} onOpenChange={() => setPreviewAsset(null)}>
-        <DialogContent className="max-w-4xl w-full p-0 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b">
-            <p className="font-medium text-sm truncate">
-              {previewAsset?.fileName}
-            </p>
-            <div className="flex items-center gap-1 shrink-0 ml-2">
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a href={previewAsset?.url} download>
-                  <Download size={14} />
-                </a>
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                <a
-                  href={previewAsset?.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink size={14} />
-                </a>
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setPreviewAsset(null)}
-              >
-                <X size={14} />
-              </Button>
-            </div>
-          </div>
-
-          <div className="h-[70vh] overflow-hidden">
-            <AssetPreview asset={previewAsset} />
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}
-
-function AssetPreview({ asset }: { asset: any }) {
-  if (!asset) return null;
-
-  if (asset.type === "Image") {
+  // 2. XỬ LÝ ẢNH (Dùng thẻ img cơ bản)
+  if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) {
     return (
-      <div className="flex items-center justify-center h-full bg-muted/20 p-4">
+      <div className="w-full h-full flex justify-center items-center bg-gray-50 rounded-lg">
         <img
-          src={asset.url}
-          alt={asset.fileName}
-          className="max-w-full max-h-full object-contain rounded-lg"
+          src={url}
+          alt={fileName}
+          className="max-w-full max-h-[600px] object-contain rounded shadow"
         />
       </div>
     );
   }
 
-  if (asset.type === "Video") {
+  // 3. XỬ LÝ PDF (Dùng iframe thuần của HTML)
+  if (extension === "pdf") {
     return (
-      <video controls className="w-full h-full bg-black">
-        <source src={asset.url} />
-      </video>
+      <iframe
+        src={url}
+        className="w-full h-[600px] border border-gray-200 rounded-lg shadow-sm"
+        title={fileName}
+      />
     );
   }
 
-  if (asset.type === "Audio") {
+  // 4. XỬ LÝ WORD, EXCEL, PPT (Dùng Microsoft Office Viewer)
+  if (["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)) {
+    // Phải mã hóa cái URL Cloudinary thì Microsoft mới hiểu
+    const encodedUrl = encodeURIComponent(url);
+    const officeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}`;
+
     return (
-      <div className="flex items-center justify-center h-full">
-        <audio controls className="w-full max-w-md">
-          <source src={asset.url} />
-        </audio>
-      </div>
+      <iframe
+        src={officeUrl}
+        className="w-full h-[600px] border border-gray-200 rounded-lg shadow-sm"
+        title={fileName}
+      />
     );
   }
 
-  // PDF + Document → Google Docs Viewer
-  const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(asset.url)}&embedded=true`;
+  // 5. CÁC FILE KHÔNG THỂ XEM TRỰC TIẾP (Zip, Rar, Exe...)
   return (
-    <iframe
-      src={viewerUrl}
-      className="w-full h-full border-0"
-      title={asset.fileName}
-    />
-  );
-}
-
-// File type config
-import { FileText, Image, Film, Music, Archive, File } from "lucide-react";
-
-const fileConfig: Record<
-  string,
-  { icon: React.ReactNode; color: string; bg: string }
-> = {
-  Image: {
-    icon: <Image size={14} />,
-    color: "text-green-500",
-    bg: "bg-green-50",
-  },
-  Video: { icon: <Film size={14} />, color: "text-blue-500", bg: "bg-blue-50" },
-  Audio: {
-    icon: <Music size={14} />,
-    color: "text-purple-500",
-    bg: "bg-purple-50",
-  },
-  Document: {
-    icon: <FileText size={14} />,
-    color: "text-orange-500",
-    bg: "bg-orange-50",
-  },
-  Archive: {
-    icon: <Archive size={14} />,
-    color: "text-gray-500",
-    bg: "bg-gray-50",
-  },
-  Other: { icon: <File size={14} />, color: "text-gray-400", bg: "bg-gray-50" },
-};
-
-function AssetItem({ asset, onClick }: { asset: any; onClick: () => void }) {
-  const config = fileConfig[asset.type] ?? fileConfig.Other;
-  const sizeKb = (asset.fileSize / 1024).toFixed(1);
-  const queryClient = useQueryClient();
-
-  const { mutate: remove } = useMutation({
-    mutationFn: () => deleteAsset({ path: { assetId: String(asset.id) } }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["assets"] });
-    },
-  });
-
-  return (
-    <div className="flex items-center gap-3 rounded-xl border bg-card p-3 hover:bg-accent/50 transition-colors">
-      {/* Click vùng này để preview */}
-      <div
-        onClick={onClick}
-        className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+    <div className="w-full h-[300px] flex flex-col justify-center items-center bg-gray-100 rounded-lg border-2 border-dashed border-gray-300">
+      <div className="text-4xl mb-3">📁</div>
+      <p className="text-gray-600 mb-4 text-center">
+        Định dạng <b>.{extension}</b> không hỗ trợ xem trực tiếp trên web.
+        <br />
+        Vui lòng tải xuống để xem.
+      </p>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition font-medium"
       >
-        <div className={`p-2 rounded-lg ${config.bg} shrink-0`}>
-          <span className={config.color}>{config.icon}</span>
-        </div>
-        <div className="min-w-0">
-          <p className="font-medium text-sm truncate">{asset.fileName}</p>
-          <p className="text-xs text-muted-foreground">
-            {sizeKb} KB · {asset.extension}
-          </p>
-        </div>
-      </div>
-
-      {/* Nút xóa */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
-        onClick={(e) => {
-          e.stopPropagation();
-          remove();
-        }}
-      >
-        <Trash2 size={14} />
-      </Button>
+        Tải tài liệu xuống
+      </a>
     </div>
   );
-}
+};
+
+export default AssetViewer;

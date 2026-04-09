@@ -29,19 +29,28 @@ namespace SmartStudy.Server.Dtos
         List<int> EnrollingCourseIds
     );
 
-    public record ResponseStudyPlanDto
-    (
-        int Id,
-        string Name,
-        DateTime StartDate,
-        DateTime EndDate,
-        DateTime CreatedAt,
-        DateTime? UpdatedAt,
-        StudyPlanStatus Status,
-        StudyPlanType Type,
-        int? TermId,
-        int? YearId
-    );
+    public class SummaryPlanProgressDto
+    {
+        public int TotalCredits { get; set; }
+        public double GPA { get; set; }
+    }
+
+    public class ResponseStudyPlanDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public StudyPlanStatus Status { get; set; }
+        public StudyPlanType Type { get; set; }
+        public int? TermId { get; set; }
+        public int? YearId { get; set; }
+        public List<SimpleResponseCourseDto> Courses { get; set; } = new List<SimpleResponseCourseDto>();
+        public int TotalCredits { get; set; }
+        public double GPA { get; set; }
+    };
 
     public record SimpleResponseStudyPlanDto
     (
