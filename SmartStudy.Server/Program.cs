@@ -21,6 +21,7 @@ using Hangfire.PostgreSql;
 using Hangfire.Redis.StackExchange;
 using SmartStudy.Server.Jobs;
 using SmartStudy.Server.Integrations.Cloud;
+using SmartStudy.Server.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -176,6 +177,8 @@ builder.Services.AddHangfire(config => config
 
 builder.Services.AddHangfireServer();
 
+builder.Services.AddSignalR();
+
 // Http client giao tiếp 3rd-party
 builder.Services.AddHttpClient<IAiApiClient, AiApiClient>(client =>
 {
@@ -213,6 +216,7 @@ app.MapStaticAssets();
 
 // Kích hoạt CORS - PHẢI ĐẶT TRƯỚC Authentication/Authorization
 app.UseCors("AllowReactApp");
+app.MapHub<NotificationHub>("/notificationHub");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -21,6 +21,7 @@
     "@fullcalendar/react": "^6.1.20",
     "@fullcalendar/timegrid": "^6.1.20",
     "@hookform/resolvers": "^5.2.2",
+    "@microsoft/signalr": "^10.0.0",
     "@openapitools/openapi-generator-cli": "^2.29.0",
     "@react-oauth/google": "^0.13.4",
     "@tailwindcss/vite": "^4.2.0",

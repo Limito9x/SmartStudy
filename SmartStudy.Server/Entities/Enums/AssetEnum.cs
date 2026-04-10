@@ -17,6 +17,7 @@ namespace SmartStudy.Server.Entities.Enums
         Result
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum AssetStatus
     {
         Uploaded, // Mới được upload lên, chưa được xử lý

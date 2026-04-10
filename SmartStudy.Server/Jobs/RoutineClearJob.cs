@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
+using SmartStudy.Server.Hubs;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 public interface IRoutineClearJob
@@ -11,12 +13,15 @@ public class RoutineClearJob : IRoutineClearJob
 {
     private readonly ILogger<RoutineClearJob> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly IHubContext<NotificationHub> _hubContext;
 
     public RoutineClearJob(ILogger<RoutineClearJob> logger,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        IHubContext<NotificationHub> hubContext)
     {
         _logger = logger;
         _context = context;
+        _hubContext = hubContext;
     }
 
     public async Task CleanupTasksForRoutineAsync(int routineId, bool isRoutineDeleted = false)
@@ -24,6 +29,7 @@ public class RoutineClearJob : IRoutineClearJob
         try
         {
             var routine = await _context.Routines
+                .IgnoreQueryFilters() // Bỏ qua global filter nếu có (ví dụ soft delete)
                 .FirstOrDefaultAsync(r => r.Id == routineId);
 
             if(routine == null)
@@ -50,6 +56,13 @@ public class RoutineClearJob : IRoutineClearJob
                 t.Status == TaskStatus.Pending);
 
             await unusedTasks.ExecuteDeleteAsync();
+
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", new SignalRMessage
+            {
+                Action = "ROUTINE_CLEARED",
+                Data = new { routineId, courseId = routine.CourseId },
+                Message = $"Hệ thống đã dọn dẹp các task liên quan"
+            });
         
             _logger.LogInformation("Kết thúc tiến trình xóa task tự động");
         }

@@ -7,6 +7,7 @@ import { formDataBodySerializer } from "@/services/api/client";
 import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import { type AssetLinkType } from "@/services/api";
+import { invalidateAssetContext } from "@/utils/query-invalidate";
 
 registerPlugin(FilePondPluginFileValidateType, FilePondPluginImagePreview);
 
@@ -54,17 +55,11 @@ export default function AssetUploader({
               },
             })
             .then((res: any) => {
-              // Báo cho FilePond biết là 100% xong
               progress(true, file.size, file.size);
               const firstUploaded = Array.isArray(res) ? res[0] : res;
               load(String(firstUploaded?.id ?? "success"));
 
-              // Invalidate cache y như cũ
-              if (linkedId) {
-                queryClient.invalidateQueries({
-                  queryKey: ["assets", linkedId, linkedType],
-                });
-              }
+              invalidateAssetContext(queryClient, linkedType, linkedId);
               onUploaded?.();
             })
             .catch((err) => {

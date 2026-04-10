@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Helpers;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Services
@@ -232,43 +233,49 @@ namespace SmartStudy.Server.Services
 
         public async Task<StudyPlanStatsDto> GetStudyPlanStatsAsync(int planId)
         {
-            var userId = _currentUserService.UserId;
             var plan = await _context.StudyPlans
-                .Include(p => p.Courses)
-                .Where(p => p.Id == planId && p.UserId == userId)
-                .FirstOrDefaultAsync()
-                ?? throw new KeyNotFoundException("Không tìm thấy KHHT");
-            
+                .Include(p => p.Courses).ThenInclude(c => c.Routines).ThenInclude(r => r.Schedules)
+                .Include(p => p.Courses).ThenInclude(c => c.Tasks)
+                .FirstOrDefaultAsync(p => p.Id == planId && p.UserId == _currentUserService.UserId);
+
+            if (plan == null) throw new KeyNotFoundException("Không tìm thấy KHHT");
+
+            int planTotalExpectations = 0;
+            int planTotalCompletions = 0;
+            int planInProgress = 0;
+            int planOverdue = 0;
+
             var now = DateTime.UtcNow.AddHours(7);
             var today = DateOnly.FromDateTime(now);
-            
-            var tasks = await _context.Tasks
-                .Where(t => t.Course.StudyPlanId == planId)
-                .ToListAsync();
 
-            var overdueTasks = tasks.Count(t => t.StartDateTime.HasValue
-                                                && t.StartDateTime.Value.Date < today.ToDateTime(TimeOnly.MinValue)
-                                                && t.Status != TaskStatus.Completed
-                                                && t.Status != TaskStatus.Cancelled);
-
-            var pendingTasks = tasks.Count(t => t.Status == TaskStatus.Pending
-                                                && t.StartDateTime.HasValue 
-                                                && t.StartDateTime.Value.Date >= today.ToDateTime(TimeOnly.MinValue));
-            
-            return new StudyPlanStatsDto()
+            foreach (var course in plan.Courses)
             {
-                TotalTasks = tasks.Count,
-                CompletedTasks = tasks.Count(t => t.Status == TaskStatus.Completed),
-                OverdueTasks = overdueTasks,
-                PendingTasks = pendingTasks,
-                InProgressTasks = tasks.Count(t => t.Status == TaskStatus.InProgress),
-                DaysLeft = plan.EndDate.HasValue 
-                    ? Math.Max(0, (plan.EndDate.Value-now).Days )
-                    : 0,
-                TotalStudyHours = await _context.Logs
-                    .Where(l => l.Task.Course.StudyPlanId == planId)
-                    .SumAsync(l => (double?)l.ActualDuration ?? 0) / 60.0
+                var courseStats = StudyProgressHelper.CalculateCourseProgress(course);
                 
+                planTotalExpectations += courseStats.TotalExpectations;
+                planTotalCompletions += courseStats.TotalCompletions;
+
+                // Đếm thêm các trạng thái thực tế để vẽ biểu đồ
+                planInProgress += course.Tasks?.Count(t => t.Status == TaskStatus.InProgress) ?? 0;
+                planOverdue += course.Tasks?.Count(t => t.StartDateTime.HasValue
+                                    && t.StartDateTime.Value.Date < now.Date
+                                    && t.Status != TaskStatus.Completed
+                                    && t.Status != TaskStatus.Cancelled) ?? 0;
+            }
+
+            return new StudyPlanStatsDto
+            {
+                TotalTasks = planTotalExpectations,
+                CompletedTasks = planTotalCompletions,
+                InProgressTasks = planInProgress,
+                OverdueTasks = planOverdue,
+                PendingTasks = Math.Max(0, planTotalExpectations - (planTotalCompletions + planInProgress + planOverdue)),
+                DaysLeft = plan.EndDate.HasValue 
+                ? Math.Max(0, (plan.EndDate.Value - now).Days)
+                : 0,
+                TotalStudyHours = await _context.Logs
+                .Where(l => l.Task.Course.StudyPlanId == planId)
+                .SumAsync(l => (double?)l.ActualDuration ?? 0) / 60.0
             };
         }
 

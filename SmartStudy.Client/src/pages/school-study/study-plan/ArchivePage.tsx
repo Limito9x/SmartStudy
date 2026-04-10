@@ -14,7 +14,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, BarChart3, GraduationCap, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import ArchiveYearGroup from "./components/ArchiveYearGroup";
+import ArchiveYearGroup from "../../../components/features/plan/ArchiveYearGroup";
 
 type ArchiveTypeFilter = "all" | "Academic" | "Personal";
 

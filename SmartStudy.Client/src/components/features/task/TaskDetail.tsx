@@ -75,7 +75,9 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
           <div className="min-w-0">
             <p className="line-clamp-2 text-base font-semibold">{task.name}</p>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <span>{formatTaskDateTime(task.startDateTime,task.endDateTime)}</span>
+              <span>
+                {formatTaskDateTime(task.startDateTime, task.endDateTime)}
+              </span>
               <span>•</span>
               <span>{getTaskTypeLabel(task.type)}</span>
             </div>
@@ -106,23 +108,6 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
       </div>
     </div>
   );
-}
-
-function formatDate(value?: string | null) {
-  if (!value) {
-    return "Chưa có hạn";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "Chưa có hạn";
-  }
-
-  return date.toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
 }
 
 function getTaskTypeLabel(type: TaskType) {

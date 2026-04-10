@@ -9,15 +9,16 @@ import {
   updateTaskInfoMutation,
   updateTaskStatusMutation,
   deleteTaskByIdMutation,
-  getCalendarQueryKey,
-  getInboxItemsQueryKey,
-  getStudentDashboardSummaryQueryKey,
   getCourseWorkloadQueryKey,
   getTaskDetailByIdQueryKey,
   getCourseByIdQueryKey,
   getTaskByIdQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskStatus } from "@/services/api";
+import {
+  invalidateCourseContext,
+  invalidateCalendarContext,
+} from "@/utils/query-invalidate";
 
 export const useTask = () => {
   const queryClient = useQueryClient();
@@ -56,21 +57,6 @@ export const useTask = () => {
     });
   };
 
-  const invalidateGeneralTaskQueries = () => {
-    queryClient.invalidateQueries({
-      queryKey: getTasksQueryKey(),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getCalendarQueryKey(),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getInboxItemsQueryKey(),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getStudentDashboardSummaryQueryKey(),
-    });
-  };
-
   const getTasks = ({
     courseId,
     status,
@@ -104,6 +90,9 @@ export const useTask = () => {
           taskId: id,
         },
       }),
+      meta: {
+        hasAssets: true,
+      },
       enabled: !!id,
     });
 
@@ -111,8 +100,13 @@ export const useTask = () => {
     ...createTaskMutation(),
     onSuccess: (data) => {
       const courseId = data.courseId;
-      invalidateGeneralTaskQueries();
-      invalidateCourseRelatedQueries(courseId);
+      queryClient.invalidateQueries({
+        queryKey: getTasksQueryKey(),
+      });
+      if (courseId) {
+        invalidateCourseContext(queryClient, Number(courseId));
+      }
+      invalidateCalendarContext(queryClient);
     },
   });
 
@@ -121,6 +115,7 @@ export const useTask = () => {
     onSuccess: (data) => {
       const taskId = data.taskId;
       invalidateTaskRelatedQueries(taskId);
+      invalidateCalendarContext(queryClient);
     },
   });
 
@@ -128,9 +123,11 @@ export const useTask = () => {
     ...updateTaskInfoMutation(),
     onSuccess: (data) => {
       const taskId = data.id;
-      invalidateGeneralTaskQueries();
       invalidateTaskRelatedQueries(taskId);
-      invalidateCourseRelatedQueries(data.courseId);
+      if (data.courseId) {
+        invalidateCourseRelatedQueries(data.courseId);
+      }
+      invalidateCalendarContext(queryClient);
     },
   });
 
@@ -139,16 +136,21 @@ export const useTask = () => {
     onSuccess: (data) => {
       const taskId = data.id;
       const courseId = data.courseId;
-      invalidateGeneralTaskQueries();
       invalidateTaskRelatedQueries(taskId);
-      invalidateCourseRelatedQueries(courseId);
+      if (courseId) {
+        invalidateCourseContext(queryClient, Number(courseId));
+      }
+      invalidateCalendarContext(queryClient);
     },
   });
 
   const deleteTaskById = useMutation({
     ...deleteTaskByIdMutation(),
     onSuccess: () => {
-      invalidateGeneralTaskQueries();
+      queryClient.invalidateQueries({
+        queryKey: getTasksQueryKey(),
+      });
+      invalidateCalendarContext(queryClient);
     },
   });
 
@@ -161,7 +163,5 @@ export const useTask = () => {
     updateTaskInfo,
     updateTaskStatus,
     deleteTaskById,
-    invalidateCourseRelatedQueries,
-    invalidateTaskRelatedQueries,
   };
 };

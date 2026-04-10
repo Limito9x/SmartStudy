@@ -82,12 +82,6 @@ export function EventPopoverContent({
 
   const { data: routine } = getRoutineById(eventData.routineId);
 
-  // Nếu routine đã có task nào hoàn thành thì không cho phép xóa routine nữa, tránh trường hợp xóa nhầm mất cả đống task đã hoàn thành
-  const routineCanBeDeleted =
-    routine && routine.tasks?.some((task) => task.status == "Completed")
-      ? false
-      : true;
-
   const statusStyle = getStatusStyle(eventData.status);
   const isRoutine = eventData.routineId != null || eventData.isVirtual;
   const isTask = eventData.entityType === "Task";
@@ -247,68 +241,65 @@ export function EventPopoverContent({
               <Repeat className="w-3 h-3 mr-2 text-purple-500" />
               Chỉnh sửa lịch trình cố định
             </Button>
-            {routineCanBeDeleted ? (
-              <Button
-                variant={"ghost"}
-                className="w-full justify-start px-2 py-2 h-auto font-normal"
-                onClick={() => {
-                  openDialog("CONFIRM_DELETE", {
-                    itemType: "lịch trình cố định",
-                    itemName: eventData.title || "Lịch trình chưa đặt tên",
-                    onConfirm: () => {
-                      if (!eventData.routineId) return;
-                      deleteRoutine.mutate({
-                        path: {
-                          id: Number(eventData.routineId),
-                        },
-                      });
-                    },
-                  });
-                }}
-              >
-                <Trash2 className="w-3 h-3 mr-2 text-orange-600" />
-                Xóa lịch trình cố định
-              </Button>
-            ) : (
-              <Button
-                variant={"ghost"}
-                className="w-full justify-start px-2 py-2 h-auto font-normal"
-                onClick={() => {
-                  if (!eventData.routineId) return;
-                  toggleRoutineStatus.mutate(
-                    {
+            <Button
+              variant={"ghost"}
+              className="w-full justify-start px-2 py-2 h-auto font-normal"
+              onClick={() => {
+                openDialog("CONFIRM_DELETE", {
+                  itemType: "lịch trình cố định",
+                  itemName: eventData.title || "Lịch trình chưa đặt tên",
+                  onConfirm: () => {
+                    if (!eventData.routineId) return;
+                    deleteRoutine.mutate({
                       path: {
                         id: Number(eventData.routineId),
                       },
+                    });
+                  },
+                });
+              }}
+            >
+              <Trash2 className="w-3 h-3 mr-2 text-orange-600" />
+              Xóa lịch trình cố định
+            </Button>
+            <Button
+              variant={"ghost"}
+              className="w-full justify-start px-2 py-2 h-auto font-normal"
+              onClick={() => {
+                if (!eventData.routineId) return;
+                toggleRoutineStatus.mutate(
+                  {
+                    path: {
+                      id: Number(eventData.routineId),
                     },
-                    {
-                      onSuccess: (updatedRoutine) => {
-                        if (updatedRoutine.isActive) {
-                          toast.success("Đã kích hoạt lại lịch trình");
-                        } else {
-                          toast.success("Đã dừng lịch trình");
-                        }
-                      },
-                      onError: () => {
-                        toast.error("Không thể thay đổi trạng thái lịch trình");
-                      },
+                  },
+                  {
+                    onSuccess: (updatedRoutine) => {
+                      if (updatedRoutine.isActive) {
+                        toast.success("Đã kích hoạt lại lịch trình");
+                      } else {
+                        toast.success("Đã dừng lịch trình");
+                      }
                     },
-                  );
-                }}
-              >
-                {routine?.isActive ? (
-                  <>
-                    <StopCircle className="w-3 h-3 mr-2 text-yellow-600" />
-                    Dừng lịch trình
-                  </>
-                ) : (
-                  <>
-                    <PlayCircle className="w-3 h-3 mr-2 text-green-600" />
-                    Kích hoạt lại lịch trình
-                  </>
-                )}
-              </Button>
-            )}
+                    onError: () => {
+                      toast.error("Không thể thay đổi trạng thái lịch trình");
+                    },
+                  },
+                );
+              }}
+            >
+              {routine?.isActive ? (
+                <>
+                  <StopCircle className="w-3 h-3 mr-2 text-yellow-600" />
+                  Dừng lịch trình
+                </>
+              ) : (
+                <>
+                  <PlayCircle className="w-3 h-3 mr-2 text-green-600" />
+                  Kích hoạt lại lịch trình
+                </>
+              )}
+            </Button>
           </div>
         )}
       </div>

@@ -11,6 +11,8 @@ import ActionMenu from "@/components/shared/ActionMenu";
 import { useRoutine } from "@/hooks/entities/useRoutine";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { toast } from "sonner";
+import { invalidateCourseContext } from "@/utils/query-invalidate";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface RoutineGroupProps {
   routine: CourseRoutineDto;
@@ -23,6 +25,7 @@ export default function RoutineGroup({ routine, value }: RoutineGroupProps) {
   const { deleteRoutine, toggleRoutineStatus } = useRoutine();
   const { openDialog } = useDialogStore();
   const isRoutineActive = Boolean(routine.routine?.isActive);
+  const queryClient = useQueryClient();
 
   const handleEdit = () => {
     if (routine.routine?.id) {
@@ -36,7 +39,18 @@ export default function RoutineGroup({ routine, value }: RoutineGroupProps) {
         itemType: "routine",
         itemName: routine.routine.name || "Routine chưa đặt tên",
         onConfirm: () => {
-          deleteRoutine.mutate({ path: { id: Number(routine.routine?.id) } });
+          deleteRoutine.mutate(
+            { path: { id: Number(routine.routine?.id) } },
+            {
+              onSuccess: () => {
+                invalidateCourseContext(
+                  queryClient,
+                  Number(routine.routine?.courseId),
+                );
+                toast.success("Đã xóa routine");
+              },
+            },
+          );
         },
       });
     }

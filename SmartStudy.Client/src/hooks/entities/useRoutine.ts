@@ -5,14 +5,15 @@ import {
   getRoutinesQueryKey,
   createRoutineMutation,
   updateRoutineMutation,
-  getCalendarQueryKey,
-  getInboxItemsQueryKey,
   deleteRoutineMutation,
-  getCourseWorkloadQueryKey,
   toggleRoutineStatusMutation,
   getRoutineByIdQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
+import {
+  invalidateCourseContext,
+  invalidateCalendarContext,
+} from "@/utils/query-invalidate";
 
 export const useRoutine = () => {
   const queryClient = useQueryClient();
@@ -21,22 +22,7 @@ export const useRoutine = () => {
     queryClient.invalidateQueries({
       queryKey: getRoutinesQueryKey(),
     });
-    queryClient.invalidateQueries({
-      queryKey: getCalendarQueryKey(),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getInboxItemsQueryKey(),
-    });
-  };
-
-  const invalidateCourseRoutines = (courseId: number) => {
-    queryClient.invalidateQueries({
-      queryKey: getCourseWorkloadQueryKey({
-        path: {
-          courseId: courseId,
-        },
-      }),
-    });
+    invalidateCalendarContext(queryClient);
   };
 
   const getAllRoutines = ({
@@ -76,12 +62,9 @@ export const useRoutine = () => {
         queryKey: getRoutinesQueryKey(),
       });
 
-      setTimeout(() => {
-        invalidateRoutines();
-        if (courseId) {
-          invalidateCourseRoutines(Number(courseId));
-        }
-      }, 300);
+      if (courseId) {
+        invalidateCourseContext(queryClient, Number(courseId));
+      }
     },
   });
 
@@ -89,12 +72,20 @@ export const useRoutine = () => {
     ...updateRoutineMutation(),
     onSuccess: (data) => {
       const courseId = data.courseId;
-      setTimeout(() => {
-        invalidateRoutines();
-        if (courseId) {
-          invalidateCourseRoutines(Number(courseId));
-        }
-      }, 300);
+      const routineId = data.id;
+      queryClient.invalidateQueries({
+        queryKey: getRoutinesQueryKey(),
+      });
+      if (courseId) {
+        invalidateCourseContext(queryClient, Number(courseId));
+      }
+      queryClient.invalidateQueries({
+        queryKey: getRoutineByIdQueryKey({
+          path: {
+            id: Number(routineId),
+          },
+        }),
+      });
     },
   });
 
@@ -102,19 +93,19 @@ export const useRoutine = () => {
     ...toggleRoutineStatusMutation(),
     onSuccess: (data) => {
       const courseId = data.courseId;
-      setTimeout(() => {
-        invalidateRoutines();
-        if (courseId) {
-          invalidateCourseRoutines(Number(courseId));
-        }
-        queryClient.invalidateQueries({
-          queryKey: getRoutineByIdQueryKey({
-            path: {
-              id: Number(data.id),
-            },
-          }),
-        });
-      }, 300);
+      queryClient.invalidateQueries({
+        queryKey: getRoutinesQueryKey(),
+      });
+      if (courseId) {
+        invalidateCourseContext(queryClient, Number(courseId));
+      }
+      queryClient.invalidateQueries({
+        queryKey: getRoutineByIdQueryKey({
+          path: {
+            id: Number(data.id),
+          },
+        }),
+      });
     },
   });
 

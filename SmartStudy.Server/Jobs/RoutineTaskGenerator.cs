@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
+using SmartStudy.Server.Hubs;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Jobs;
@@ -17,12 +19,15 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
 {
     private readonly ILogger<RoutineTaskGenerator> _logger;
     private readonly ApplicationDbContext _context;
+    private readonly IHubContext<NotificationHub> _hubContext;
     
     public RoutineTaskGenerator(ILogger<RoutineTaskGenerator> logger,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        IHubContext<NotificationHub> hubContext)
     {
         _logger = logger;
         _context = context;
+        _hubContext = hubContext;
     }
 
     public async Task GenerateForSingleRoutineAsync(int routineId)
@@ -138,6 +143,14 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
                     totalGenerates++;
                 }
             }
+
+            await _hubContext.Clients.All.SendAsync("ReceiveNotification", new SignalRMessage
+            {
+                Action = "ROUTINE_TASKS_UPDATED",
+                Data = new { routineId = routine.Id, courseId = routine.CourseId },
+                Message = $"Hệ thống đã cập nhật task cho lịch trình '{routine.Name}'"
+            });
+
         return totalGenerates;
     }
 }

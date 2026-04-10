@@ -39,7 +39,7 @@ export type AssetResponseDto = {
     status: AssetStatus;
 };
 
-export type AssetStatus = number;
+export type AssetStatus = 'Uploaded' | 'Processing' | 'Analyzed' | 'Failed';
 
 export type BehaviorChartDto = {
     taskType?: string;

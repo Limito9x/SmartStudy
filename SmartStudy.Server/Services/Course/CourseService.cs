@@ -95,7 +95,7 @@ namespace SmartStudy.Server.Services
             if (course.StudyPlan == null || course.StudyPlan.UserId != userId) return null;
 
             var dto = _mapper.Map<ResponseCourseDto>(course);
-                var courseProgressDto = CalculateProgress(course);
+                var courseProgressDto = StudyProgressHelper.CalculateCourseProgress(course);
                 dto.TotalExpectations = courseProgressDto.TotalExpectations;
                 dto.TotalCompletions = courseProgressDto.TotalCompletions;
                 dto.Progress = courseProgressDto.Progress;
@@ -165,16 +165,16 @@ namespace SmartStudy.Server.Services
 
             if (logIds.Any())
             {
-                _context.Logs.Where(l => logIds.Contains(l.Id)).SoftDeleteBulkAsync();
+                await _context.Logs.Where(l => logIds.Contains(l.Id)).SoftDeleteBulkAsync();
             }
             if(taskIds.Any())
             {
-                _context.Tasks.Where(t => taskIds.Contains(t.Id)).SoftDeleteBulkAsync();
+                await _context.Tasks.Where(t => taskIds.Contains(t.Id)).SoftDeleteBulkAsync();
             }
 
             var routineIds = await _context.Routines.Where(r => r.CourseId == courseId).Select(r => r.Id).ToListAsync();
             if (routineIds.Any()){
-                _context.Routines.Where(r => routineIds.Contains(r.Id)).SoftDeleteBulkAsync();
+                await _context.Routines.Where(r => routineIds.Contains(r.Id)).SoftDeleteBulkAsync();
                 foreach (var routineId in routineIds)
                 {
                     BackgroundJob.Enqueue<IRoutineClearJob>(
@@ -342,20 +342,45 @@ namespace SmartStudy.Server.Services
 
         private CourseProgressDto CalculateProgress(Course course)
         {
-            var totalOccurences = course.Routines.Sum(r=>
-                RoutineHelper.GetOccurences(r.StartDate, r.EndDate ?? DateTime.UtcNow, r).Count());
+            var totalCompletedTasks = course.Tasks?.Where(t => t.Status == TaskStatus.Completed);
+
+            // --- 1. XỬ LÝ TASK ĐƠN LẺ (SINGLE TASKS) ---
+            // Những task này không lặp lại, nên thực tế bao nhiêu thì dự kiến bấy nhiêu
+            int totalSingleExpectations = course.Tasks?.Count(t => t.RoutineId == null
+            && (t.Status==TaskStatus.Pending || t.Status == TaskStatus.InProgress)) ?? 0;
+
+            // --- 2. XỬ LÝ ROUTINE (PROJECTION) ---
+            int totalRoutineExpectations = 0;
             
-            var singleTasks = course.Tasks.Where(t => t.RoutineId == null).ToList();
-            var completedTasks = course.Tasks.Count(t => t.Status == TaskStatus.Completed);
-            
-            var totalPlanned = totalOccurences + singleTasks.Count();
-            var progress = completedTasks / (double)totalPlanned;
-            
+            foreach (var routine in course.Routines ?? [])
+            {
+                var endAnchor = routine.EndDate ?? DateTime.UtcNow.AddHours(7);
+                
+                var occurrences = RoutineHelper.GetOccurences(routine.StartDate, endAnchor, routine);
+                
+                // Mỗi Occurrence (lần lặp) là 1 đơn vị công việc dự kiến
+                var thisRoutineOccurences = occurrences.Count();
+                var thisRoutineExpectations = thisRoutineOccurences - (course.Tasks?.Count(t => t.RoutineId == routine.Id && t.Status == TaskStatus.Completed) ?? 0);
+                if(thisRoutineExpectations < 0) thisRoutineExpectations = 0;
+                if(routine.IsActive) // Chỉ tính định mức từ những routine đang active, routine đã tắt thì thôi không tính nữa
+                    totalRoutineExpectations += thisRoutineExpectations;
+            }
+
+            // --- 3. TÍNH TOÁN TỔNG THỂ ---
+            int totalCompletions = course.Tasks?.Count(t => t.Status == TaskStatus.Completed) ?? 0;
+
+            int totalExpectations = totalSingleExpectations + totalRoutineExpectations + (totalCompletedTasks?.Count() ?? 0);
+
+            // Tránh lỗi chia cho 0 và đảm bảo tiến độ không vượt quá 100% (nếu User làm vượt định mức)
+            double progress = totalExpectations > 0 
+                ? Math.Min(1.0, (double)totalCompletions / totalExpectations) 
+                : 0;
+
             return new CourseProgressDto
             {
                 Progress = Math.Round(progress * 100, 1),
-                TotalExpectations = totalPlanned,
-                TotalCompletions = completedTasks
+                TotalExpectations = totalExpectations,
+                TotalCompletions = totalCompletions
             };
         }
         

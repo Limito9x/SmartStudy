@@ -58,11 +58,11 @@ async def split_chunks(parsed_pages:list,asset_id:int):
 async def run_indexing(documents):
     """Hàm thực hiện Indexing"""
 
-    vector_store=await get_record_manager()
+    vector_store=await get_vector_store()
 
     record_manager=get_record_manager()
 
-    record_manager.create_schema()
+    await record_manager.acreate_schema()
 
     indexing_result = await aindex(
         docs_source=documents,

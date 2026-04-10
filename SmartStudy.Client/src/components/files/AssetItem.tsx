@@ -1,11 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
+  AlertTriangle,
+  CheckCircle2,
   Download,
   ExternalLink,
   FileText,
   Image as ImageIcon,
   Link as LinkIcon,
+  Loader2,
 } from "lucide-react";
 
 export interface AssetItemData {
@@ -16,6 +19,7 @@ export interface AssetItemData {
   extension?: string;
   type?: number | string;
   sourceName?: string;
+  status?: string;
 }
 
 interface AssetItemProps {
@@ -34,6 +38,7 @@ export default function AssetItem({
   const fileName = asset.fileName || "Tệp đính kèm";
   const fileUrl = asset.url;
   const config = getAssetIcon(asset.extension, asset.url, asset.type);
+  const statusConfig = getAssetStatusConfig(asset.status);
 
   const handlePreview = () => {
     if (onPreview && fileUrl) {
@@ -70,11 +75,27 @@ export default function AssetItem({
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{fileName}</p>
-            <p className="text-xs text-muted-foreground">
-              {asset.createdAt
-                ? new Date(asset.createdAt).toLocaleDateString("vi-VN")
-                : "--"}
-            </p>
+            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+              <span>
+                {asset.createdAt
+                  ? new Date(asset.createdAt).toLocaleDateString("vi-VN")
+                  : "--"}
+              </span>
+              {statusConfig ? (
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    "h-5 gap-1 px-2 text-[11px]",
+                    statusConfig.className,
+                  )}
+                >
+                  <statusConfig.icon
+                    className={cn("h-3.5 w-3.5", statusConfig.animateClass)}
+                  />
+                  <span>{statusConfig.label}</span>
+                </Badge>
+              ) : null}
+            </div>
           </div>
 
           <div className="flex items-center gap-1">
@@ -115,6 +136,34 @@ export default function AssetItem({
       </div>
     </div>
   );
+}
+
+function getAssetStatusConfig(status?: string) {
+  switch (status) {
+    case "Processing":
+      return {
+        label: "Đang xử lý",
+        icon: Loader2,
+        animateClass: "animate-spin",
+        className: "bg-blue-50 text-blue-700",
+      };
+    case "Analyzed":
+      return {
+        label: "Đã phân tích",
+        icon: CheckCircle2,
+        animateClass: "",
+        className: "bg-emerald-50 text-emerald-700",
+      };
+    case "Failed":
+      return {
+        label: "Xử lý lỗi",
+        icon: AlertTriangle,
+        animateClass: "",
+        className: "bg-rose-50 text-rose-700",
+      };
+    default:
+      return null;
+  }
 }
 
 function getAssetIcon(

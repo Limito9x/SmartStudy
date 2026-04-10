@@ -10,6 +10,8 @@ import { CalendarClock, ChevronRight } from "lucide-react";
 import { formatTaskDateTime } from "@/utils/dateUtils";
 import { renderTaskIcon, getStatusStyle } from "../../task/FormatTask";
 import { toast } from "sonner";
+import { invalidateCourseContext } from "@/utils/query-invalidate";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CourseTaskCardProps {
   taskData: ResponseTaskDto;
@@ -20,6 +22,7 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
   const { openDialog } = useDialogStore();
   const { openPanel, isOpen, type, data } = usePanelStore();
   const task = taskData;
+  const queryClient = useQueryClient();
 
   if (!task) {
     return null;
@@ -79,6 +82,7 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
           },
           {
             onSuccess: () => {
+              invalidateCourseContext(queryClient, Number(task.courseId));
               toast.success("Đã xóa task");
             },
             onError: () => {
