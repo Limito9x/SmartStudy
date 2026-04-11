@@ -1,10 +1,11 @@
 ﻿using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Entities
 {
     // Log là người cuối cùng trong workflow
     // Ghi nhận toàn bộ sự thật về quá trình thực hiện Task
-    public class LogItem: BaseEntity
+    public class LogItem: BaseEntity, IGraphSyncTrigger
     {
         //public TaskLogStatus Status { get; set; }
         public string? Note { get; set; }
@@ -20,5 +21,15 @@ namespace SmartStudy.Server.Entities
         public required TaskItem Task { get; set; }
         public int? EventRequirementId { get; set; }
         public float? EarnedValue { get; set; }// Bổ sung giá trị cho event requirement, để hỗ trợ đánh giá sau này
+    
+        public GraphSyncScopeType GetSyncScope()
+         {
+             return GraphSyncScopeType.TaskLogs;
+         }
+
+        public int? GetRootId()
+         {
+             return TaskId;
+         }
     }
 }

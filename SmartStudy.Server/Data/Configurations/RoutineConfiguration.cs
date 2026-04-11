@@ -8,18 +8,17 @@ namespace SmartStudy.Server.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Routine> builder)
         {
-            builder.ToTable("Routines");
             builder.HasKey(r => r.Id);
             builder.Property(r => r.Name)
                 .IsRequired()
                 .HasMaxLength(200);
             builder.HasIndex(r => new { r.Name, r.UserId })
                 .IsUnique()
-                .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NULL");
+                .HasFilter("deleted_at IS NULL AND course_id IS NULL");
             
             builder.HasIndex(r => new { r.Name, r.CourseId })
                 .IsUnique()
-                .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NOT NULL");
+                .HasFilter("deleted_at IS NULL AND course_id IS NOT NULL");
 
             builder.HasMany(r => r.Schedules)
                 .WithOne(s => s.Routine)

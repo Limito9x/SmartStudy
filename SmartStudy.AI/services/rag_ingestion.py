@@ -74,7 +74,7 @@ async def run_indexing(documents):
 
     return indexing_result
 
-def delete_asset_chunks(asset_id: int):
+def delete_asset_chunks(asset_ids: list[str]):
     """
     Hàm dọn dẹp sạch sẽ mọi dấu vết của một Asset trong Vector Database.
     """
@@ -84,19 +84,19 @@ def delete_asset_chunks(asset_id: int):
             # 1. Xóa dữ liệu nhúng (Vector & Text)
             # Ép kiểu asset_id thành string vì trong cmetadata nó thường lưu dưới dạng JSON String
             conn.execute(
-                text("DELETE FROM langchain_pg_embedding WHERE cmetadata->>'AssetId' = :id"),
-                {"id": str(asset_id)}
+                text("DELETE FROM langchain_pg_embedding WHERE cmetadata->>'AssetId' = ANY(:ids)"),
+                {"ids": asset_ids}
             )
             
             # 2. Xóa sổ (upsertion_record) của RecordManager
             # LangChain lưu cái source_id_key ("AssetId") vào cột group_id
             conn.execute(
-                text("DELETE FROM upsertion_record WHERE group_id = :id"),
-                {"id": str(asset_id)}
+                text("DELETE FROM upsertion_record WHERE group_id = ANY(:ids)"),
+                {"ids": asset_ids}
             )
             
-        logger.info(f"Đã dọn sạch rác Vector cho Asset {asset_id}")
+        logger.info(f"Đã dọn sạch rác Vector cho {len(asset_ids)} asset")
         return True
     except Exception as e:
-        logger.error(f"Lỗi khi xóa Vector của Asset {asset_id}: {str(e)}")
+        logger.error(f"Lỗi khi xóa Vector của Asset: {str(e)}")
         raise e

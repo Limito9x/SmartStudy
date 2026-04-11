@@ -17,11 +17,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.OpenApi;
 using SmartStudy.Server.Middlewares;
 using Hangfire;
-using Hangfire.PostgreSql;
 using Hangfire.Redis.StackExchange;
 using SmartStudy.Server.Jobs;
 using SmartStudy.Server.Integrations.Cloud;
+using SmartStudy.Server.Integrations.Neo4j;
 using SmartStudy.Server.Hubs;
+using Neo4j.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -128,6 +129,10 @@ config.Scan(Assembly.GetExecutingAssembly());
 
 builder.Services.AddSingleton(config);
 
+// Đăng ký dịch vụ tích hợp
+builder.Services.AddScoped<ICloudClient, CloudinaryClient>();
+builder.Services.AddScoped<IAiApiClient, AiApiClient>();
+
 // Đăng ký dịch vụ tùy chỉnh
 builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IUserService, UserService>()
@@ -153,15 +158,23 @@ builder.Services.AddScoped<IAuthService, AuthService>()
                 .AddScoped<IRoutineTaskGenerator,RoutineTaskGenerator>()
                 .AddScoped<IRoutineClearJob, RoutineClearJob>()
                 .AddScoped<IRagJobService, RagJobService>()
+                .AddScoped<IGarbageCollectorJob, GarbageCollectorJob>()
+                .AddScoped<IGraphSyncBackgroundJob, GraphSyncBackgroundJob>()
                 .AddScoped<IInternalService, InternalService>()
                 .AddScoped<IMapper, ServiceMapper>();
 
-// Đăng ký dịch vụ Cloudinary
-builder.Services.AddScoped<ICloudClient, CloudinaryClient>();
-builder.Services.AddScoped<IAiApiClient, AiApiClient>();
 
-// Background job dọn các asset 
-builder.Services.AddHostedService<GarbageCollectorJob>();
+// Neo4j
+var neo4jUri = builder.Configuration["Neo4j:Uri"];
+var neo4jUser = builder.Configuration["Neo4j:User"];
+var neo4jPass = builder.Configuration["Neo4j:Password"];
+
+// Khởi tạo Driver và đăng ký Singleton
+var neo4jDriver = GraphDatabase.Driver(neo4jUri, AuthTokens.Basic(neo4jUser, neo4jPass));
+builder.Services.AddSingleton(neo4jDriver);
+
+builder.Services.AddScoped<INeo4jClient, Neo4jClient>();
+builder.Services.AddScoped<IGraphSyncService, GraphSyncService>();
 
 builder.Services.AddStackExchangeRedisCache(options =>
 {
@@ -203,6 +216,7 @@ builder.Services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =
     {
         options.UseNpgsql(dataSource,
             o => o.UseVector());
+        options.UseSnakeCaseNamingConvention();
     }
 );
 

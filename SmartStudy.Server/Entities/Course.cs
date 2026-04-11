@@ -1,8 +1,9 @@
 using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Entities
 {
-    public class Course: BaseEntity
+    public class Course: BaseEntity, IGraphSyncTrigger
     {
         public string Name { get; set; } = null!;
         public string? Color { get; set; }
@@ -18,5 +19,14 @@ namespace SmartStudy.Server.Entities
         public ICollection<TaskItem>? Tasks { get; set; } = new List<TaskItem>();
         public ICollection<Routine>? Routines { get; set; } = new List<Routine>();
         public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
+
+        public GraphSyncScopeType GetSyncScope()
+        {
+            return GraphSyncScopeType.StudyPlanCourses;
+        }
+        public int? GetRootId()
+        {
+            return StudyPlanId;
+        }
     }
 }

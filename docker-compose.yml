@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   smartstudy_db:
     image: pgvector/pgvector:pg17
@@ -38,6 +36,7 @@ services:
       - OPEN_ROUTER_API_KEY=${OPEN_ROUTER_API_KEY}
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DATABASE_URL=${DATABASE_URL}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -45,6 +44,26 @@ services:
     volumes:
       - ./SmartStudy.AI:/app # Đồng bộ trực tiếp code từ máy thật vào container
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload # Chạy với cờ báo reload
+
+  neo4j:
+    image: neo4j:latest
+    container_name: smartstudy_neo4j
+    ports:
+      - "7474:7474" # Giao diện Browser (HTTP)
+      - "7687:7687" # Cổng kết nối dữ liệu (Bolt)
+    volumes:
+      - ./neo4j/data:/data
+      - ./neo4j/logs:/logs
+      - ./neo4j/import:/var/lib/neo4j/import
+      - ./neo4j/plugins:/plugins
+    environment:
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_memory_heap_initial__size=512m
+      - NEO4J_dbms_memory_heap_max__size=1G
+      - NEO4J_dbms_memory_pagecache_size=512m
+    networks:
+      - smartstudy-network
 
 volumes:
   pgdata:

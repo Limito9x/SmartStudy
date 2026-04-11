@@ -16,6 +16,6 @@ public class ChatRequestDto
 public interface IAiApiClient
 {
     Task IngestAssetAsync(int assetId, string fileUrl);
-    Task DeleteIngestedAssetAsync(int assetId);
+    Task DeleteIngestedAssetsAsync(List<string> AssetIds);
     Task<Stream> StreamingChatAsync(ChatRequestDto request, CancellationToken cancellationToken = default);
 }

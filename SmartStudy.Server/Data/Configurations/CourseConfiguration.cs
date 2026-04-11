@@ -20,11 +20,11 @@ namespace SmartStudy.Server.Data.Configurations
 
             builder.HasIndex(c => new { c.Name, c.StudyPlanId })
                 .IsUnique()
-                .HasFilter("\"DeletedAt\" IS NULL");
+                .HasFilter("deleted_at IS NULL");
             
             builder.HasIndex(c => new { c.SubjectId, c.StudyPlanId })
                 .IsUnique()
-                .HasFilter("\"SubjectId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
+                .HasFilter("subject_id IS NOT NULL AND deleted_at IS NULL");
         }
     }
 }

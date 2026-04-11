@@ -45,11 +45,11 @@ async def ingest_asset(request: IngestRequest):
         # Ném lỗi 500 về cho .NET để nó biết mà hiển thị thông báo thất bại
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.delete("/api/ingest/{asset_id}")
-async def delete_asset(asset_id: int):
+@router.delete("/api/ingest")
+async def delete_asset(asset_ids: list[str]):
     try:
-        delete_asset_chunks(asset_id)
-        return {"status": "success", "message": f"Asset {asset_id} đã bị xóa khỏi não bộ AI."}
+        delete_asset_chunks(asset_ids)
+        return {"status": "success", "message": f"{len(asset_ids)} asset đã bị xóa khỏi não bộ AI."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

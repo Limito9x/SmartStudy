@@ -12,9 +12,9 @@
 	  </Content>
 	  <PackageReference Include="Bogus" Version="35.6.5" />
 	  <PackageReference Include="CloudinaryDotNet" Version="1.28.0" />
+	  <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
 	  <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
 	  <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
-	  <PackageReference Include="Hangfire.PostgreSql" Version="1.21.1" />
 	  <PackageReference Include="Hangfire.Redis.StackExchange" Version="1.12.0" />
 	  <PackageReference Include="Ical.Net" Version="5.2.1" />
 	  <PackageReference Include="Mapster" Version="7.4.0" />
@@ -37,6 +37,7 @@
 	  <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.74.0" />
 	  <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
 	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+	  <PackageReference Include="Neo4j.Driver" Version="6.0.0" />
 	  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
 	  <PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.3.0" />
 	<PackageReference Include="Scalar.AspNetCore" Version="2.12.46" />

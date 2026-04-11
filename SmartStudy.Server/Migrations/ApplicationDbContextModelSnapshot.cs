@@ -28,23 +28,28 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("name");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_roles");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
@@ -73,22 +78,28 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
 
                     b.Property<int>("RoleId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("role_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_role_claims");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("ix_asp_net_role_claims_role_id");
 
                     b.ToTable("AspNetRoleClaims", (string)null);
                 });
@@ -97,22 +108,28 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_type");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("claim_value");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_user_claims");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_asp_net_user_claims_user_id");
 
                     b.ToTable("AspNetUserClaims", (string)null);
                 });
@@ -120,20 +137,26 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("provider_key");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("provider_display_name");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("LoginProvider", "ProviderKey");
+                    b.HasKey("LoginProvider", "ProviderKey")
+                        .HasName("pk_asp_net_user_logins");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_asp_net_user_logins_user_id");
 
                     b.ToTable("AspNetUserLogins", (string)null);
                 });
@@ -141,14 +164,18 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
                 {
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
                     b.Property<int>("RoleId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("role_id");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.HasKey("UserId", "RoleId")
+                        .HasName("pk_asp_net_user_roles");
 
-                    b.HasIndex("RoleId");
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("ix_asp_net_user_roles_role_id");
 
                     b.ToTable("AspNetUserRoles", (string)null);
                 });
@@ -156,18 +183,23 @@ namespace SmartStudy.Server.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("login_provider");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("value");
 
-                    b.HasKey("UserId", "LoginProvider", "Name");
+                    b.HasKey("UserId", "LoginProvider", "Name")
+                        .HasName("pk_asp_net_user_tokens");
 
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
@@ -176,20 +208,24 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<int>("TermNumber")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("term_number");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_academic_terms");
 
-                    b.ToTable("AcademicTerms");
+                    b.ToTable("academic_terms", (string)null);
 
                     b.HasData(
                         new
@@ -216,23 +252,28 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("EndYear")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("end_year");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<int>("StartYear")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("start_year");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_academic_years");
 
-                    b.ToTable("AcademicYears");
+                    b.ToTable("academic_years", (string)null);
 
                     b.HasData(
                         new
@@ -458,818 +499,1049 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Extension")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("extension");
 
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("file_name");
 
                     b.Property<long>("FileSize")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("file_size");
 
                     b.Property<string>("PublicId")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("public_id");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<string>("Url")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("url");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_assets");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_assets_user_id");
 
-                    b.ToTable("Assets", (string)null);
+                    b.ToTable("assets", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.AssetLink", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AssetId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("asset_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<int>("LinkedId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("linked_id");
 
                     b.Property<string>("LinkedType")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("linked_type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asset_links");
 
-                    b.HasIndex("AssetId");
+                    b.HasIndex("AssetId")
+                        .HasDatabaseName("ix_asset_links_asset_id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_asset_links_user_id");
 
-                    b.ToTable("AssetLinks", (string)null);
+                    b.ToTable("asset_links", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.ChatMessage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Content")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("content");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<JsonElement?>("Data")
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("data");
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("role");
 
                     b.Property<int>("SessionId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("session_id");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_chat_messages");
 
-                    b.HasIndex("SessionId");
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("ix_chat_messages_session_id");
 
-                    b.ToTable("ChatMessages");
+                    b.ToTable("chat_messages", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.ChatSession", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("CourseId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("title");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_chat_sessions");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("CourseId")
+                        .HasDatabaseName("ix_chat_sessions_course_id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_chat_sessions_user_id");
 
-                    b.ToTable("ChatSessions");
+                    b.ToTable("chat_sessions", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Course", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Color")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("color");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<double?>("FinalScore")
-                        .HasColumnType("double precision");
+                        .HasColumnType("double precision")
+                        .HasColumnName("final_score");
 
                     b.Property<string>("Goal")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("goal");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<int>("StudyPlanId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("study_plan_id");
 
                     b.Property<int?>("SubjectId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("subject_id");
 
                     b.Property<double?>("TargetScore")
-                        .HasColumnType("double precision");
+                        .HasColumnType("double precision")
+                        .HasColumnName("target_score");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_courses");
 
-                    b.HasIndex("StudyPlanId");
+                    b.HasIndex("StudyPlanId")
+                        .HasDatabaseName("ix_courses_study_plan_id");
 
                     b.HasIndex("Name", "StudyPlanId")
                         .IsUnique()
-                        .HasFilter("\"DeletedAt\" IS NULL");
+                        .HasDatabaseName("ix_courses_name_study_plan_id")
+                        .HasFilter("deleted_at IS NULL");
 
                     b.HasIndex("SubjectId", "StudyPlanId")
                         .IsUnique()
-                        .HasFilter("\"SubjectId\" IS NOT NULL AND \"DeletedAt\" IS NULL");
+                        .HasDatabaseName("ix_courses_subject_id_study_plan_id")
+                        .HasFilter("subject_id IS NOT NULL AND deleted_at IS NULL");
 
-                    b.ToTable("Courses");
+                    b.ToTable("courses", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.LogItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("ActualDuration")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("actual_duration");
 
                     b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("completed_at");
 
                     b.Property<int?>("ComprehensionLevel")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("comprehension_level");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<int?>("DifficultyLevel")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("difficulty_level");
 
                     b.Property<float?>("EarnedValue")
-                        .HasColumnType("real");
+                        .HasColumnType("real")
+                        .HasColumnName("earned_value");
 
                     b.Property<int?>("EventRequirementId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("event_requirement_id");
 
                     b.Property<string>("Note")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("note");
 
                     b.Property<int>("TaskId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("task_id");
 
                     b.Property<DateTime?>("TimerEndAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("timer_end_at");
 
                     b.Property<DateTime?>("TimerStartAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("timer_start_at");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_logs");
 
-                    b.HasIndex("TaskId");
+                    b.HasIndex("TaskId")
+                        .HasDatabaseName("ix_logs_task_id");
 
-                    b.ToTable("Logs");
+                    b.ToTable("logs", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.PlanTemplate", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<int?>("CreatedById")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("created_by_id");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<bool>("IsPublic")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_public");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<string>("Payload")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("jsonb")
+                        .HasColumnName("payload");
 
                     b.Property<int?>("SourcePlanId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("source_plan_id");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_plan_templates");
 
-                    b.HasIndex("CreatedById");
+                    b.HasIndex("CreatedById")
+                        .HasDatabaseName("ix_plan_templates_created_by_id");
 
-                    b.HasIndex("SourcePlanId");
+                    b.HasIndex("SourcePlanId")
+                        .HasDatabaseName("ix_plan_templates_source_plan_id");
 
-                    b.ToTable("PlanTemplates", (string)null);
+                    b.ToTable("plan_templates", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.RefreshToken", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("expires_at");
 
                     b.Property<string>("ReplacedByTokenHash")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("replaced_by_token_hash");
 
                     b.Property<DateTime?>("RevokedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("revoked_at");
 
                     b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("token_hash");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_refresh_tokens");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_refresh_tokens_user_id");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("refresh_tokens", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Routine", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("CourseId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<DateTime?>("EndDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("end_date");
 
                     b.Property<string>("Instructor")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("instructor");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_date");
 
                     b.Property<int?>("StudyPlanId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("study_plan_id");
 
                     b.Property<int?>("TimelineEventId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("timeline_event_id");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_routines");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("CourseId")
+                        .HasDatabaseName("ix_routines_course_id");
 
-                    b.HasIndex("StudyPlanId");
+                    b.HasIndex("StudyPlanId")
+                        .HasDatabaseName("ix_routines_study_plan_id");
 
-                    b.HasIndex("TimelineEventId");
+                    b.HasIndex("TimelineEventId")
+                        .HasDatabaseName("ix_routines_timeline_event_id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_routines_user_id");
 
                     b.HasIndex("Name", "CourseId")
                         .IsUnique()
-                        .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NOT NULL");
+                        .HasDatabaseName("ix_routines_name_course_id")
+                        .HasFilter("deleted_at IS NULL AND course_id IS NOT NULL");
 
                     b.HasIndex("Name", "UserId")
                         .IsUnique()
-                        .HasFilter("\"DeletedAt\" IS NULL AND \"CourseId\" IS NULL");
+                        .HasDatabaseName("ix_routines_name_user_id")
+                        .HasFilter("deleted_at IS NULL AND course_id IS NULL");
 
-                    b.ToTable("Routines", (string)null);
+                    b.ToTable("routines", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Schedule", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<int>("DayOfWeek")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("day_of_week");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<int?>("Duration")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("duration");
 
                     b.Property<string>("Location")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("location");
 
                     b.Property<int?>("RoutineId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("routine_id");
 
                     b.Property<TimeOnly?>("StartTime")
-                        .HasColumnType("time without time zone");
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("start_time");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_schedules");
 
-                    b.HasIndex("RoutineId");
+                    b.HasIndex("RoutineId")
+                        .HasDatabaseName("ix_schedules_routine_id");
 
-                    b.ToTable("Schedules");
+                    b.ToTable("schedules", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.StudentInfo", b =>
                 {
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
                     b.Property<int?>("AdmissionYear")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("admission_year");
 
                     b.Property<string>("Cohort")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("cohort");
 
                     b.Property<string>("Major")
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("character varying(150)")
+                        .HasColumnName("major");
 
                     b.Property<string>("University")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("university");
 
-                    b.HasKey("UserId");
+                    b.HasKey("UserId")
+                        .HasName("pk_student_infos");
 
-                    b.ToTable("StudentInfos");
+                    b.ToTable("student_infos", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.StudyPlan", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("ActualEndDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("actual_end_date");
 
                     b.Property<DateTime?>("ActualStartDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("actual_start_date");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<DateTime?>("EndDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("end_date");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<int>("Order")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("order");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_date");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<int?>("TemplateId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("template_id");
 
                     b.Property<int?>("TermId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("term_id");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
                     b.Property<int?>("YearId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("year_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_study_plans");
 
-                    b.HasIndex("TemplateId");
+                    b.HasIndex("TemplateId")
+                        .HasDatabaseName("ix_study_plans_template_id");
 
-                    b.HasIndex("TermId");
+                    b.HasIndex("TermId")
+                        .HasDatabaseName("ix_study_plans_term_id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_study_plans_user_id");
 
-                    b.HasIndex("YearId");
+                    b.HasIndex("YearId")
+                        .HasDatabaseName("ix_study_plans_year_id");
 
-                    b.ToTable("StudyPlans");
+                    b.ToTable("study_plans", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Subject", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("code");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<int?>("Credits")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("credits");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("name");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_subjects");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_subjects_user_id");
 
                     b.HasIndex("Name", "Type", "UserId")
                         .IsUnique()
-                        .HasFilter("\"DeletedAt\" IS NULL");
+                        .HasDatabaseName("ix_subjects_name_type_user_id")
+                        .HasFilter("deleted_at IS NULL");
 
-                    b.ToTable("Subjects");
+                    b.ToTable("subjects", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.TaskItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("CourseId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("description");
 
                     b.Property<DateTime?>("EndDateTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("end_date_time");
 
                     b.Property<string>("Location")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("location");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("name");
 
                     b.Property<int?>("RoutineId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("routine_id");
 
                     b.Property<int?>("ScheduleId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("schedule_id");
 
                     b.Property<DateTime?>("StartDateTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_date_time");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<DateTime?>("StatusUpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("status_updated_at");
 
                     b.Property<int?>("StudyPlanId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("study_plan_id");
 
                     b.Property<int?>("TimelineEventId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("timeline_event_id");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
                     b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_tasks");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("CourseId")
+                        .HasDatabaseName("ix_tasks_course_id");
 
-                    b.HasIndex("ScheduleId");
+                    b.HasIndex("ScheduleId")
+                        .HasDatabaseName("ix_tasks_schedule_id");
 
-                    b.HasIndex("StudyPlanId");
+                    b.HasIndex("StudyPlanId")
+                        .HasDatabaseName("ix_tasks_study_plan_id");
 
-                    b.HasIndex("TimelineEventId");
+                    b.HasIndex("TimelineEventId")
+                        .HasDatabaseName("ix_tasks_timeline_event_id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_tasks_user_id");
 
                     b.HasIndex("RoutineId", "ScheduleId", "StartDateTime")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasDatabaseName("ix_tasks_routine_id_schedule_id_start_date_time");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("tasks", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.TimelineEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CourseId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("course_id");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("created_at");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("deleted_at");
 
                     b.Property<DateTime>("EndDateTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("end_date_time");
 
                     b.Property<bool>("IsAllDay")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_all_day");
 
                     b.Property<string>("Location")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("location");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
 
                     b.Property<int>("Priority")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("priority");
 
                     b.Property<DateTime>("StartDateTime")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("start_date_time");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
+                        .HasColumnType("character varying(300)")
+                        .HasColumnName("title");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("type");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updated_at");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_timeline_events");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("CourseId")
+                        .HasDatabaseName("ix_timeline_events_course_id");
 
-                    b.ToTable("TimelineEvents");
+                    b.ToTable("timeline_events", (string)null);
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnName("access_failed_count");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("concurrency_stamp");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
                         .HasDefaultValueSql("NOW()");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("email");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("email_confirmed");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("full_name");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("lockout_enabled");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("lockout_end");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_email");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("normalized_user_name");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("phone_number");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("phone_number_confirmed");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("security_stamp");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("boolean")
+                        .HasColumnName("two_factor_enabled");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("character varying(256)")
+                        .HasColumnName("user_name");
 
-                    b.HasKey("Id");
+                    b.HasKey("Id")
+                        .HasName("pk_asp_net_users");
 
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
@@ -1287,7 +1559,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_role_claims_asp_net_roles_role_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
@@ -1296,7 +1569,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_claims_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
@@ -1305,7 +1579,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_logins_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<int>", b =>
@@ -1314,13 +1589,15 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_roles_asp_net_roles_role_id");
 
                     b.HasOne("SmartStudy.Server.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_roles_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -1329,7 +1606,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asp_net_user_tokens_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("SmartStudy.Server.Entities.Asset", b =>
@@ -1338,7 +1616,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_assets_users_user_id");
 
                     b.Navigation("User");
                 });
@@ -1349,13 +1628,15 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("AssetLinks")
                         .HasForeignKey("AssetId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asset_links_assets_asset_id");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_asset_links_users_user_id");
 
                     b.Navigation("Asset");
 
@@ -1368,7 +1649,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany()
                         .HasForeignKey("SessionId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_messages_chat_sessions_session_id");
 
                     b.Navigation("Session");
                 });
@@ -1377,13 +1659,15 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.HasOne("SmartStudy.Server.Entities.Course", "Course")
                         .WithMany("ChatSessions")
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("CourseId")
+                        .HasConstraintName("fk_chat_sessions_courses_course_id");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("ChatSessions")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_chat_sessions_users_user_id");
 
                     b.Navigation("Course");
 
@@ -1396,11 +1680,13 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("Courses")
                         .HasForeignKey("StudyPlanId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_courses_study_plans_study_plan_id");
 
                     b.HasOne("SmartStudy.Server.Entities.Subject", "Subject")
                         .WithMany("Courses")
-                        .HasForeignKey("SubjectId");
+                        .HasForeignKey("SubjectId")
+                        .HasConstraintName("fk_courses_subjects_subject_id");
 
                     b.Navigation("StudyPlan");
 
@@ -1413,7 +1699,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("Logs")
                         .HasForeignKey("TaskId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_logs_tasks_task_id");
 
                     b.Navigation("Task");
                 });
@@ -1422,12 +1709,14 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.HasOne("SmartStudy.Server.Entities.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .HasConstraintName("fk_plan_templates_users_created_by_id");
 
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "SourcePlan")
                         .WithMany()
                         .HasForeignKey("SourcePlanId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_plan_templates_study_plans_source_plan_id");
 
                     b.Navigation("CreatedBy");
 
@@ -1440,7 +1729,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("RefreshTokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_refresh_tokens_users_user_id");
 
                     b.Navigation("User");
                 });
@@ -1450,21 +1740,25 @@ namespace SmartStudy.Server.Migrations
                     b.HasOne("SmartStudy.Server.Entities.Course", "Course")
                         .WithMany("Routines")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_routines_courses_course_id");
 
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
                         .WithMany()
-                        .HasForeignKey("StudyPlanId");
+                        .HasForeignKey("StudyPlanId")
+                        .HasConstraintName("fk_routines_study_plans_study_plan_id");
 
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
                         .WithMany("Routines")
-                        .HasForeignKey("TimelineEventId");
+                        .HasForeignKey("TimelineEventId")
+                        .HasConstraintName("fk_routines_timeline_events_timeline_event_id");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("Routines")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_routines_users_user_id");
 
                     b.Navigation("Course");
 
@@ -1480,7 +1774,8 @@ namespace SmartStudy.Server.Migrations
                     b.HasOne("SmartStudy.Server.Entities.Routine", "Routine")
                         .WithMany("Schedules")
                         .HasForeignKey("RoutineId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("fk_schedules_routines_routine_id");
 
                     b.Navigation("Routine");
                 });
@@ -1491,7 +1786,8 @@ namespace SmartStudy.Server.Migrations
                         .WithOne("StudentInfo")
                         .HasForeignKey("SmartStudy.Server.Entities.StudentInfo", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_student_infos_users_user_id");
 
                     b.Navigation("User");
                 });
@@ -1501,21 +1797,25 @@ namespace SmartStudy.Server.Migrations
                     b.HasOne("SmartStudy.Server.Entities.PlanTemplate", "Template")
                         .WithMany()
                         .HasForeignKey("TemplateId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_study_plans_plan_templates_template_id");
 
                     b.HasOne("SmartStudy.Server.Entities.AcademicTerm", "Term")
                         .WithMany()
-                        .HasForeignKey("TermId");
+                        .HasForeignKey("TermId")
+                        .HasConstraintName("fk_study_plans_academic_terms_term_id");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("StudyPlans")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_study_plans_users_user_id");
 
                     b.HasOne("SmartStudy.Server.Entities.AcademicYear", "Year")
                         .WithMany()
-                        .HasForeignKey("YearId");
+                        .HasForeignKey("YearId")
+                        .HasConstraintName("fk_study_plans_academic_years_year_id");
 
                     b.Navigation("Template");
 
@@ -1532,7 +1832,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("Subjects")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_subjects_users_user_id");
 
                     b.Navigation("User");
                 });
@@ -1541,29 +1842,35 @@ namespace SmartStudy.Server.Migrations
                 {
                     b.HasOne("SmartStudy.Server.Entities.Course", "Course")
                         .WithMany("Tasks")
-                        .HasForeignKey("CourseId");
+                        .HasForeignKey("CourseId")
+                        .HasConstraintName("fk_tasks_courses_course_id");
 
                     b.HasOne("SmartStudy.Server.Entities.Routine", "Routine")
                         .WithMany("Tasks")
-                        .HasForeignKey("RoutineId");
+                        .HasForeignKey("RoutineId")
+                        .HasConstraintName("fk_tasks_routines_routine_id");
 
                     b.HasOne("SmartStudy.Server.Entities.Schedule", "Schedule")
                         .WithMany("Tasks")
-                        .HasForeignKey("ScheduleId");
+                        .HasForeignKey("ScheduleId")
+                        .HasConstraintName("fk_tasks_schedules_schedule_id");
 
                     b.HasOne("SmartStudy.Server.Entities.StudyPlan", "StudyPlan")
                         .WithMany()
-                        .HasForeignKey("StudyPlanId");
+                        .HasForeignKey("StudyPlanId")
+                        .HasConstraintName("fk_tasks_study_plans_study_plan_id");
 
                     b.HasOne("SmartStudy.Server.Entities.TimelineEvent", "TimelineEvent")
                         .WithMany("Tasks")
-                        .HasForeignKey("TimelineEventId");
+                        .HasForeignKey("TimelineEventId")
+                        .HasConstraintName("fk_tasks_timeline_events_timeline_event_id");
 
                     b.HasOne("SmartStudy.Server.Entities.User", "User")
                         .WithMany("Tasks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_tasks_users_user_id");
 
                     b.Navigation("Course");
 
@@ -1584,7 +1891,8 @@ namespace SmartStudy.Server.Migrations
                         .WithMany("TimelineEvents")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_timeline_events_courses_course_id");
 
                     b.Navigation("Course");
                 });

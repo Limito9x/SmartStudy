@@ -3,6 +3,12 @@ using CloudinaryDotNet.Actions;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
 
+public class CloudinaryGroupResult
+{
+    public List<string> PublicIds { get; set; } = new List<string>();
+    public FileType FileType { get; set; }
+}
+
 namespace SmartStudy.Server.Integrations.Cloud
 {
     public class CloudinaryClient : ICloudClient
@@ -48,6 +54,62 @@ namespace SmartStudy.Server.Integrations.Cloud
                 ResourceType = resourceType
             };
             await _cloudinary.DestroyAsync(deletionParams);
+        }
+
+        public async Task DeleteFilesAsync(IEnumerable<string> publicIds, FileType fileType)
+        {
+            var resourceType = fileType switch
+            {
+                FileType.Image => ResourceType.Image,
+                FileType.Video => ResourceType.Video,
+                FileType.Audio => ResourceType.Video,
+                _ => ResourceType.Raw
+            };
+            var deletionParams = new DelResParams()
+            {
+                PublicIds = publicIds.ToList(),
+                ResourceType = resourceType
+            };
+            await _cloudinary.DeleteResourcesAsync(deletionParams);
+        }
+
+        public async Task<List<CloudinaryGroupResult>> GetPublicIdsByFolder()
+        {
+            var groups = new List<CloudinaryGroupResult>();
+            var folders = new[] { "images", "videos", "docs" };
+            string? nextCursor = null;
+
+            foreach (var folder in folders)
+            {
+                do
+                {
+                    var search = _cloudinary.Search()
+                        .Expression($"folder:{baseFolder}/{folder}/*")
+                        .MaxResults(500);
+  
+                    if (!string.IsNullOrEmpty(nextCursor))                    {
+                        search = search.NextCursor(nextCursor);
+                    }
+
+                    var group = new CloudinaryGroupResult
+                    {
+                        FileType = folder switch
+                        {
+                            "images" => FileType.Image,
+                            "videos" => FileType.Video,
+                            "docs" => FileType.Other,
+                            _ => FileType.Other
+                        }
+                    };
+
+                    var result = await search.ExecuteAsync();
+                    var publicIds = result.Resources.Select(r => r.PublicId).ToList();
+                    group.PublicIds.AddRange(publicIds);
+                    groups.Add(group);
+                } while (!string.IsNullOrEmpty(nextCursor));
+            }
+
+            return groups;
         }
 
         public async Task<CloudinaryDto> UploadFileAsync(IFormFile file)

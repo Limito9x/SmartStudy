@@ -1,8 +1,10 @@
+using Hangfire;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Interfaces;
+using SmartStudy.Server.Jobs;
 using System.Linq.Expressions;
 
 namespace SmartStudy.Server.Data
@@ -92,7 +94,16 @@ namespace SmartStudy.Server.Data
             NormalizeDateTimeKinds();
             UpdateAuditableEntities();
             UpdateSoftDeletableEntities();
-            return base.SaveChanges();
+
+            var syncTriggers = GatherGraphSyncTriggers();
+            var result = base.SaveChanges();
+
+            if(result>0)
+            {
+                DispatchGraphSyncJobs(syncTriggers);
+            }
+
+            return result;
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -100,7 +111,15 @@ namespace SmartStudy.Server.Data
             NormalizeDateTimeKinds();
             UpdateAuditableEntities();
             UpdateSoftDeletableEntities();
-            return await base.SaveChangesAsync(cancellationToken);
+
+            var syncTriggers = GatherGraphSyncTriggers();
+            var result = await base.SaveChangesAsync(cancellationToken);
+
+            if(result>0)            {
+                DispatchGraphSyncJobs(syncTriggers);
+            }
+
+            return result;
         }
 
         private void NormalizeDateTimeKinds()
@@ -141,6 +160,32 @@ namespace SmartStudy.Server.Data
                 var entity = (ISoftDeletable)entry.Entity;
                 entity.DeletedAt = DateTime.UtcNow;
                 entry.State = EntityState.Modified;
+            }
+        }
+
+        private List<(GraphSyncScopeType Scope, int? RootId)> GatherGraphSyncTriggers()
+        {
+            return ChangeTracker.Entries<IGraphSyncTrigger>()
+                .Where(e => e.State == EntityState.Added || 
+                            e.State == EntityState.Modified || 
+                            e.State == EntityState.Deleted)
+                // Gom lại để loại bỏ trùng lặp (ví dụ sửa 5 cái task cùng 1 lúc thì chỉ lấy 1)
+                .Select(e => new { Scope = e.Entity.GetSyncScope(), RootId = e.Entity.GetRootId() })
+                .Distinct()
+                .Select(x => (x.Scope, x.RootId))
+                .ToList();
+        }
+
+        private void DispatchGraphSyncJobs(List<(GraphSyncScopeType Scope, int? RootId)> triggers)
+        {
+            if (triggers == null || !triggers.Any()) return;
+
+            foreach (var trigger in triggers)
+            {   
+                if(!trigger.RootId.HasValue) continue;
+                
+                BackgroundJob.Enqueue<IGraphSyncBackgroundJob>(job => 
+                    job.ExecuteSyncAsync(trigger.Scope, trigger.RootId.Value));
             }
         }
     }

@@ -9,8 +9,6 @@ public class PlanTemplateConfiguration : IEntityTypeConfiguration<PlanTemplate>
 {
     public void Configure(EntityTypeBuilder<PlanTemplate> builder)
     {
-        builder.ToTable("PlanTemplates");
-
         // Template → SourcePlan
         builder.HasOne(t => t.SourcePlan)
             .WithMany()

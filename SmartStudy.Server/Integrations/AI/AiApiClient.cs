@@ -52,9 +52,19 @@ public class AiApiClient: IAiApiClient
         return await response.Content.ReadAsStreamAsync(cancellationToken);
     }
 
-    public async Task DeleteIngestedAssetAsync(int assetId)
+    public async Task DeleteIngestedAssetsAsync(List<string> assetIds)
     {
-        var response = await _httpClient.DeleteAsync($"/api/ingest/{assetId}");
+        var payload = new { asset_ids = assetIds };
+        var options = new JsonSerializerOptions { 
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower 
+        };
+        var httpRequest = new HttpRequestMessage(HttpMethod.Delete, "/api/ingest")
+        {
+            Content = JsonContent.Create(payload, options: options)
+        };
+        
+        var response = await _httpClient.SendAsync(httpRequest);
+
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync();

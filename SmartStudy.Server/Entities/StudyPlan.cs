@@ -1,12 +1,9 @@
-using System.Collections.Generic;
-using SmartStudy.Server.Dtos;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Entities
 {
-    public class StudyPlan : TimeLineEntity
+    public class StudyPlan : TimeLineEntity, IGraphSyncTrigger
     {
         public string Name {get; set;}
         public StudyPlanType Type { get; set; } = StudyPlanType.Academic;
@@ -23,6 +20,15 @@ namespace SmartStudy.Server.Entities
         public AcademicTerm? Term { get; set; }
         public int? YearId { get; set; }
         public AcademicYear? Year { get; set; }
+
+        public GraphSyncScopeType GetSyncScope()
+        {
+            return GraphSyncScopeType.UserStudyPlans;
+        }
+        public int? GetRootId()
+        {
+            return UserId;
+        }
     }
 }
 

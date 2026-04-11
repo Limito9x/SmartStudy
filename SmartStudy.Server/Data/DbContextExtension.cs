@@ -43,6 +43,16 @@ namespace SmartStudy.Server.Data;
                 generator => generator.GenerateUpcomingTasksAsync(),
                 Cron.Daily(1));
 
+            manager.AddOrUpdate<IGarbageCollectorJob>(
+                "daily-garbage-collector",
+                job => job.CleanupSoftDeleteAssets(),
+                Cron.Daily(2));
+
+            manager.AddOrUpdate<IGarbageCollectorJob>(
+                "daily-orphaned-media-cleanup",
+                job => job.CleanupOrphanedMedia(),
+                Cron.Daily(3));
+
             return app;
         }
     }

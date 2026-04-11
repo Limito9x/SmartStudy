@@ -8,7 +8,6 @@ namespace SmartStudy.Server.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<RefreshToken> builder)
         {
-            builder.ToTable("RefreshTokens");
             builder.HasKey(r => r.Id);
             builder.Property(r => r.TokenHash)
                 .IsRequired()

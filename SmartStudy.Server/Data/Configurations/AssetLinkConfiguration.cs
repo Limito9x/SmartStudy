@@ -8,7 +8,6 @@ namespace SmartStudy.Server.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<AssetLink> builder)
         {
-            builder.ToTable("AssetLinks");
             builder.HasKey(al => al.Id);
             builder.Property(al => al.LinkedType)
                 .HasConversion<string>();

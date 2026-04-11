@@ -8,7 +8,6 @@ namespace SmartStudy.Server.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<Asset> builder)
         {
-            builder.ToTable("Assets");
             builder.HasKey(a => a.Id);
             builder.Property(a => a.FileName)
                 .IsRequired()

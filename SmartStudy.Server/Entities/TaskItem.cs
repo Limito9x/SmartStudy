@@ -1,10 +1,11 @@
 ﻿using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Jobs;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartStudy.Server.Entities
 {
     // Task là người giao công việc
-    public class TaskItem: BaseEntity
+    public class TaskItem: BaseEntity, IGraphSyncTrigger
     {
         public required string Name { get; set; }
         public string? Description { get; set; }
@@ -49,5 +50,15 @@ namespace SmartStudy.Server.Entities
                 return StartDateTime.Value.Date < today;
             }
         }
+
+        public GraphSyncScopeType GetSyncScope()
+        {
+            return GraphSyncScopeType.CourseRoutinesAndTasks;
+        }
+
+        public int? GetRootId()
+         {
+             return CourseId;
+         }
     }
 }

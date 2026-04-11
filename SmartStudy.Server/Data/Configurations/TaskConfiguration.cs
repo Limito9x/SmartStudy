@@ -8,7 +8,6 @@ namespace SmartStudy.Server.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<TaskItem> builder)
         {
-            builder.ToTable("Tasks");
             builder.HasKey(t=> t.Id);
             builder.Property(t => t.Status)
                 .HasConversion<string>();

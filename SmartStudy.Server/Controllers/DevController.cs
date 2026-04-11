@@ -17,22 +17,19 @@ public class DevController : ControllerBase
     private readonly IWebHostEnvironment _env;
     private readonly IDatabaseSeeder _seeder;
     private readonly IMeaningfulSeeder _meaningfulSeeder;
-    private readonly IAssetService _assetService;
 
     public DevController(
         ApplicationDbContext context,
         UserManager<User> userManager,
         IWebHostEnvironment env,
         IDatabaseSeeder seeder,
-        IMeaningfulSeeder meaningfulSeeder,
-        IAssetService assetService)
+        IMeaningfulSeeder meaningfulSeeder)
     {
         _context = context;
         _userManager = userManager;
         _env = env;
         _seeder = seeder;
         _meaningfulSeeder = meaningfulSeeder;
-        _assetService = assetService;
     }
 
     // POST /api/dev/seed — chạy seeder nếu chưa có data
@@ -67,16 +64,6 @@ public class DevController : ControllerBase
         await HardResetAsync();
         await _seeder.SeedAsync();
         return Ok(new { message = "Reset and reseeded successfully" });
-    }
-
-    [HttpPost("trigger-garbage-collector")]
-    public async Task<IActionResult> TriggerGarbageCollector()
-    {
-        if (!_env.IsDevelopment()) 
-            return Forbid();
-
-        var count = await _assetService.CleanupSoftDeletedAssetsAsync();
-        return Ok(new { Message = $"Đã dọn dẹp thành công {count} file rác khỏi hệ thống." });
     }
 
     private async Task HardResetAsync()
