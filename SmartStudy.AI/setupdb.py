@@ -1,18 +1,25 @@
-from sqlalchemy import text
-from core.config import engine # Cái engine dùng psycopg2 của ông đó
-from langchain_community.indexes import _sql_record_manager
+from core.config import db_url_async, db_url_sync
+from langchain_postgres import PGEngine
+from langchain_classic.indexes import SQLRecordManager
 
 def init_schema():
-    print("1. Đang tạo extension vector (nếu chưa có)...")
-    with engine.connect() as conn:
-        # Lệnh này cực kỳ quan trọng, phải chạy bằng Sync driver
-        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
-        conn.commit()
+    print("1. Đang tạo bảng vector document_chunks (nếu chưa có)...")
+    pg_engine = PGEngine.from_connection_string(db_url_async)
+    try:
+        pg_engine.init_vectorstore_table(
+            table_name="document_chunks",
+            vector_size=768,
+            metadata_json_column="langchain_metadata",
+        )
+    except Exception as exc:
+        if "already exists" not in str(exc).lower():
+            raise
     
     print("2. Đang tạo bảng upsertion_record...")
     namespace = "pgvector/document_chunks"
-    record_manager = _sql_record_manager.SQLRecordManager(
-        namespace, db_url=engine.url # Dùng luôn URL của engine
+    record_manager = SQLRecordManager(
+        namespace,
+        db_url=db_url_sync,
     )
     record_manager.create_schema()
     

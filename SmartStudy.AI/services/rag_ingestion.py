@@ -49,8 +49,8 @@ async def split_chunks(parsed_pages:list,asset_id:int):
         
         # Nhét cả AssetId và PageNumber vào túi Metadata
         for chunk in page_chunks:
-            chunk.metadata["AssetId"] = str(asset_id)
-            chunk.metadata["PageNumber"] = page_num # Thêm dòng này là xong!
+            chunk.metadata["asset_id"] = str(asset_id)
+            chunk.metadata["page_number"] = page_num # Thêm dòng này là xong!
             all_chunks.append(chunk)
 
     return all_chunks
@@ -69,7 +69,7 @@ async def run_indexing(documents):
         record_manager=record_manager,
         vector_store=vector_store,
         cleanup="incremental",
-        source_id_key="AssetId"
+        source_id_key="asset_id"
     )
 
     return indexing_result
@@ -82,9 +82,9 @@ def delete_asset_chunks(asset_ids: list[str]):
         # Dùng engine.begin() để mở Transaction, lỗi là tự rollback
         with engine.begin() as conn:
             # 1. Xóa dữ liệu nhúng (Vector & Text)
-            # Ép kiểu asset_id thành string vì trong cmetadata nó thường lưu dưới dạng JSON String
+            # asset_id được lưu trong metadata JSON dưới key "asset_id"
             conn.execute(
-                text("DELETE FROM langchain_pg_embedding WHERE cmetadata->>'AssetId' = ANY(:ids)"),
+                text("DELETE FROM document_chunks WHERE langchain_metadata->>'asset_id' = ANY(:ids)"),
                 {"ids": asset_ids}
             )
             

@@ -20,10 +20,13 @@ namespace SmartStudy.Server.Jobs
     public class GraphSyncBackgroundJob : IGraphSyncBackgroundJob
     {
         private readonly IGraphSyncService _graphSyncService;
+        private readonly IAiApiClient _aiApiClient;
 
-        public GraphSyncBackgroundJob(IGraphSyncService graphSyncService)
+        public GraphSyncBackgroundJob(IGraphSyncService graphSyncService,
+         IAiApiClient aiApiClient)
         {
             _graphSyncService = graphSyncService;
+            _aiApiClient = aiApiClient;
         }
 
         public async Task ExecuteSyncAsync(GraphSyncScopeType scopeType, int entityId)
@@ -35,11 +38,13 @@ namespace SmartStudy.Server.Jobs
                     break;
 
                 case GraphSyncScopeType.StudyPlanCourses:
-                    await _graphSyncService.SyncCourseScopeAsync(entityId);
+                    var courseIds = await _graphSyncService.SyncCourseScopeAsync(entityId);
+                    await _aiApiClient.EmbeddingGraph("Course", courseIds);
                     break;
 
                 case GraphSyncScopeType.CourseRoutinesAndTasks:
-                    await _graphSyncService.SyncRoutineAndTaskScopeAsync(entityId);
+                    var taskIds = await _graphSyncService.SyncRoutineAndTaskScopeAsync(entityId);
+                    await _aiApiClient.EmbeddingGraph("Task", taskIds);
                     break;
 
                 case GraphSyncScopeType.TaskLogs:

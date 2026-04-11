@@ -5,11 +5,24 @@ from core.config import db_url_async, embeddings
 # Singleton instances
 _vector_store = None
 _record_manager = None
+_vector_table_initialized = False
 
 async def get_vector_store():
-    global _vector_store
+    global _vector_store, _vector_table_initialized
     if _vector_store is None:
         engine = PGEngine.from_connection_string(db_url_async)
+
+        if not _vector_table_initialized:
+            try:
+                await engine.ainit_vectorstore_table(
+                    table_name="document_chunks",
+                    vector_size=768,
+                    metadata_json_column="langchain_metadata",
+                )
+            except Exception as exc:
+                if "already exists" not in str(exc).lower():
+                    raise
+            _vector_table_initialized = True
         
         _vector_store = await PGVectorStore.create(
             engine=engine,

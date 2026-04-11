@@ -100,7 +100,7 @@ MERGE (u)-[:OWNS_PLAN]->(sp)
             });
         }
 
-        public async Task SyncCourseScopeAsync(int studyPlanId)
+        public async Task<List<int>> SyncCourseScopeAsync(int studyPlanId)
         {
             var studyPlanExists = await _dbContext.StudyPlans
                 .AsNoTracking()
@@ -108,7 +108,7 @@ MERGE (u)-[:OWNS_PLAN]->(sp)
 
             if (!studyPlanExists)
             {
-                return;
+                return [];
             }
 
             var courseRows = await _dbContext.Courses
@@ -174,9 +174,11 @@ MERGE (sp)-[:HAS_COURSE]->(c)
             {
                 await tx.RunAsync(query, parameters);
             });
+
+            return courseRows.Select(c => c.Id).ToList();
         }
 
-        public async Task SyncRoutineAndTaskScopeAsync(int courseId)
+        public async Task<List<int>> SyncRoutineAndTaskScopeAsync(int courseId)
         {
             var courseExists = await _dbContext.Courses
                 .AsNoTracking()
@@ -184,7 +186,7 @@ MERGE (sp)-[:HAS_COURSE]->(c)
 
             if (!courseExists)
             {
-                return;
+                return [];
             }
 
             var routineRows = await _dbContext.Routines
@@ -227,6 +229,7 @@ MERGE (sp)-[:HAS_COURSE]->(c)
                     t.Name,
                     Status = t.Status.ToString(),
                     Type = t.Type.ToString(),
+                    t.Description,
                     t.StartDateTime,
                     t.EndDateTime,
                     t.RoutineId,
@@ -242,6 +245,7 @@ MERGE (sp)-[:HAS_COURSE]->(c)
                     ["name"] = t.Name,
                     ["status"] = t.Status,
                     ["type"] = t.Type,
+                    ["description"] = t.Description,
                     ["start_datetime"] = t.StartDateTime.HasValue ? t.StartDateTime.Value.ToUniversalTime().ToString("O") : null,
                     ["end_datetime"] = t.EndDateTime.HasValue ? t.EndDateTime.Value.ToUniversalTime().ToString("O") : null,
                     ["routine_pg_id"] = t.RoutineId.HasValue ? t.RoutineId.Value.ToString() : null,
@@ -280,6 +284,7 @@ MERGE (t:Task {pg_id: taskRow.pg_id})
 SET t.name = taskRow.name,
     t.status = taskRow.status,
     t.type = taskRow.type,
+    t.description = taskRow.description,
     t.start_datetime = CASE WHEN taskRow.start_datetime IS NULL THEN NULL ELSE datetime(taskRow.start_datetime) END,
     t.end_datetime = CASE WHEN taskRow.end_datetime IS NULL THEN NULL ELSE datetime(taskRow.end_datetime) END,
     t.created_at = CASE WHEN taskRow.created_at IS NULL THEN t.created_at ELSE datetime(taskRow.created_at) END,
@@ -305,6 +310,8 @@ MERGE (r)-[:CONTAINS_TASK]->(t)
             {
                 await tx.RunAsync(query, parameters);
             });
+
+            return taskRows.Select(t => t.Id).ToList();
         }
 
         public async Task SyncLogScopeAsync(int taskId)

@@ -15,6 +15,7 @@ public class ChatRequestDto
 
 public interface IAiApiClient
 {
+    Task EmbeddingGraph(string label, List<int> pg_ids);
     Task IngestAssetAsync(int assetId, string fileUrl);
     Task DeleteIngestedAssetsAsync(List<string> AssetIds);
     Task<Stream> StreamingChatAsync(ChatRequestDto request, CancellationToken cancellationToken = default);

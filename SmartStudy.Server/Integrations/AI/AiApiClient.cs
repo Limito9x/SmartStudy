@@ -14,6 +14,29 @@ public class AiApiClient: IAiApiClient
         _configuration = configuration;
         _logger = logger;
     }
+
+    public async Task EmbeddingGraph(string label, List<int> pg_ids)
+    {
+        try
+        {
+            var payload = new { label, pg_ids };
+            var options = new JsonSerializerOptions { 
+                PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower 
+            };
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/api/graph/embedding")
+            {
+                Content = JsonContent.Create(payload, options: options)
+            };
+            httpRequest.Headers.Add("X-Internal-Service-Key", _configuration["InternalServiceKey"]);
+            
+            var response = await _httpClient.SendAsync(httpRequest);
+            response.EnsureSuccessStatusCode();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi gọi API embedding graph");
+        }
+    }
     
     public async Task IngestAssetAsync(int assetId, string fileUrl)
     {

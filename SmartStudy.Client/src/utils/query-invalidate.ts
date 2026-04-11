@@ -11,8 +11,22 @@ import type {
   AssetStatus,
   AssetLinkType,
   CourseAssetResponseDto,
+  CourseWorkloadDto,
   TaskDetailDto,
 } from "@/services/api";
+
+type QueryKeyRoot = {
+  _id?: string;
+  path?: {
+    courseId?: number | string;
+  };
+};
+
+const QUERY_KEY_ID = {
+  taskDetailById: "getTaskDetailById",
+  courseAsset: "getCourseAsset",
+  courseWorkload: "getCourseWorkload",
+} as const;
 
 export const invalidateCourseContext = (
   queryClient: QueryClient,
@@ -25,13 +39,7 @@ export const invalidateCourseContext = (
       },
     }),
   });
-  queryClient.invalidateQueries({
-    queryKey: getCourseWorkloadQueryKey({
-      path: {
-        courseId: courseId,
-      },
-    }),
-  });
+  invalidateCourseWorkloadContext(queryClient, courseId);
   queryClient.invalidateQueries({
     queryKey: getCourseAssetQueryKey({
       path: {
@@ -65,8 +73,8 @@ export const updateAssetStatusInCache = (
   queryClient.setQueriesData(
     {
       predicate: (query) => {
-        const root = query.queryKey[0] as { _id?: string } | undefined;
-        return root?._id === "getTaskDetailById";
+        const root = query.queryKey[0] as QueryKeyRoot | undefined;
+        return root?._id === QUERY_KEY_ID.taskDetailById;
       },
     },
     (oldData: TaskDetailDto | undefined) => {
@@ -94,8 +102,8 @@ export const updateAssetStatusInCache = (
   queryClient.setQueriesData(
     {
       predicate: (query) => {
-        const root = query.queryKey[0] as { _id?: string } | undefined;
-        return root?._id === "getCourseAsset";
+        const root = query.queryKey[0] as QueryKeyRoot | undefined;
+        return root?._id === QUERY_KEY_ID.courseAsset;
       },
     },
     (oldData: CourseAssetResponseDto[] | undefined) => {
@@ -168,8 +176,8 @@ export const invalidateAssetContext = (
   if (linkedType === "Task" || linkedType === "Log") {
     queryClient.invalidateQueries({
       predicate: (query) => {
-        const root = query.queryKey[0] as { _id?: string } | undefined;
-        return root?._id === "getCourseAsset";
+        const root = query.queryKey[0] as QueryKeyRoot | undefined;
+        return root?._id === QUERY_KEY_ID.courseAsset;
       },
     });
   }
@@ -177,9 +185,59 @@ export const invalidateAssetContext = (
   if (linkedType === "Log") {
     queryClient.invalidateQueries({
       predicate: (query) => {
-        const root = query.queryKey[0] as { _id?: string } | undefined;
-        return root?._id === "getTaskDetailById";
+        const root = query.queryKey[0] as QueryKeyRoot | undefined;
+        return root?._id === QUERY_KEY_ID.taskDetailById;
       },
     });
   }
+};
+
+export const invalidateCourseWorkloadContext = (
+  queryClient: QueryClient,
+  courseId?: number,
+) => {
+  if (Number.isFinite(courseId) && Number(courseId) > 0) {
+    queryClient.invalidateQueries({
+      queryKey: getCourseWorkloadQueryKey({
+        path: {
+          courseId: Number(courseId),
+        },
+      }),
+    });
+    return;
+  }
+
+  queryClient.invalidateQueries({
+    predicate: (query) => {
+      const root = query.queryKey[0] as QueryKeyRoot | undefined;
+      return root?._id === QUERY_KEY_ID.courseWorkload;
+    },
+  });
+};
+
+export const invalidateRoutineInCourseWorkloadCache = (
+  queryClient: QueryClient,
+  courseId?: number,
+  _routineId?: number,
+) => {
+  // The routine payload is not included in SignalR event, so we trigger a targeted refetch.
+  invalidateCourseWorkloadContext(queryClient, courseId);
+
+  queryClient.setQueriesData(
+    {
+      predicate: (query) => {
+        const root = query.queryKey[0] as QueryKeyRoot | undefined;
+        if (root?._id !== QUERY_KEY_ID.courseWorkload) {
+          return false;
+        }
+
+        if (!Number.isFinite(courseId) || Number(courseId) <= 0) {
+          return true;
+        }
+
+        return Number(root.path?.courseId) === Number(courseId);
+      },
+    },
+    (oldData: CourseWorkloadDto | undefined) => oldData,
+  );
 };

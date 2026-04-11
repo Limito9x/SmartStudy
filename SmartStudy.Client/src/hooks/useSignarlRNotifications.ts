@@ -8,8 +8,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { toast } from "sonner";
 import {
-  invalidateCourseContext,
   invalidateCalendarContext,
+  invalidateRoutineInCourseWorkloadCache,
   updateAssetStatusInCache,
 } from "@/utils/query-invalidate";
 
@@ -36,15 +36,19 @@ export const useSignalRNotifications = () => {
         switch (payload.action) {
           case "ROUTINE_CLEARED":
             invalidateCalendarContext(queryClient);
-            if (payload.data?.courseId) {
-              invalidateCourseContext(queryClient, payload.data.courseId);
-            }
+            invalidateRoutineInCourseWorkloadCache(
+              queryClient,
+              Number(payload.data?.courseId),
+              Number(payload.data?.routineId),
+            );
             break;
           case "ROUTINE_TASKS_UPDATED":
             invalidateCalendarContext(queryClient);
-            if (payload.data?.courseId) {
-              invalidateCourseContext(queryClient, payload.data.courseId);
-            }
+            invalidateRoutineInCourseWorkloadCache(
+              queryClient,
+              Number(payload.data?.courseId),
+              Number(payload.data?.routineId),
+            );
             break;
           case "ASSET_RAG":
             if (

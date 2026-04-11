@@ -3,8 +3,8 @@ namespace SmartStudy.Server.Integrations.Neo4j
     public interface IGraphSyncService
     {
         Task SyncStudyPlanScopeAsync(int userId);
-        Task SyncCourseScopeAsync(int studyPlanId);
-        Task SyncRoutineAndTaskScopeAsync(int courseId);
+        Task<List<int>> SyncCourseScopeAsync(int studyPlanId);
+        Task<List<int>> SyncRoutineAndTaskScopeAsync(int courseId);
         Task SyncLogScopeAsync(int taskId);
     }
 }
