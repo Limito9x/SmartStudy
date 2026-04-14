@@ -49,8 +49,8 @@ async def process_node_embeddings(label: str, pg_ids: list[int]):
                     {"id": pid_str, "vector": vector}
                 )
                 count += 1
-                logger.info(f"✨ Đã nạp Embedding cho {label} ID: {pid_str}")
+                logger.info(f"Đã Embedding cho {label} ID: {pid_str}")
             else:
-                logger.warning(f"⚠️ Không tìm thấy {label} với pg_id: {pid_str} trong DB")
+                logger.warning(f"Không tìm thấy {label} với pg_id: {pid_str} trong DB")
         except Exception as e:
             logger.error(f"Lỗi khi embed cho label {label} {pg_id} {e}")

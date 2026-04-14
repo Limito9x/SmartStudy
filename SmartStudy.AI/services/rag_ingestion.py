@@ -16,13 +16,11 @@ parser = LlamaParse(
 
 async def parse_document(file_url: str) -> list:
     """Hàm tải và parse URL, trả về danh sách các trang"""
-    logger.info(f"Đang bóc tách tài liệu từ: {file_url}")
     documents = await parser.aload_data(file_url)
     return documents
 
 async def split_chunks(parsed_pages:list,asset_id:int):
     """Hàm cắt các markdown thành chunk"""
-    logger.info(f"Đang cắt markdown thành chunk cho assetId: {asset_id}")
     
     headers_to_split_on = [
         ("#", "Header1"),
@@ -32,25 +30,21 @@ async def split_chunks(parsed_pages:list,asset_id:int):
 
     markdown_splitter = MarkdownHeaderTextSplitter(
         headers_to_split_on=headers_to_split_on,
-        strip_headers=False #False để giữ lại ký tự '#' trong text cho AI dễ đọc
+        strip_headers=False
     )
 
     all_chunks = []
 
-    # BẮT ĐẦU VÒNG LẶP: Duyệt qua từng trang
     for index, page in enumerate(parsed_pages):
-        page_num = index + 1 # Trang 1, 2, 3...
+        page_num = index + 1
         
-        # Tùy LlamaParse trả về, lấy text của trang đó
         page_text = page.text if hasattr(page, 'text') else page.page_content
         
-        # Chỉ cắt văn bản trên ĐÚNG TRANG NÀY
         page_chunks = markdown_splitter.split_text(page_text)
         
-        # Nhét cả AssetId và PageNumber vào túi Metadata
         for chunk in page_chunks:
             chunk.metadata["asset_id"] = str(asset_id)
-            chunk.metadata["page_number"] = page_num # Thêm dòng này là xong!
+            chunk.metadata["page_number"] = page_num
             all_chunks.append(chunk)
 
     return all_chunks

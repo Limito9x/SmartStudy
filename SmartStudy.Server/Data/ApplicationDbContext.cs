@@ -169,7 +169,6 @@ namespace SmartStudy.Server.Data
                 .Where(e => e.State == EntityState.Added || 
                             e.State == EntityState.Modified || 
                             e.State == EntityState.Deleted)
-                // Gom lại để loại bỏ trùng lặp (ví dụ sửa 5 cái task cùng 1 lúc thì chỉ lấy 1)
                 .Select(e => new { Scope = e.Entity.GetSyncScope(), RootId = e.Entity.GetRootId() })
                 .Distinct()
                 .Select(x => (x.Scope, x.RootId))
