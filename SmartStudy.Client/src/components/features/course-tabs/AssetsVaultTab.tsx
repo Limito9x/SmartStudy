@@ -8,10 +8,17 @@ import { cn } from "@/lib/utils";
 import type { CourseAssetResponseDto } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { getCourseAssetOptions } from "@/services/api/@tanstack/react-query.gen";
+import {
+  deleteAssetMutation,
+  getCourseAssetQueryKey,
+} from "@/services/api/@tanstack/react-query.gen";
 import AssetUploader from "@/components/files/AssetUploader";
 import { AlertCircle, Image as ImageIcon, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import AssetItem from "@/components/files/AssetItem";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { useDialogStore } from "@/stores/useDialogStore";
 
 interface AssetsVaultTabProps {
   courseId: number;
@@ -34,6 +41,40 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<AssetFilterType>("ALL");
   const { previewAsset, openPreview, closePreview } = useAssetPreview();
+  const queryClient = useQueryClient();
+
+  const deleteAssetMutator = useMutation({
+    ...deleteAssetMutation(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: getCourseAssetQueryKey({
+          path: {
+            courseId,
+          },
+        }),
+      });
+      toast.success("Đã xóa tài liệu");
+    },
+    onError: () => {
+      toast.error("Không thể xóa tài liệu");
+    },
+  });
+
+  const { openDialog } = useDialogStore();
+
+  const handleDeleteAsset = (assetId: number, assetName?: string) => {
+    openDialog("CONFIRM_DELETE", {
+      itemName: assetName ?? "tài liệu",
+      itemType: "file",
+      onConfirm: () => {
+        deleteAssetMutator.mutate({
+          path: {
+            assetId: String(assetId),
+          },
+        });
+      },
+    });
+  };
 
   const assetsQuery = useQuery({
     ...getCourseAssetOptions({
@@ -157,6 +198,9 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
               title={sourceName}
               assets={groupAssets}
               onPreview={openPreview}
+              onDelete={(assetId, assetName) =>
+                handleDeleteAsset(assetId, assetName)
+              }
             />
           ))}
         </div>
@@ -171,10 +215,12 @@ function AssetGroup({
   title,
   assets,
   onPreview,
+  onDelete,
 }: {
   title: string;
   assets: CourseAssetResponseDto[];
   onPreview: (asset: PreviewAsset) => void;
+  onDelete: (assetId: number, assetName?: string) => void;
 }) {
   const { imageAssets, documentAssets } = useMemo(() => {
     const split = {
@@ -215,6 +261,7 @@ function AssetGroup({
               asset={asset}
               showSourceName={false}
               onPreview={onPreview}
+              onDelete={(asset) => onDelete(Number(asset.id), asset.fileName)}
             />
           ))}
         </div>

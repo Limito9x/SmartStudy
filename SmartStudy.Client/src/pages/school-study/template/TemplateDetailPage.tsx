@@ -166,11 +166,6 @@ export default function TemplateDetailPage() {
                                 {routine.name || `Routine ${routineIndex + 1}`}
                               </p>
                               <p className="text-sm text-slate-600">
-                                {routine.instructor
-                                  ? `Giảng viên: ${routine.instructor}`
-                                  : "Giảng viên: Chưa cập nhật"}
-                              </p>
-                              <p className="text-sm text-slate-600">
                                 Ngày học: {routine.startDayOffset ?? 0} -{" "}
                                 {routine.endDayOffset ?? "?"}
                               </p>
@@ -199,11 +194,9 @@ export default function TemplateDetailPage() {
                                       ] || "Không rõ thứ"}
                                     </p>
                                     <p className="text-slate-600">
-                                      {schedule.startTime?.slice(0,5) || "--:--"} ·{" "}
-                                      {schedule.duration ?? 0} phút
-                                    </p>
-                                    <p className="text-slate-600">
-                                      {schedule.location || "Không có địa điểm"}
+                                      {schedule.startTime?.slice(0, 5) ||
+                                        "--:--"}{" "}
+                                      · {schedule.duration ?? 0} phút
                                     </p>
                                   </div>
                                 ),

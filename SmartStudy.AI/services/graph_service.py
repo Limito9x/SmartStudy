@@ -21,3 +21,8 @@ def get_graph() -> Neo4jGraph:
             enhanced_schema=True
         )
     return _graph
+
+
+def run_cypher(query: str, params: dict | None = None) -> list[dict]:
+    graph = get_graph()
+    return graph.query(query, params or {})

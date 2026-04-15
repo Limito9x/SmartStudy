@@ -33,7 +33,14 @@ import {
   RefreshCwIcon,
   SquareIcon,
 } from "lucide-react";
-import type { FC } from "react";
+import type { FC, MouseEvent } from "react";
+
+const QUICK_PROMPTS = [
+  "Việc cần làm tuần này",
+  "Môn đang chậm tiến độ",
+  "Phân tích thói quen học 7 ngày",
+  "3 việc ưu tiên ngày mai",
+];
 
 export const Thread: FC = () => {
   return (
@@ -141,6 +148,9 @@ export const Composer: FC = () => {
           className="flex w-full flex-col gap-2 rounded-(--composer-radius) border bg-background p-(--composer-padding) transition-shadow focus-within:border-ring/75 focus-within:ring-2 focus-within:ring-ring/20 data-[dragging=true]:border-ring data-[dragging=true]:border-dashed data-[dragging=true]:bg-accent/50"
         >
           <ComposerAttachments />
+          <AuiIf condition={(s) => s.thread.isEmpty}>
+            <QuickPromptChips />
+          </AuiIf>
           <ComposerPrimitive.Input
             placeholder="Send a message..."
             className="aui-composer-input max-h-32 min-h-10 w-full resize-none bg-transparent px-1.75 py-1 text-sm outline-none placeholder:text-muted-foreground/80"
@@ -152,6 +162,59 @@ export const Composer: FC = () => {
         </div>
       </ComposerPrimitive.AttachmentDropzone>
     </ComposerPrimitive.Root>
+  );
+};
+
+const QuickPromptChips: FC = () => {
+  const applyPrompt = (
+    event: MouseEvent<HTMLButtonElement>,
+    prompt: string,
+  ) => {
+    const shell = event.currentTarget.closest('[data-slot="composer-shell"]');
+    const input = shell?.querySelector<HTMLTextAreaElement>(
+      'textarea[aria-label="Message input"]',
+    );
+    const sendButton = shell?.querySelector<HTMLButtonElement>(
+      'button[aria-label="Send message"]',
+    );
+
+    if (!input || !sendButton) return;
+
+    const prototype = Object.getPrototypeOf(input);
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, "value");
+    descriptor?.set?.call(input, prompt);
+
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    input.focus();
+    input.setSelectionRange(prompt.length, prompt.length);
+
+    requestAnimationFrame(() => {
+      if (!sendButton.disabled) {
+        sendButton.click();
+      }
+    });
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 px-1 pb-1">
+      <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
+        Mẫu nhanh
+      </span>
+      {QUICK_PROMPTS.map((prompt) => (
+        <Button
+          key={prompt}
+          type="button"
+          variant="outline"
+          size="sm"
+          className="h-6 max-w-42.5 rounded-full px-2.5 text-[11px]"
+          onClick={(event) => applyPrompt(event, prompt)}
+          title={prompt}
+        >
+          <span className="truncate">{prompt}</span>
+        </Button>
+      ))}
+    </div>
   );
 };
 

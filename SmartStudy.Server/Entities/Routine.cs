@@ -24,15 +24,10 @@ namespace SmartStudy.Server.Entities
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
         // Routine có nhiều khung giờ
         public ICollection<Schedule> Schedules { get; set; } = new List<Schedule>();
-    
-        public GraphSyncScopeType GetSyncScope()
-         {
-             return GraphSyncScopeType.CourseRoutinesAndTasks;
-         }
 
-        public int? GetRootId()
-         {
-             return CourseId;
-         }
+        public GraphSyncEntityType GetGraphSyncEntityType()
+        {
+            return GraphSyncEntityType.Routine;
+        }
     }
 }

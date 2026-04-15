@@ -1,13 +1,15 @@
-from core.config import logger, embeddings
+import json
+from datetime import date, datetime, time, timedelta
 from langchain.tools import tool
+
 from core.database_services import get_vector_store
-from services.graph_service import get_graph
+from services.graph_service import run_cypher
 
 
 async def _vector_search(query: str, asset_ids: list[str]) -> str:
     """
     Tìm kiếm thông tin trong tài liệu học tập bằng semantic search.
-    Dùng khi cần tìm nội dung cụ thể, định nghĩa, giải thích khái niệm.
+    Dùng cho lý thuyết tĩnh (PDF/document), không dùng cho dữ liệu task động.
     """
     vector_store = await get_vector_store()
     retriever = vector_store.as_retriever(
@@ -19,54 +21,202 @@ async def _vector_search(query: str, asset_ids: list[str]) -> str:
     docs = await retriever.ainvoke(query)
     if not docs:
         return "Không tìm thấy thông tin liên quan trong tài liệu."
-    
+
     results = []
     for d in docs:
         page = d.metadata.get("page_number", "?")
         results.append(f"[Trang {page}]\n{d.page_content}")
     return "\n\n---\n\n".join(results)
 
-@tool
-async def search_academic_graph(question: str):
-    """
-    Truy vấn thông tin học tập: Task, Course, Plan, Log.
-    Dùng khi user hỏi về tiến độ, nội dung môn học hoặc kế hoạch cá nhân.
-    """
-    # 1. Biến câu hỏi thành Vector
-    query_vector = await embeddings.aembed_query(question)
-    
-    # 2. Truy vấn Hybrid: Vector Search + Graph Traversal
-    # Tìm 3 Task giống nhất -> Lấy thông tin môn học và kế hoạch liên quan
-    query = """
-    CALL db.index.vector.queryNodes('task_vector_idx', 3, $vector)
-    YIELD node AS t, score
-    MATCH (c:Course)-[:HAS_TASK]->(t)
-    OPTIONAL MATCH (t)-[:HAS_LOG]->(l)
-    RETURN t.name as Task, t.status as Status, c.name as Course, 
-           l.note as Log, score
-    ORDER BY score DESC
-    """
-    
-    graph = get_graph()
-    results = graph.query(query, {"vector": query_vector})
-    
-    if not results:
-        return "Không tìm thấy dữ liệu liên quan trong đồ thị học tập."
-        
-    return str(results)
 
-def build_tools(asset_ids: list[str]) -> list:
-    
+def _format_tool_json(tool_name: str, summary: str, records: list[dict]) -> str:
+    def _json_default(value):
+        if isinstance(value, (datetime, date, time)):
+            return value.isoformat()
+        if isinstance(value, timedelta):
+            return value.total_seconds()
+
+        # Neo4j temporal objects provide iso_format().
+        iso_format = getattr(value, "iso_format", None)
+        if callable(iso_format):
+            return iso_format()
+
+        return str(value)
+
+    return json.dumps(
+        {
+            "tool": tool_name,
+            "summary": summary,
+            "records": records,
+        },
+        ensure_ascii=False,
+        default=_json_default,
+    )
+
+
+def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None) -> list:
+    asset_ids = asset_ids or []
+
+    @tool
+    async def get_upcoming_tasks(user_id: int = user_id) -> str:
+        """
+        Lấy danh sách task sắp tới của user theo đồ thị học tập.
+        Dùng khi user hỏi việc cần làm, deadline, hoặc lịch học sắp tới.
+        """
+        query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)-[:HAS_TASK]->(t:Task)
+        WHERE coalesce(t.status, '') <> 'Completed'
+        RETURN t.pg_id AS task_id,
+               t.name AS task_name,
+               t.status AS status,
+               t.type AS task_type,
+               t.start_datetime AS start_datetime,
+               t.end_datetime AS end_datetime,
+               c.pg_id AS course_id,
+               c.name AS course_name
+        ORDER BY coalesce(t.start_datetime, datetime('9999-12-31T00:00:00Z')) ASC
+        LIMIT 20
+        """
+
+        records = run_cypher(query, {"user_pg_id": str(user_id)})
+        summary = (
+            f"Tìm thấy {len(records)} task chưa hoàn thành gần nhất."
+            if records
+            else "Không có task pending nào trong graph."
+        )
+        return _format_tool_json("get_upcoming_tasks", summary, records)
+
+    @tool
+    async def get_learning_progress(user_id: int = user_id, course_id: int | None = course_id) -> str:
+        """
+        Tổng hợp tiến độ học tập của user trong một course cụ thể.
+        Dùng khi user hỏi % hoàn thành, số task xong/chưa xong trong môn.
+        """
+        if course_id is None:
+            return _format_tool_json(
+                "get_learning_progress",
+                "Thiếu course_id để tính tiến độ học tập.",
+                [],
+            )
+
+        task_progress_query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id})
+        OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
+        RETURN c.pg_id AS course_id,
+               c.name AS course_name,
+               count(t) AS total_tasks,
+               count(CASE WHEN t.status = 'Completed' THEN 1 END) AS completed_tasks
+        """
+
+        duration_query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id})
+        OPTIONAL MATCH (c)-[:HAS_TASK]->(:Task)-[:HAS_LOG]->(l:Log)
+        RETURN round(coalesce(sum(toFloat(l.actual_duration)), 0.0), 2) AS total_logged_duration
+        """
+
+        params = {"user_pg_id": str(user_id), "course_pg_id": str(course_id)}
+        progress_rows = run_cypher(task_progress_query, params)
+        duration_rows = run_cypher(duration_query, params)
+
+        if not progress_rows:
+            return _format_tool_json(
+                "get_learning_progress",
+                "Không tìm thấy course trong phạm vi user hoặc chưa có dữ liệu graph.",
+                [],
+            )
+
+        row = progress_rows[0]
+        total_tasks = int(row.get("total_tasks") or 0)
+        completed_tasks = int(row.get("completed_tasks") or 0)
+        progress_percent = round((completed_tasks / total_tasks) * 100, 2) if total_tasks > 0 else 0.0
+        total_logged_duration = float((duration_rows[0] if duration_rows else {}).get("total_logged_duration") or 0.0)
+
+        record = {
+            "course_id": row.get("course_id"),
+            "course_name": row.get("course_name"),
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "progress_percent": progress_percent,
+            "total_logged_duration": total_logged_duration,
+        }
+
+        summary = (
+            f"Tiến độ hiện tại {progress_percent}% ({completed_tasks}/{total_tasks} task hoàn thành), "
+            f"tổng thời lượng log {total_logged_duration}."
+        )
+        return _format_tool_json("get_learning_progress", summary, [record])
+
+    @tool
+    async def analyze_study_behavior(user_id: int = user_id) -> str:
+        """
+        Phân tích hành vi học tập tổng quan dựa trên task và log thực tế của user.
+        Dùng khi user hỏi thói quen học, mức ổn định, hoặc xu hướng học tập.
+        """
+        query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)
+        OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
+        WITH collect(DISTINCT t) AS tasks
+        WITH tasks,
+             size(tasks) AS total_tasks,
+             size([x IN tasks WHERE x.status = 'Completed']) AS completed_tasks
+        UNWIND CASE WHEN size(tasks) = 0 THEN [NULL] ELSE tasks END AS task
+        OPTIONAL MATCH (task)-[:HAS_LOG]->(l:Log)
+        RETURN total_tasks,
+               completed_tasks,
+               count(l) AS total_logs,
+               count(DISTINCT date(l.completed_at)) AS active_days,
+               round(coalesce(avg(toFloat(l.actual_duration)), 0.0), 2) AS avg_session_duration
+        """
+
+        rows = run_cypher(query, {"user_pg_id": str(user_id)})
+        if not rows:
+            return _format_tool_json(
+                "analyze_study_behavior",
+                "Không có dữ liệu hành vi học tập trong graph.",
+                [],
+            )
+
+        row = rows[0]
+        total_tasks = int(row.get("total_tasks") or 0)
+        completed_tasks = int(row.get("completed_tasks") or 0)
+        total_logs = int(row.get("total_logs") or 0)
+        active_days = int(row.get("active_days") or 0)
+        avg_session_duration = float(row.get("avg_session_duration") or 0.0)
+        completion_rate = round((completed_tasks / total_tasks) * 100, 2) if total_tasks > 0 else 0.0
+
+        if active_days >= 5 and completion_rate >= 70:
+            pattern = "Consistent"
+        elif active_days >= 3 or completion_rate >= 40:
+            pattern = "Moderate"
+        else:
+            pattern = "Irregular"
+
+        record = {
+            "total_tasks": total_tasks,
+            "completed_tasks": completed_tasks,
+            "completion_rate": completion_rate,
+            "total_logs": total_logs,
+            "active_days": active_days,
+            "avg_session_duration": avg_session_duration,
+            "pattern": pattern,
+        }
+
+        summary = (
+            f"Mức độ học tập: {pattern}. "
+            f"Tần suất học {active_days} ngày có log, tỷ lệ hoàn thành {completion_rate}%."
+        )
+
+        return _format_tool_json("analyze_study_behavior", summary, [record])
+
     @tool
     async def search_document(query: str) -> str:
         """
-        Tìm kiếm lý thuyết, khái niệm, định nghĩa trong giáo trình.
-        Dùng khi hỏi về: nội dung môn học, giải thích khái niệm, ví dụ.
-        KHÔNG dùng cho task cá nhân hay tiến độ học tập.
+        Tìm kiếm lý thuyết, khái niệm, định nghĩa trong giáo trình PDF đã ingest.
+        Không dùng cho thống kê tiến độ hoặc task cá nhân.
         """
         return await _vector_search(query, asset_ids)
 
-    tools = [search_academic_graph]
+    tools = [get_upcoming_tasks, get_learning_progress, analyze_study_behavior]
     if asset_ids:
         tools.append(search_document)
     return tools

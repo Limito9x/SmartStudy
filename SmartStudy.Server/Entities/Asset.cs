@@ -1,8 +1,10 @@
 ﻿using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Entities.Interfaces;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Entities
 {
-    public class Asset: BaseEntity
+    public class Asset: BaseEntity, IGraphSyncTrigger
     {
         public string FileName { get; set; }
         public string PublicId { get; set; }
@@ -14,5 +16,10 @@ namespace SmartStudy.Server.Entities
         public ICollection<AssetLink> AssetLinks { get; set; } = new List<AssetLink>();
         public int UserId { get; set; }
         public User? User { get; set; }
+
+        public GraphSyncEntityType GetGraphSyncEntityType()
+        {
+            return GraphSyncEntityType.Asset;
+        }
     }
 }

@@ -1,3 +1,4 @@
+using Hangfire;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,7 @@ using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Exceptions;
 using SmartStudy.Server.Helpers;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Services;
 
@@ -78,7 +80,6 @@ public class PlanTemplateService: IPlanTemplateService
                         {
                             Name = r.Name,
                             Type = r.Type,
-                            Instructor = r.Instructor,
                             // Offset tương đối từ đầu plan
                             StartDayOffset = (int)(r.StartDate - planStart).TotalDays,
                             EndDayOffset = r.EndDate.HasValue
@@ -90,7 +91,6 @@ public class PlanTemplateService: IPlanTemplateService
                                     DayOfWeek = s.DayOfWeek,
                                     StartTime = s.StartTime,
                                     Duration = s.Duration,
-                                    Location = s.Location,
                                 }).ToList()
                         }).ToList() ?? []
                 }).ToList() ?? []
@@ -379,7 +379,6 @@ public class PlanTemplateService: IPlanTemplateService
         {
             Name = r.Name,
             Type = r.Type,
-            Instructor = r.Instructor,
             UserId = userId,
             StudyPlanId = plan.Id,   // ← có rồi
             CourseId = course.Id,    // ← có rồi
@@ -392,7 +391,6 @@ public class PlanTemplateService: IPlanTemplateService
                 DayOfWeek = s.DayOfWeek,
                 StartTime = s.StartTime,
                 Duration = s.Duration,
-                Location = s.Location,
             }).ToList()
         }).ToList();
 
@@ -400,6 +398,11 @@ public class PlanTemplateService: IPlanTemplateService
     }
 
     await _context.SaveChangesAsync();
+
+    foreach (var routine in _context.Routines.Where(r => r.StudyPlanId == plan.Id))
+    {
+        BackgroundJob.Enqueue<IRoutineTaskGenerator>((r) => r.GenerateForSingleRoutineAsync(routine.Id));
+    }
 
     // Load lại để map DTO
     await _context.Entry(plan)

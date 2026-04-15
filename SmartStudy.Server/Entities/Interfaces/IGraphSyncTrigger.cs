@@ -1,10 +1,8 @@
 using SmartStudy.Server.Jobs;
+using SmartStudy.Server.Entities.Interfaces;
 
-public interface IGraphSyncTrigger
+public interface IGraphSyncTrigger : IHasId
 {
-    // Bảng này thuộc nhóm đồng bộ nào?
-    GraphSyncScopeType GetSyncScope();
-    
-    // ID của thằng (Root) để truyền vào Hangfire là gì?
-    int? GetRootId(); 
+    // Entity type used by background job router.
+    GraphSyncEntityType GetGraphSyncEntityType();
 }

@@ -29,7 +29,6 @@ public class TemplateRoutine
 {
     public string Name { get; set; } = null!;
     public TaskType Type { get; set; }
-    public string? Instructor { get; set; }
     public int StartDayOffset { get; set; }
     public int? EndDayOffset { get; set; }
     public List<TemplateSchedule> Schedules { get; set; } = [];
@@ -40,7 +39,6 @@ public class TemplateSchedule
     public DayOfWeek DayOfWeek { get; set; }
     public TimeOnly? StartTime { get; set; }
     public int? Duration { get; set; }
-    public string? Location { get; set; }
 }
 
 public class PlanTemplate : BaseEntity

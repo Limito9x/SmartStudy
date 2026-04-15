@@ -10,6 +10,7 @@ namespace SmartStudy.Server.Data;
 public interface IMeaningfulSeeder
 {
     Task SeedAsync();
+    Task<IsolatedSeedResult> SeedIsolatedAsync(string runTag, bool overwrite = false);
 }
 /// <summary>
 /// Seed data có ý nghĩa học tập cho demo và phát triển AI.
@@ -38,132 +39,69 @@ public class MeaningfulSeeder: IMeaningfulSeeder
     // ── PLAN TEMPLATES ─────────────────────────────────────────────
 private async Task SeedPlanTemplatesAsync(User demoUser)
 {
-    if (await _context.PlanTemplates.AnyAsync()) return;
-
     var plan = await _context.StudyPlans
         .FirstOrDefaultAsync(p => p.UserId == demoUser.Id);
 
-    var official = new PlanTemplate
+    var legacyTemplates = await _context.PlanTemplates
+        .Where(t => t.CreatedById == demoUser.Id
+                    && (t.Name.Contains("HK8") || t.Name.Contains("Community")))
+        .ToListAsync();
+
+    if (legacyTemplates.Count > 0)
     {
-        Name = "KTPM HK8 - Năm 4 (Chính thức)",
-        Description = "Kế hoạch HK8 ngành KTPM ĐH Cần Thơ. Luận văn + 2 môn chuyên ngành.",
+        _context.PlanTemplates.RemoveRange(legacyTemplates);
+        await _context.SaveChangesAsync();
+    }
+
+    var universityTemplate = new PlanTemplate
+    {
+        Name = "Đại học - Kỳ học ổn định",
+        Description = "Template đại học tập trung 2 môn cốt lõi, nhịp học đều và có buổi ôn cuối tuần.",
         IsPublic = true,
+        Type = StudyPlanType.Academic,
+        CreatedById = demoUser.Id,
+        SourcePlanId = plan?.Id,
         Payload = new TemplatePayload
         {
-            DurationDays = 105,
+            DurationDays = 112,
             Courses = new List<TemplateCourse>
             {
                 new TemplateCourse
                 {
-                    Name = "Luận văn tốt nghiệp KTPM",
-                    Goal = "Bảo vệ đúng hạn, đạt loại Giỏi",
-                    TargetScore = 9.0,
-                    Routines = new List<TemplateRoutine>
-                    {
-                        new TemplateRoutine
-                        {
-                            Name = "Gặp GVHD hàng tuần",
-                            Type = TaskType.Meeting,
-                            StartDayOffset = 0,
-                            EndDayOffset = 105,
-                            Schedules = new List<TemplateSchedule>
-                            {
-                                new TemplateSchedule
-                                {
-                                    DayOfWeek = DayOfWeek.Friday,
-                                    StartTime = new TimeOnly(13, 30),
-                                    Duration = 60,
-                                    Location = "Phòng GV"
-                                }
-                            }
-                        },
-                        new TemplateRoutine
-                        {
-                            Name = "Viết luận văn buổi tối",
-                            Type = TaskType.SelfStudy,
-                            StartDayOffset = 0,
-                            EndDayOffset = 105,
-                            Schedules = new List<TemplateSchedule>
-                            {
-                                new TemplateSchedule
-                                {
-                                    DayOfWeek = DayOfWeek.Thursday,
-                                    StartTime = new TimeOnly(20, 0),
-                                    Duration = 120
-                                }
-                            }
-                        }
-                    }
-                },
-                new TemplateCourse
-                {
-                    Name = "Kiến trúc và Thiết kế Phần mềm",
-                    Goal = "Nắm vững design patterns, target 8.0",
+                    Name = "Cấu trúc dữ liệu và giải thuật",
+                    Goal = "Nắm chắc nền tảng giải thuật, đạt từ 8.0 trở lên",
                     TargetScore = 8.0,
                     Routines = new List<TemplateRoutine>
                     {
                         new TemplateRoutine
                         {
-                            Name = "Lớp học Kiến trúc PM",
+                            Name = "Buổi học trên lớp",
                             Type = TaskType.ClassSession,
                             StartDayOffset = 0,
-                            EndDayOffset = 105,
+                            EndDayOffset = 112,
                             Schedules = new List<TemplateSchedule>
                             {
                                 new TemplateSchedule
                                 {
                                     DayOfWeek = DayOfWeek.Monday,
                                     StartTime = new TimeOnly(7, 30),
-                                    Duration = 90,
-                                    Location = "B4-301"
-                                },
-                                new TemplateSchedule
-                                {
-                                    DayOfWeek = DayOfWeek.Wednesday,
-                                    StartTime = new TimeOnly(7, 30),
-                                    Duration = 90,
-                                    Location = "B4-301"
+                                    Duration = 90
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-    };
-
-    var community = new PlanTemplate
-    {
-        Name = "KTPM HK8 - Luận văn + IELTS (Community)",
-        Description = "Vừa làm luận văn vừa luyện IELTS. Tip: sáng tập trung luận văn, tối luyện IELTS.",
-        IsPublic = true,
-        CreatedById = demoUser.Id,
-        SourcePlanId = plan?.Id,
-        Payload = new TemplatePayload
-        {
-            DurationDays = 105,
-            Courses = new List<TemplateCourse>
-            {
-                new TemplateCourse
-                {
-                    Name = "Luận văn tốt nghiệp KTPM",
-                    Goal = "Bảo vệ đúng hạn",
-                    TargetScore = 9.0,
-                    Routines = new List<TemplateRoutine>
-                    {
+                        },
                         new TemplateRoutine
                         {
-                            Name = "Gặp GVHD",
-                            Type = TaskType.Meeting,
+                            Name = "Luyện bài tập thuật toán",
+                            Type = TaskType.SelfStudy,
                             StartDayOffset = 0,
-                            EndDayOffset = 105,
+                            EndDayOffset = 112,
                             Schedules = new List<TemplateSchedule>
                             {
                                 new TemplateSchedule
                                 {
-                                    DayOfWeek = DayOfWeek.Friday,
-                                    StartTime = new TimeOnly(13, 30),
-                                    Duration = 60
+                                    DayOfWeek = DayOfWeek.Wednesday,
+                                    StartTime = new TimeOnly(19, 30),
+                                    Duration = 90
                                 }
                             }
                         }
@@ -171,45 +109,146 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 },
                 new TemplateCourse
                 {
-                    Name = "IELTS Preparation",
-                    Goal = "Đạt 6.5 trước khi ra trường",
-                    TargetScore = 6.5,
+                    Name = "Cơ sở dữ liệu nâng cao",
+                    Goal = "Làm chủ thiết kế schema và tối ưu truy vấn",
+                    TargetScore = 8.5,
                     Routines = new List<TemplateRoutine>
                     {
                         new TemplateRoutine
                         {
-                            Name = "Luyện Listening sáng sớm",
-                            Type = TaskType.SelfStudy,
+                            Name = "Thực hành SQL có hướng dẫn",
+                            Type = TaskType.ClassSession,
                             StartDayOffset = 0,
-                            EndDayOffset = 105,
+                            EndDayOffset = 112,
                             Schedules = new List<TemplateSchedule>
                             {
                                 new TemplateSchedule
                                 {
                                     DayOfWeek = DayOfWeek.Tuesday,
-                                    StartTime = new TimeOnly(6, 30),
-                                    Duration = 45
+                                    StartTime = new TimeOnly(13, 30),
+                                    Duration = 90
                                 },
                                 new TemplateSchedule
                                 {
-                                    DayOfWeek = DayOfWeek.Thursday,
-                                    StartTime = new TimeOnly(6, 30),
-                                    Duration = 45
+                                    DayOfWeek = DayOfWeek.Friday,
+                                    StartTime = new TimeOnly(13, 30),
+                                    Duration = 90
                                 }
                             }
                         },
                         new TemplateRoutine
                         {
-                            Name = "Luyện Writing cuối tuần",
+                            Name = "Ôn tập và làm đề",
                             Type = TaskType.SelfStudy,
                             StartDayOffset = 0,
-                            EndDayOffset = 105,
+                            EndDayOffset = 112,
                             Schedules = new List<TemplateSchedule>
                             {
                                 new TemplateSchedule
                                 {
                                     DayOfWeek = DayOfWeek.Saturday,
                                     StartTime = new TimeOnly(9, 0),
+                                    Duration = 120
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    var personalTemplate = new PlanTemplate
+    {
+        Name = "Cá nhân - Kỷ luật mỗi ngày",
+        Description = "Template cá nhân cho mục tiêu tự học dài hạn: ngoại ngữ, đọc sách và vận động.",
+        IsPublic = true,
+        Type = StudyPlanType.Personal,
+        CreatedById = demoUser.Id,
+        SourcePlanId = plan?.Id,
+        Payload = new TemplatePayload
+        {
+            DurationDays = 84,
+            Courses = new List<TemplateCourse>
+            {
+                new TemplateCourse
+                {
+                    Name = "Tiếng Anh giao tiếp",
+                    Goal = "Nâng phản xạ nghe nói, duy trì đều 5 buổi/tuần",
+                    TargetScore = 7.0,
+                    Routines = new List<TemplateRoutine>
+                    {
+                        new TemplateRoutine
+                        {
+                            Name = "Listening buổi sáng",
+                            Type = TaskType.SelfStudy,
+                            StartDayOffset = 0,
+                            EndDayOffset = 84,
+                            Schedules = new List<TemplateSchedule>
+                            {
+                                new TemplateSchedule
+                                {
+                                    DayOfWeek = DayOfWeek.Monday,
+                                    StartTime = new TimeOnly(6, 30),
+                                    Duration = 45
+                                },
+                                new TemplateSchedule
+                                {
+                                    DayOfWeek = DayOfWeek.Wednesday,
+                                    StartTime = new TimeOnly(6, 30),
+                                    Duration = 45
+                                },
+                                new TemplateSchedule
+                                {
+                                    DayOfWeek = DayOfWeek.Friday,
+                                    StartTime = new TimeOnly(6, 30),
+                                    Duration = 45
+                                }
+                            }
+                        }
+                    }
+                },
+                new TemplateCourse
+                {
+                    Name = "Rèn thói quen phát triển bản thân",
+                    Goal = "Duy trì đọc sách và tập luyện để giữ năng lượng học tập",
+                    TargetScore = null,
+                    Routines = new List<TemplateRoutine>
+                    {
+                        new TemplateRoutine
+                        {
+                            Name = "Đọc sách chuyên môn",
+                            Type = TaskType.SelfStudy,
+                            StartDayOffset = 0,
+                            EndDayOffset = 84,
+                            Schedules = new List<TemplateSchedule>
+                            {
+                                new TemplateSchedule
+                                {
+                                    DayOfWeek = DayOfWeek.Tuesday,
+                                    StartTime = new TimeOnly(21, 0),
+                                    Duration = 30
+                                },
+                                new TemplateSchedule
+                                {
+                                    DayOfWeek = DayOfWeek.Thursday,
+                                    StartTime = new TimeOnly(21, 0),
+                                    Duration = 30
+                                }
+                            }
+                        },
+                        new TemplateRoutine
+                        {
+                            Name = "Vận động cuối tuần",
+                            Type = TaskType.SelfStudy,
+                            StartDayOffset = 0,
+                            EndDayOffset = 84,
+                            Schedules = new List<TemplateSchedule>
+                            {
+                                new TemplateSchedule
+                                {
+                                    DayOfWeek = DayOfWeek.Saturday,
+                                    StartTime = new TimeOnly(7, 0),
                                     Duration = 60
                                 }
                             }
@@ -220,7 +259,40 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
         }
     };
 
-    await _context.PlanTemplates.AddRangeAsync(official, community);
+    var existingUniversityTemplate = await _context.PlanTemplates
+        .FirstOrDefaultAsync(t => t.CreatedById == demoUser.Id
+                                  && t.Type == StudyPlanType.Academic
+                                  && t.Name == universityTemplate.Name);
+
+    if (existingUniversityTemplate is null)
+    {
+        await _context.PlanTemplates.AddAsync(universityTemplate);
+    }
+    else
+    {
+        existingUniversityTemplate.Description = universityTemplate.Description;
+        existingUniversityTemplate.IsPublic = universityTemplate.IsPublic;
+        existingUniversityTemplate.SourcePlanId = universityTemplate.SourcePlanId;
+        existingUniversityTemplate.Payload = universityTemplate.Payload;
+    }
+
+    var existingPersonalTemplate = await _context.PlanTemplates
+        .FirstOrDefaultAsync(t => t.CreatedById == demoUser.Id
+                                  && t.Type == StudyPlanType.Personal
+                                  && t.Name == personalTemplate.Name);
+
+    if (existingPersonalTemplate is null)
+    {
+        await _context.PlanTemplates.AddAsync(personalTemplate);
+    }
+    else
+    {
+        existingPersonalTemplate.Description = personalTemplate.Description;
+        existingPersonalTemplate.IsPublic = personalTemplate.IsPublic;
+        existingPersonalTemplate.SourcePlanId = personalTemplate.SourcePlanId;
+        existingPersonalTemplate.Payload = personalTemplate.Payload;
+    }
+
     await _context.SaveChangesAsync();
 }
 
@@ -243,6 +315,42 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
         await SeedPlanTemplatesAsync(user);
     }
 
+    public async Task<IsolatedSeedResult> SeedIsolatedAsync(string runTag, bool overwrite = false)
+    {
+        var normalizedTag = NormalizeRunTag(runTag);
+        var sandboxUserName = $"tk_demo_{normalizedTag}";
+        var sandboxEmail = $"{sandboxUserName}@smartstudy.dev";
+
+        var seedData = await LoadSeedDataAsync();
+        if (seedData is null) throw new FileNotFoundException($"Không tìm thấy {SeedDataPath}");
+
+        var user = await _userManager.FindByNameAsync(sandboxUserName);
+        if (user == null)
+        {
+            user = await CreateDemoUserAsync(sandboxUserName, sandboxEmail, $"Demo Luận văn ({normalizedTag})");
+        }
+        else if (overwrite)
+        {
+            await ClearUserDomainDataAsync(user.Id);
+        }
+        else
+        {
+            var hasExistingPlan = await _context.StudyPlans.AnyAsync(x => x.UserId == user.Id);
+            if (hasExistingPlan)
+            {
+                return new IsolatedSeedResult(user.Id, user.UserName ?? sandboxUserName, sandboxEmail, normalizedTag, false, "Sandbox đã có dữ liệu. Dùng overwrite=true để seed lại.");
+            }
+        }
+
+        var plan = await CreateStudyPlanAsync(user.Id, seedData.StudyPlan);
+        foreach (var courseData in seedData.Courses)
+        {
+            await CreateCourseWithDataAsync(user, plan, courseData);
+        }
+
+        return new IsolatedSeedResult(user.Id, user.UserName ?? sandboxUserName, sandboxEmail, normalizedTag, true, "Seed sandbox thành công và không ảnh hưởng dữ liệu user khác.");
+    }
+
     // ── LOAD JSON ──────────────────────────────────────────────────
     private static async Task<SeedDataDto?> LoadSeedDataAsync()
     {
@@ -257,11 +365,16 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
     // ── USER ───────────────────────────────────────────────────────
     private async Task<User> CreateDemoUserAsync()
     {
+        return await CreateDemoUserAsync(DemoUserName, "demo@smartstudy.app", "Nguyễn Văn Demo");
+    }
+
+    private async Task<User> CreateDemoUserAsync(string userName, string email, string fullName)
+    {
         var user = new User
         {
-            UserName = DemoUserName,
-            Email = "demo@smartstudy.app",
-            FullName = "Nguyễn Văn Demo",
+            UserName = userName,
+            Email = email,
+            FullName = fullName,
             EmailConfirmed = true,
             StudentInfo = new StudentInfo
             {
@@ -277,6 +390,53 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
 
         await _userManager.AddToRoleAsync(user, "Student");
         return user;
+    }
+
+    private async Task ClearUserDomainDataAsync(int userId)
+    {
+        var planIds = await _context.StudyPlans
+            .Where(x => x.UserId == userId)
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        var courseIds = await _context.Courses
+            .Where(x => planIds.Contains(x.StudyPlanId))
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        var taskIds = await _context.Tasks
+            .Where(x => x.UserId == userId || (x.CourseId.HasValue && courseIds.Contains(x.CourseId.Value)))
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        var routineIds = await _context.Routines
+            .Where(x => x.UserId == userId || (x.CourseId.HasValue && courseIds.Contains(x.CourseId.Value)))
+            .Select(x => x.Id)
+            .ToListAsync();
+
+        await _context.Logs.Where(x => taskIds.Contains(x.TaskId)).ExecuteDeleteAsync();
+        await _context.Schedules.Where(x => x.RoutineId.HasValue && routineIds.Contains(x.RoutineId.Value)).ExecuteDeleteAsync();
+        await _context.Tasks.Where(x => taskIds.Contains(x.Id)).ExecuteDeleteAsync();
+        await _context.Routines.Where(x => routineIds.Contains(x.Id)).ExecuteDeleteAsync();
+        await _context.TimelineEvents.Where(x => courseIds.Contains(x.CourseId)).ExecuteDeleteAsync();
+        await _context.Courses.Where(x => courseIds.Contains(x.Id)).ExecuteDeleteAsync();
+        await _context.StudyPlans.Where(x => planIds.Contains(x.Id)).ExecuteDeleteAsync();
+    }
+
+    private static string NormalizeRunTag(string runTag)
+    {
+        if (string.IsNullOrWhiteSpace(runTag))
+        {
+            return "thesis";
+        }
+
+        var normalized = new string(runTag
+            .Trim()
+            .ToLowerInvariant()
+            .Where(char.IsLetterOrDigit)
+            .ToArray());
+
+        return string.IsNullOrWhiteSpace(normalized) ? "thesis" : normalized;
     }
 
     // ── STUDY PLAN ─────────────────────────────────────────────────
@@ -472,4 +632,13 @@ internal record SeedLogDto(
     string ComprehensionLevel,
     string DifficultyLevel,
     string? Note
+);
+
+public record IsolatedSeedResult(
+    int UserId,
+    string UserName,
+    string Email,
+    string RunTag,
+    bool Seeded,
+    string Message
 );

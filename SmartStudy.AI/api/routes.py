@@ -1,11 +1,10 @@
 import os
 
-from fastapi import APIRouter, HTTPException, Header, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Header
 from fastapi.responses import StreamingResponse
-from models.schemas import IngestRequest, ChatRequest, EmbedGraphRequest
+from models.schemas import IngestRequest, ChatRequest
 from services.rag_ingestion import parse_document, split_chunks, run_indexing, delete_asset_chunks
 from services.agent_engine import stream_chat_generator
-from services.graph_embedding import process_node_embeddings
 from core.config import logger
 
 router = APIRouter()
@@ -66,10 +65,4 @@ async def chat_with_ai(request: ChatRequest, x_internal_service_key: str = Heade
         stream_chat_generator(request),
         media_type="text/event-stream"
     )
-
-@router.post("/graph/embedding")
-async def embedding_graph(request: EmbedGraphRequest, background_task: BackgroundTasks):
-    """Embedding các node của graph"""
-    background_task.add_task(process_node_embeddings,request.label,request.pg_ids)
-    return {"status": "processing", "message": f"Đang 'nén' {len(request.pg_ids)} {request.label}..."}
         

@@ -26,7 +26,7 @@ if not GEMINI_API_KEY:
 
 primary_llm = ChatOpenAI(
     api_key=OPEN_ROUTER_API_KEY,
-    model="minimax/minimax-m2.5:free",
+    model="z-ai/glm-4.5-air:free",
     openai_api_base="https://openrouter.ai/api/v1",
     temperature=0.1,
     streaming=True

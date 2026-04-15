@@ -51,14 +51,9 @@ namespace SmartStudy.Server.Entities
             }
         }
 
-        public GraphSyncScopeType GetSyncScope()
+        public GraphSyncEntityType GetGraphSyncEntityType()
         {
-            return GraphSyncScopeType.CourseRoutinesAndTasks;
+            return GraphSyncEntityType.Task;
         }
-
-        public int? GetRootId()
-         {
-             return CourseId;
-         }
     }
 }

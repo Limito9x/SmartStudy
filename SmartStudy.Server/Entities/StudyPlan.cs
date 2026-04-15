@@ -21,13 +21,9 @@ namespace SmartStudy.Server.Entities
         public int? YearId { get; set; }
         public AcademicYear? Year { get; set; }
 
-        public GraphSyncScopeType GetSyncScope()
+        public GraphSyncEntityType GetGraphSyncEntityType()
         {
-            return GraphSyncScopeType.UserStudyPlans;
-        }
-        public int? GetRootId()
-        {
-            return UserId;
+            return GraphSyncEntityType.StudyPlan;
         }
     }
 }

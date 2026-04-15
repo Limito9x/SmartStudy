@@ -1,6 +1,6 @@
-{
+﻿{
   "studyPlan": {
-    "name": "HK2 2025-2026",
+    "name": "HK 2 2025-2026",
     "startDate": "2025-01-06",
     "endDate": "2025-05-31",
     "academicTermId": 2,
@@ -8,32 +8,33 @@
   },
   "courses": [
     {
-      "name": "Graph Theory",
-      "goal": "Hiểu vững lý thuyết đồ thị, target B+",
+      "name": "Cấu trúc dữ liệu và giải thuật",
+      "goal": "Nắm chắc nền tảng giải thuật, target B+",
       "status": "Enrolled",
-      "color": "#4F46E5",
+      "color": "#1D4ED8",
       "targetScore": 8.0,
-      "comment": "Case 1 — Tiến bộ rõ rệt theo thời gian",
+      "comment": "Theo dõi tiến bộ qua 4 tuần ôn tập có cấu trúc",
       "routines": [
         {
-          "referenceId": "GT-R1",
-          "name": "Buổi học lý thuyết",
+          "referenceId": "DSA-R1",
+          "name": "Buổi học trên lớp",
           "type": "ClassSession",
-          "instructor": "TS. Nguyễn Văn A",
+          "instructor": null,
           "schedule": {
             "dayOfWeek": "Monday",
             "startTime": "07:30",
             "duration": 90,
-            "location": "B4-301"
+            "location": null
           }
         },
         {
-          "referenceId": "GT-R2",
-          "name": "Buổi tự học Graph Theory",
+          "referenceId": "DSA-R2",
+          "name": "Luyện bài tập thuật toán",
           "type": "SelfStudy",
+          "instructor": null,
           "schedule": {
             "dayOfWeek": "Wednesday",
-            "startTime": "19:00",
+            "startTime": "19:30",
             "duration": 90,
             "location": null
           }
@@ -41,355 +42,175 @@
       ],
       "weeks": [
         {
-          "weekName": "Tuần 1 — Khởi đầu nan",
+          "weekName": "Tuần 1 - Củng cố nền tảng",
           "tasks": [
             {
-              "name": "Học lý thuyết Chương 1 — Graph cơ bản",
+              "name": "Học lý thuyết danh sách liên kết",
               "type": "ClassSession",
-              "routineRef": "GT-R1",
+              "routineRef": "DSA-R1",
               "dayOffset": -28,
-              "startTime": "07:30",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 70,
-                "comprehensionLevel": "Basic",
-                "difficultyLevel": "Hard",
-                "note": "Khó hiểu phần BFS, giảng viên nói nhanh. Cần xem lại."
-              }
-            },
-            {
-              "name": "Tự ôn BFS/DFS qua Youtube",
-              "type": "SelfStudy",
-              "routineRef": "GT-R2",
-              "dayOffset": -26,
-              "startTime": "19:00",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 120,
-                "comprehensionLevel": "Basic",
-                "difficultyLevel": "Hard",
-                "note": "Xem 3 video mới hiểu sơ. Vẫn còn mơ hồ phần DFS recursion."
-              }
-            }
-          ]
-        },
-        {
-          "weekName": "Tuần 2 — Bắt đầu có hướng",
-          "tasks": [
-            {
-              "name": "Học lý thuyết Chương 2 — Shortest Path",
-              "type": "ClassSession",
-              "routineRef": "GT-R1",
-              "dayOffset": -21,
               "startTime": "07:30",
               "plannedDuration": 90,
               "status": "Completed",
               "log": {
                 "actualDuration": 85,
-                "comprehensionLevel": "Intermediate",
+                "comprehensionLevel": "Basic",
                 "difficultyLevel": "Medium",
-                "note": "Dijkstra hiểu được rồi. Bellman-Ford còn hơi lơ mơ."
+                "note": "Hiểu phần cấu trúc dữ liệu cơ bản, cần luyện thêm bài insert/delete."
               }
             },
             {
-              "name": "Làm bài tập Dijkstra",
+              "name": "Luyện 6 bài stack và queue",
               "type": "SelfStudy",
-              "routineRef": "GT-R2",
+              "routineRef": "DSA-R2",
+              "dayOffset": -26,
+              "startTime": "19:30",
+              "plannedDuration": 90,
+              "status": "Completed",
+              "log": {
+                "actualDuration": 95,
+                "comprehensionLevel": "Intermediate",
+                "difficultyLevel": "Medium",
+                "note": "Làm đúng 5/6 bài, còn sai edge case ở bài queue vòng."
+              }
+            }
+          ]
+        },
+        {
+          "weekName": "Tuần 2 - Thuật toán đồ thị cơ bản",
+          "tasks": [
+            {
+              "name": "Học BFS và DFS",
+              "type": "ClassSession",
+              "routineRef": "DSA-R1",
+              "dayOffset": -21,
+              "startTime": "07:30",
+              "plannedDuration": 90,
+              "status": "Completed",
+              "log": {
+                "actualDuration": 90,
+                "comprehensionLevel": "Intermediate",
+                "difficultyLevel": "Hard",
+                "note": "Đã hiểu mô hình duyệt nhưng cần luyện thêm recursion."
+              }
+            },
+            {
+              "name": "Code DFS đệ quy và không đệ quy",
+              "type": "SelfStudy",
+              "routineRef": "DSA-R2",
               "dayOffset": -19,
-              "startTime": "19:00",
+              "startTime": "19:30",
               "plannedDuration": 90,
               "status": "Completed",
               "log": {
                 "actualDuration": 100,
                 "comprehensionLevel": "Intermediate",
+                "difficultyLevel": "Hard",
+                "note": "Đã code chạy đúng, cần tối ưu xử lý visited cho đồ thị lớn."
+              }
+            }
+          ]
+        },
+        {
+          "weekName": "Tuần 3 - Tăng tốc luyện đề",
+          "tasks": [
+            {
+              "name": "Học quy hoạch động cơ bản",
+              "type": "ClassSession",
+              "routineRef": "DSA-R1",
+              "dayOffset": -14,
+              "startTime": "07:30",
+              "plannedDuration": 90,
+              "status": "Completed",
+              "log": {
+                "actualDuration": 90,
+                "comprehensionLevel": "Intermediate",
                 "difficultyLevel": "Medium",
-                "note": "Làm được 6/8 bài. 2 bài weighted graph còn sai."
+                "note": "Nắm được tư duy chia bài toán con, cần luyện bài khó hơn."
               }
             },
             {
-              "name": "Ôn tập Chương 1+2 trước bài tập lớn",
+              "name": "Giải 4 bài DP mức trung bình",
               "type": "SelfStudy",
+              "routineRef": "DSA-R2",
+              "dayOffset": -12,
+              "startTime": "19:30",
+              "plannedDuration": 90,
+              "status": "Completed",
+              "log": {
+                "actualDuration": 85,
+                "comprehensionLevel": "Advanced",
+                "difficultyLevel": "Medium",
+                "note": "Hoàn thành đủ 4 bài, tối ưu tốt hơn tuần trước."
+              }
+            }
+          ]
+        },
+        {
+          "weekName": "Tuần 4 - Ổn định trước kiểm tra",
+          "tasks": [
+            {
+              "name": "Ôn tập tổng hợp trước quiz",
+              "type": "Review",
               "routineRef": null,
-              "dayOffset": -17,
+              "dayOffset": -7,
               "startTime": "20:00",
               "plannedDuration": 60,
               "status": "Completed",
               "log": {
-                "actualDuration": 55,
-                "comprehensionLevel": "Intermediate",
+                "actualDuration": 70,
+                "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Easy",
-                "note": "Ôn lại nhanh, thấy rõ hơn rồi."
-              }
-            }
-          ]
-        },
-        {
-          "weekName": "Tuần 3 — Tiến bộ rõ",
-          "tasks": [
-            {
-              "name": "Học lý thuyết Chương 3 — Spanning Tree",
-              "type": "ClassSession",
-              "routineRef": "GT-R1",
-              "dayOffset": -14,
-              "startTime": "07:30",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 90,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Kruskal và Prim hiểu tốt hơn tuần trước nhiều."
+                "note": "Tự tin hơn, điểm thử đạt 8/10."
               }
             },
             {
-              "name": "Code thuật toán Kruskal",
+              "name": "Làm đề tổng hợp 60 phút",
               "type": "SelfStudy",
-              "routineRef": "GT-R2",
-              "dayOffset": -12,
-              "startTime": "19:00",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 95,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Medium",
-                "note": "Code xong, test pass hết. Cảm giác hiểu thật sự rồi."
-              }
-            }
-          ]
-        },
-        {
-          "weekName": "Tuần 4 — Vững vàng",
-          "tasks": [
-            {
-              "name": "Học lý thuyết Chương 4 — Network Flow",
-              "type": "ClassSession",
-              "routineRef": "GT-R1",
-              "dayOffset": -7,
-              "startTime": "07:30",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 90,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Easy",
-                "note": "Hiểu nhanh vì nền tảng từ các tuần trước đã chắc."
-              }
-            },
-            {
-              "name": "Làm đề cương ôn thi",
-              "type": "SelfStudy",
-              "routineRef": "GT-R2",
+              "routineRef": "DSA-R2",
               "dayOffset": -5,
-              "startTime": "19:00",
-              "plannedDuration": 120,
+              "startTime": "19:30",
+              "plannedDuration": 90,
               "status": "Completed",
               "log": {
-                "actualDuration": 110,
+                "actualDuration": 80,
                 "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Easy",
-                "note": "Tổng hợp xong. Tự tin vào thi rồi, target B+ trong tầm tay."
+                "difficultyLevel": "Medium",
+                "note": "Hoàn thành 85% đề, còn sai 1 bài DP."
               }
             }
           ]
         }
       ]
     },
-
     {
-      "name": "IELTS Preparation",
-      "goal": "Đạt IELTS 6.5 trước tháng 6/2025",
+      "name": "Cơ sở dữ liệu nâng cao",
+      "goal": "Thiết kế schema tốt và tối ưu SQL thực tế",
       "status": "Enrolled",
-      "color": "#0891B2",
-      "targetScore": 6.5,
-      "comment": "Case 2 — Sa sút dần do áp lực luận văn",
+      "color": "#0F766E",
+      "targetScore": 8.5,
+      "comment": "Dữ liệu mô phỏng quá trình học đều, có vài buổi bị trễ tiến độ",
       "routines": [
         {
-          "referenceId": "IE-R1",
-          "name": "Luyện Listening hàng ngày",
-          "type": "SelfStudy",
+          "referenceId": "DB-R1",
+          "name": "Thực hành SQL trên lớp",
+          "type": "ClassSession",
+          "instructor": null,
           "schedule": {
             "dayOfWeek": "Tuesday",
-            "startTime": "06:30",
-            "duration": 45,
+            "startTime": "13:30",
+            "duration": 90,
             "location": null
           }
         },
         {
-          "referenceId": "IE-R2",
-          "name": "Luyện Writing cuối tuần",
-          "type": "SelfStudy",
+          "referenceId": "DB-R2",
+          "name": "Ôn truy vấn và index",
+          "type": "Review",
+          "instructor": null,
           "schedule": {
             "dayOfWeek": "Saturday",
             "startTime": "09:00",
-            "duration": 60,
-            "location": null
-          }
-        }
-      ],
-      "weeks": [
-        {
-          "weekName": "Tuần 1 — Hăng hái đầu kỳ",
-          "tasks": [
-            {
-              "name": "Luyện Listening Section 1+2",
-              "type": "SelfStudy",
-              "routineRef": "IE-R1",
-              "dayOffset": -28,
-              "startTime": "06:30",
-              "plannedDuration": 45,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 50,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Nghe được 28/40. Cần cải thiện Section 3."
-              }
-            },
-            {
-              "name": "Viết Writing Task 2 — Education topic",
-              "type": "SelfStudy",
-              "routineRef": "IE-R2",
-              "dayOffset": -24,
-              "startTime": "09:00",
-              "plannedDuration": 60,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 65,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Viết xong essay 280 từ. Vocabulary còn hạn chế."
-              }
-            }
-          ]
-        },
-        {
-          "weekName": "Tuần 2 — Bắt đầu xao nhãng",
-          "tasks": [
-            {
-              "name": "Luyện Listening Section 3+4",
-              "type": "SelfStudy",
-              "routineRef": "IE-R1",
-              "dayOffset": -21,
-              "startTime": "06:30",
-              "plannedDuration": 45,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 30,
-                "comprehensionLevel": "Basic",
-                "difficultyLevel": "Hard",
-                "note": "Chỉ làm được 30 phút rồi buồn ngủ. Section 4 quá khó."
-              }
-            },
-            {
-              "name": "Viết Writing Task 1 — Graph description",
-              "type": "SelfStudy",
-              "routineRef": "IE-R2",
-              "dayOffset": -17,
-              "startTime": "09:00",
-              "plannedDuration": 60,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 40,
-                "comprehensionLevel": "Basic",
-                "difficultyLevel": "Hard",
-                "note": "Mất 40 phút mới ra được outline. Áp lực luận văn làm khó tập trung."
-              }
-            }
-          ]
-        },
-        {
-          "weekName": "Tuần 3 — Sa sút rõ",
-          "tasks": [
-            {
-              "name": "Luyện Listening mock test",
-              "type": "SelfStudy",
-              "routineRef": "IE-R1",
-              "dayOffset": -14,
-              "startTime": "06:30",
-              "plannedDuration": 45,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 20,
-                "comprehensionLevel": "Basic",
-                "difficultyLevel": "Hard",
-                "note": "Chỉ làm 20 phút rồi bỏ. Đầu óc để hết vào luận văn."
-              }
-            },
-            {
-              "name": "Viết Writing Task 2",
-              "type": "SelfStudy",
-              "routineRef": "IE-R2",
-              "dayOffset": -10,
-              "startTime": "09:00",
-              "plannedDuration": 60,
-              "status": "Cancelled",
-              "log": null
-            }
-          ]
-        },
-        {
-          "weekName": "Tuần 4 — Gần như bỏ cuộc",
-          "tasks": [
-            {
-              "name": "Luyện Listening",
-              "type": "SelfStudy",
-              "routineRef": "IE-R1",
-              "dayOffset": -7,
-              "startTime": "06:30",
-              "plannedDuration": 45,
-              "status": "Cancelled",
-              "log": null
-            },
-            {
-              "name": "Ôn vocabulary band 6.0",
-              "type": "SelfStudy",
-              "routineRef": null,
-              "dayOffset": -5,
-              "startTime": "21:00",
-              "plannedDuration": 30,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 15,
-                "comprehensionLevel": "None",
-                "difficultyLevel": "Easy",
-                "note": "Chỉ học được 15 phút. Mệt quá. Cần sắp xếp lại ưu tiên."
-              }
-            }
-          ]
-        }
-      ]
-    },
-
-    {
-      "name": "Luận văn tốt nghiệp KTPM",
-      "goal": "Hoàn thành đúng tiến độ, bảo vệ tháng 5/2025",
-      "status": "Enrolled",
-      "color": "#7C3AED",
-      "targetScore": 9.0,
-      "comment": "Case 3 — Ổn định nhưng hay bị trễ deadline nhỏ",
-      "routines": [
-        {
-          "referenceId": "LV-R1",
-          "name": "Gặp GVHD hàng tuần",
-          "type": "Meeting",
-          "instructor": "TS. Trần Thị B",
-          "schedule": {
-            "dayOfWeek": "Friday",
-            "startTime": "13:30",
-            "duration": 60,
-            "location": "Phòng GV B2-205"
-          }
-        },
-        {
-          "referenceId": "LV-R2",
-          "name": "Viết luận văn buổi tối",
-          "type": "SelfStudy",
-          "schedule": {
-            "dayOfWeek": "Thursday",
-            "startTime": "20:00",
             "duration": 120,
             "location": null
           }
@@ -397,141 +218,136 @@
       ],
       "weeks": [
         {
-          "weekName": "Tuần 1 — Viết chương 1",
+          "weekName": "Tuần 1 - Thiết kế schema",
           "tasks": [
             {
-              "name": "Gặp GVHD — thống nhất đề cương",
-              "type": "Meeting",
-              "routineRef": "LV-R1",
-              "dayOffset": -28,
+              "name": "Học chuẩn hóa dữ liệu",
+              "type": "ClassSession",
+              "routineRef": "DB-R1",
+              "dayOffset": -27,
               "startTime": "13:30",
-              "plannedDuration": 60,
+              "plannedDuration": 90,
               "status": "Completed",
               "log": {
-                "actualDuration": 75,
+                "actualDuration": 95,
                 "comprehensionLevel": "Intermediate",
                 "difficultyLevel": "Medium",
-                "note": "Thầy yêu cầu bổ sung thêm phần related work. Deadline nộp chương 1: tuần sau."
+                "note": "Đã nắm được 1NF-3NF, cần luyện bài thiết kế thực tế."
               }
             },
             {
-              "name": "Viết chương 1 — Giới thiệu",
-              "type": "SelfStudy",
-              "routineRef": "LV-R2",
+              "name": "Thiết kế ERD cho bài tập nhóm",
+              "type": "Review",
+              "routineRef": "DB-R2",
               "dayOffset": -25,
-              "startTime": "20:00",
+              "startTime": "09:00",
               "plannedDuration": 120,
               "status": "Completed",
               "log": {
                 "actualDuration": 130,
                 "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Viết được 800 từ. Cần polish lại phần motivation."
+                "difficultyLevel": "Hard",
+                "note": "ERD ổn nhưng còn thiếu quan hệ phụ."
               }
             }
           ]
         },
         {
-          "weekName": "Tuần 2 — Viết chương 2",
+          "weekName": "Tuần 2 - Truy vấn nâng cao",
           "tasks": [
             {
-              "name": "Gặp GVHD — review chương 1",
-              "type": "Meeting",
-              "routineRef": "LV-R1",
-              "dayOffset": -21,
+              "name": "Học subquery và CTE",
+              "type": "ClassSession",
+              "routineRef": "DB-R1",
+              "dayOffset": -20,
               "startTime": "13:30",
-              "plannedDuration": 60,
+              "plannedDuration": 90,
               "status": "Completed",
               "log": {
-                "actualDuration": 60,
+                "actualDuration": 90,
                 "comprehensionLevel": "Intermediate",
                 "difficultyLevel": "Medium",
-                "note": "Thầy ok chương 1, bắt đầu viết chương 2 — Cơ sở lý thuyết."
+                "note": "Hiểu CTE, vẫn hay nhầm correlated subquery."
               }
             },
             {
-              "name": "Viết chương 2 — Cơ sở lý thuyết",
-              "type": "SelfStudy",
-              "routineRef": "LV-R2",
+              "name": "Luyện 10 truy vấn join phức tạp",
+              "type": "Review",
+              "routineRef": "DB-R2",
               "dayOffset": -18,
-              "startTime": "20:00",
+              "startTime": "09:00",
               "plannedDuration": 120,
               "status": "Completed",
               "log": {
-                "actualDuration": 150,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Hard",
-                "note": "Phần lý thuyết về Semantic Kernel khó tóm tắt. Viết được 1200 từ."
+                "actualDuration": 105,
+                "comprehensionLevel": "Intermediate",
+                "difficultyLevel": "Medium",
+                "note": "Hoàn thành 8/10 truy vấn đúng kết quả."
               }
             }
           ]
         },
         {
-          "weekName": "Tuần 3 — Implement tính năng chính",
+          "weekName": "Tuần 3 - Tối ưu hiệu năng",
           "tasks": [
             {
-              "name": "Gặp GVHD — demo prototype",
-              "type": "Meeting",
-              "routineRef": "LV-R1",
-              "dayOffset": -14,
+              "name": "Học index và execution plan",
+              "type": "ClassSession",
+              "routineRef": "DB-R1",
+              "dayOffset": -13,
               "startTime": "13:30",
-              "plannedDuration": 60,
+              "plannedDuration": 90,
               "status": "Completed",
               "log": {
                 "actualDuration": 90,
                 "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Medium",
-                "note": "Demo được 3/5 tính năng. Thầy hài lòng nhưng yêu cầu thêm seed data."
+                "note": "Đọc execution plan tốt hơn, hiểu vì sao query bị full scan."
               }
             },
             {
-              "name": "Code tính năng AI Chat",
-              "type": "SelfStudy",
-              "routineRef": "LV-R2",
+              "name": "Tối ưu 3 truy vấn chậm",
+              "type": "Review",
+              "routineRef": "DB-R2",
               "dayOffset": -11,
-              "startTime": "20:00",
+              "startTime": "09:00",
               "plannedDuration": 120,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 180,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Hard",
-                "note": "Streaming SSE cuối cùng cũng chạy được. Mất 3h nhưng xứng đáng."
-              }
+              "status": "Cancelled",
+              "log": null
             }
           ]
         },
         {
-          "weekName": "Tuần 4 — Chuẩn bị báo cáo tiến độ",
+          "weekName": "Tuần 4 - Hoàn thiện",
           "tasks": [
             {
-              "name": "Gặp GVHD — báo cáo tiến độ",
-              "type": "Meeting",
-              "routineRef": "LV-R1",
-              "dayOffset": -7,
-              "startTime": "13:30",
-              "plannedDuration": 60,
-              "status": "Completed",
-              "log": {
-                "actualDuration": 70,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Thầy yêu cầu làm rõ thêm phần Subject master data và template. Áp lực."
-              }
-            },
-            {
-              "name": "Viết chương 3 — Thiết kế hệ thống",
-              "type": "SelfStudy",
-              "routineRef": "LV-R2",
-              "dayOffset": -4,
-              "startTime": "20:00",
+              "name": "Làm đề thực hành cuối kỳ",
+              "type": "Review",
+              "routineRef": "DB-R2",
+              "dayOffset": -6,
+              "startTime": "09:00",
               "plannedDuration": 120,
               "status": "Completed",
               "log": {
-                "actualDuration": 100,
-                "comprehensionLevel": "Intermediate",
+                "actualDuration": 115,
+                "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Medium",
-                "note": "Viết được ERD và use case diagram. Còn thiếu sequence diagram."
+                "note": "Kết quả khá tốt, cần chú ý thêm phần transaction isolation."
+              }
+            },
+            {
+              "name": "Checklist chuẩn bị kiểm tra",
+              "type": "Review",
+              "routineRef": null,
+              "dayOffset": -4,
+              "startTime": "20:00",
+              "plannedDuration": 45,
+              "status": "Completed",
+              "log": {
+                "actualDuration": 40,
+                "comprehensionLevel": "Advanced",
+                "difficultyLevel": "Easy",
+                "note": "Đã tổng hợp đầy đủ tài liệu ôn tập."
               }
             }
           ]

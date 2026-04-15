@@ -4,12 +4,27 @@ import {
   AlertTriangle,
   CheckCircle2,
   Download,
+  Eye,
   ExternalLink,
   FileText,
   Image as ImageIcon,
   Link as LinkIcon,
   Loader2,
+  MoreHorizontal,
+  Trash2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface AssetItemData {
   id?: number | string;
@@ -27,6 +42,7 @@ interface AssetItemProps {
   showSourceName?: boolean;
   compact?: boolean;
   onPreview?: (asset: { url: string; fileName: string }) => void;
+  onDelete?: (asset: AssetItemData) => void;
 }
 
 export default function AssetItem({
@@ -34,6 +50,7 @@ export default function AssetItem({
   showSourceName = false,
   compact = false,
   onPreview,
+  onDelete,
 }: AssetItemProps) {
   const fileName = asset.fileName || "Tệp đính kèm";
   const fileUrl = asset.url;
@@ -57,7 +74,7 @@ export default function AssetItem({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border bg-card",
+        "@container/asset flex items-center gap-3 rounded-xl border bg-card",
         compact ? "p-3" : "p-3.5",
       )}
     >
@@ -98,33 +115,58 @@ export default function AssetItem({
             </div>
           </div>
 
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className="inline-flex h-8 items-center justify-center rounded-md px-2 text-xs text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              onClick={handlePreview}
-              disabled={!fileUrl}
-            >
-              Mở xem
-            </button>
-            <a
-              href={fileUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              aria-label="Mở tab mới"
-            >
-              <ExternalLink size={14} />
-            </a>
-            <a
-              href={fileUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              aria-label="Tải xuống"
-            >
-              <Download size={14} />
-            </a>
+          <div className="flex items-center gap-0.5 @sm/asset:gap-1">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    onClick={handlePreview}
+                    disabled={!fileUrl}
+                    aria-label="Xem trước"
+                  >
+                    <Eye size={14} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top">Xem trước</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  aria-label="Thao tác khác"
+                >
+                  <MoreHorizontal size={14} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild disabled={!fileUrl}>
+                  <a href={fileUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink size={14} />
+                    Mở trang khác
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild disabled={!fileUrl}>
+                  <a href={fileUrl} target="_blank" rel="noreferrer" download>
+                    <Download size={14} />
+                    Tải xuống
+                  </a>
+                </DropdownMenuItem>
+                {onDelete && asset.id !== undefined && asset.id !== null ? (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => onDelete(asset)}
+                  >
+                    <Trash2 size={14} />
+                    Xóa
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

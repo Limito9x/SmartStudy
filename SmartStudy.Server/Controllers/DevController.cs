@@ -52,6 +52,18 @@ public class DevController : ControllerBase
         await _meaningfulSeeder.SeedAsync();
         return Ok(new { message = "Meaningful data seeded successfully" });
     }
+
+    // POST /api/dev/seed-meaningful-isolated?runTag=thesis1&overwrite=true
+    // Tạo dataset meaningful riêng cho sandbox user, không reset DB tổng.
+    [HttpPost("seed-meaningful-isolated")]
+    public async Task<IActionResult> SeedMeaningfulIsolated([FromQuery] string runTag = "thesis", [FromQuery] bool overwrite = false)
+    {
+        if (!_env.IsDevelopment())
+            return Forbid();
+
+        var result = await _meaningfulSeeder.SeedIsolatedAsync(runTag, overwrite);
+        return Ok(result);
+    }
     
 
     // POST /api/dev/reset — xóa sạch rồi seed lại

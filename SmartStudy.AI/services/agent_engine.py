@@ -14,7 +14,7 @@ async def stream_chat_generator(request: ChatRequest) -> AsyncGenerator[str, Non
     try:
         asset_ids = await get_allowed_asset_ids(request.user_id, request.course_id)
 
-        tools = build_tools(asset_ids)
+        tools = build_tools(asset_ids, request.user_id, request.course_id)
 
         app = create_agent(
             model=llm, 

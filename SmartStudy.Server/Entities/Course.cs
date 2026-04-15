@@ -20,13 +20,9 @@ namespace SmartStudy.Server.Entities
         public ICollection<Routine>? Routines { get; set; } = new List<Routine>();
         public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
 
-        public GraphSyncScopeType GetSyncScope()
+        public GraphSyncEntityType GetGraphSyncEntityType()
         {
-            return GraphSyncScopeType.StudyPlanCourses;
-        }
-        public int? GetRootId()
-        {
-            return StudyPlanId;
+            return GraphSyncEntityType.Course;
         }
     }
 }

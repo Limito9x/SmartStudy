@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Neo4j.Driver;
 using SmartStudy.Server.Data;
+using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Integrations.Neo4j
 {
@@ -15,7 +16,7 @@ namespace SmartStudy.Server.Integrations.Neo4j
             _driver = driver;
         }
 
-        public async Task SyncStudyPlanScopeAsync(int userId)
+        public async Task SyncUserAsync(int userId)
         {
             var user = await _dbContext.Users
                 .AsNoTracking()
@@ -24,177 +25,154 @@ namespace SmartStudy.Server.Integrations.Neo4j
                 {
                     u.Id,
                     u.FullName,
-                    u.Email
+                    u.CreatedAt
                 })
                 .FirstOrDefaultAsync();
 
             if (user == null)
             {
+                await DeleteUserAsync(userId);
                 return;
             }
 
-            var studyPlanRows = await _dbContext.StudyPlans
+            var query = @"
+MERGE (u:User {pg_id: $pg_id})
+SET u.full_name = $full_name,
+    u.created_at = CASE WHEN u.created_at IS NULL THEN datetime($created_at) ELSE u.created_at END,
+    u.updated_at = datetime()
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = user.Id.ToString(),
+                ["full_name"] = user.FullName,
+                ["created_at"] = ToIso(user.CreatedAt)
+            });
+        }
+
+        public async Task SyncStudyPlanAsync(int studyPlanId)
+        {
+            var studyPlan = await _dbContext.StudyPlans
                 .AsNoTracking()
-                .Where(sp => sp.UserId == userId && sp.DeletedAt == null)
+                .Where(sp => sp.Id == studyPlanId)
                 .Select(sp => new
                 {
                     sp.Id,
+                    sp.UserId,
                     sp.Name,
                     Status = sp.Status.ToString(),
                     Type = sp.Type.ToString(),
                     sp.StartDate,
                     sp.EndDate,
                     sp.CreatedAt,
-                    sp.UpdatedAt
+                    sp.UpdatedAt,
+                    UserFullName = sp.User != null ? sp.User.FullName : null
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            var studyPlans = studyPlanRows
-                .Select(sp => new Dictionary<string, object?>
-                {
-                    ["pg_id"] = sp.Id.ToString(),
-                    ["name"] = sp.Name,
-                    ["status"] = sp.Status,
-                    ["type"] = sp.Type,
-                    ["start_date"] = sp.StartDate.ToUniversalTime().ToString("O"),
-                    ["end_date"] = sp.EndDate.HasValue ? sp.EndDate.Value.ToUniversalTime().ToString("O") : null,
-                    ["created_at"] = sp.CreatedAt.ToUniversalTime().ToString("O"),
-                    ["updated_at"] = sp.UpdatedAt.HasValue ? sp.UpdatedAt.Value.ToUniversalTime().ToString("O") : null
-                })
-                .ToList();
+            if (studyPlan == null)
+            {
+                await DeleteStudyPlanAsync(studyPlanId);
+                return;
+            }
 
             var query = @"
 MERGE (u:User {pg_id: $user_pg_id})
-ON CREATE SET u.created_at = datetime()
-SET u.full_name = $full_name,
-    u.email = $email,
+SET u.full_name = CASE WHEN $user_full_name IS NULL THEN u.full_name ELSE $user_full_name END,
     u.updated_at = datetime()
-WITH u
-OPTIONAL MATCH (u)-[old:OWNS_PLAN]->(:StudyPlan)
+MERGE (sp:StudyPlan {pg_id: $pg_id})
+SET sp.name = $name,
+    sp.status = $status,
+    sp.type = $type,
+    sp.start_date = datetime($start_date),
+    sp.end_date = CASE WHEN $end_date IS NULL THEN NULL ELSE datetime($end_date) END,
+    sp.created_at = CASE WHEN sp.created_at IS NULL THEN datetime($created_at) ELSE sp.created_at END,
+    sp.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH u, sp
+OPTIONAL MATCH (:User)-[old:OWNS_PLAN]->(sp)
 DELETE old
-WITH u
-UNWIND $study_plans AS row
-MERGE (sp:StudyPlan {pg_id: row.pg_id})
-SET sp.name = row.name,
-    sp.status = row.status,
-    sp.type = row.type,
-    sp.start_date = datetime(row.start_date),
-    sp.end_date = CASE WHEN row.end_date IS NULL THEN NULL ELSE datetime(row.end_date) END,
-    sp.created_at = CASE WHEN row.created_at IS NULL THEN sp.created_at ELSE datetime(row.created_at) END,
-    sp.updated_at = CASE WHEN row.updated_at IS NULL THEN datetime() ELSE datetime(row.updated_at) END
 MERGE (u)-[:OWNS_PLAN]->(sp)
 ";
 
-            var parameters = new Dictionary<string, object?>
+            await ExecuteAsync(query, new Dictionary<string, object?>
             {
-                ["user_pg_id"] = user.Id.ToString(),
-                ["full_name"] = user.FullName,
-                ["email"] = user.Email,
-                ["study_plans"] = studyPlans
-            };
-
-            await using var session = _driver.AsyncSession();
-            await session.ExecuteWriteAsync(async tx =>
-            {
-                await tx.RunAsync(query, parameters);
+                ["pg_id"] = studyPlan.Id.ToString(),
+                ["user_pg_id"] = studyPlan.UserId.ToString(),
+                ["name"] = studyPlan.Name,
+                ["status"] = studyPlan.Status,
+                ["type"] = studyPlan.Type,
+                ["start_date"] = ToIso(studyPlan.StartDate),
+                ["end_date"] = ToIsoNullable(studyPlan.EndDate),
+                ["created_at"] = ToIso(studyPlan.CreatedAt),
+                ["updated_at"] = ToIsoNullable(studyPlan.UpdatedAt),
+                ["user_full_name"] = studyPlan.UserFullName
             });
         }
 
-        public async Task<List<int>> SyncCourseScopeAsync(int studyPlanId)
+        public async Task SyncCourseAsync(int courseId)
         {
-            var studyPlanExists = await _dbContext.StudyPlans
+            var course = await _dbContext.Courses
                 .AsNoTracking()
-                .AnyAsync(sp => sp.Id == studyPlanId && sp.DeletedAt == null);
-
-            if (!studyPlanExists)
-            {
-                return [];
-            }
-
-            var courseRows = await _dbContext.Courses
-                .AsNoTracking()
-                .Where(c => c.StudyPlanId == studyPlanId && c.DeletedAt == null)
+                .Where(c => c.Id == courseId)
                 .Select(c => new
                 {
                     c.Id,
+                    c.StudyPlanId,
                     c.Name,
                     Status = c.Status.ToString(),
-                    c.Color,
                     c.Goal,
                     c.TargetScore,
                     c.FinalScore,
                     c.CreatedAt,
                     c.UpdatedAt
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            var courses = courseRows
-                .Select(c => new Dictionary<string, object?>
-                {
-                    ["pg_id"] = c.Id.ToString(),
-                    ["name"] = c.Name,
-                    ["status"] = c.Status,
-                    ["color"] = c.Color,
-                    ["goal"] = c.Goal,
-                    ["target_score"] = c.TargetScore,
-                    ["final_score"] = c.FinalScore,
-                    ["created_at"] = c.CreatedAt.ToUniversalTime().ToString("O"),
-                    ["updated_at"] = c.UpdatedAt.HasValue ? c.UpdatedAt.Value.ToUniversalTime().ToString("O") : null
-                })
-                .ToList();
+            if (course == null)
+            {
+                await DeleteCourseAsync(courseId);
+                return;
+            }
 
             var query = @"
 MERGE (sp:StudyPlan {pg_id: $study_plan_pg_id})
-WITH sp
-OPTIONAL MATCH (sp)-[old:HAS_COURSE]->(:Course)
+MERGE (c:Course {pg_id: $pg_id})
+SET c.name = $name,
+    c.status = $status,
+    c.goal = $goal,
+    c.target_score = $target_score,
+    c.final_score = $final_score,
+    c.created_at = CASE WHEN c.created_at IS NULL THEN datetime($created_at) ELSE c.created_at END,
+    c.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH sp, c
+OPTIONAL MATCH (:StudyPlan)-[old:HAS_COURSE]->(c)
 DELETE old
-WITH sp
-UNWIND $courses AS row
-MERGE (c:Course {pg_id: row.pg_id})
-SET c.name = row.name,
-    c.status = row.status,
-    c.color = row.color,
-    c.goal = row.goal,
-    c.target_score = row.target_score,
-    c.final_score = row.final_score,
-    c.created_at = CASE WHEN row.created_at IS NULL THEN c.created_at ELSE datetime(row.created_at) END,
-    c.updated_at = CASE WHEN row.updated_at IS NULL THEN datetime() ELSE datetime(row.updated_at) END,
-    c.study_plan_pg_id = $study_plan_pg_id
 MERGE (sp)-[:HAS_COURSE]->(c)
 ";
 
-            var parameters = new Dictionary<string, object?>
+            await ExecuteAsync(query, new Dictionary<string, object?>
             {
-                ["study_plan_pg_id"] = studyPlanId.ToString(),
-                ["courses"] = courses
-            };
-
-            await using var session = _driver.AsyncSession();
-            await session.ExecuteWriteAsync(async tx =>
-            {
-                await tx.RunAsync(query, parameters);
+                ["pg_id"] = course.Id.ToString(),
+                ["study_plan_pg_id"] = course.StudyPlanId.ToString(),
+                ["name"] = course.Name,
+                ["status"] = course.Status,
+                ["goal"] = course.Goal,
+                ["target_score"] = course.TargetScore,
+                ["final_score"] = course.FinalScore,
+                ["created_at"] = ToIso(course.CreatedAt),
+                ["updated_at"] = ToIsoNullable(course.UpdatedAt)
             });
-
-            return courseRows.Select(c => c.Id).ToList();
         }
 
-        public async Task<List<int>> SyncRoutineAndTaskScopeAsync(int courseId)
+        public async Task SyncRoutineAsync(int routineId)
         {
-            var courseExists = await _dbContext.Courses
+            var routine = await _dbContext.Routines
                 .AsNoTracking()
-                .AnyAsync(c => c.Id == courseId && c.DeletedAt == null);
-
-            if (!courseExists)
-            {
-                return [];
-            }
-
-            var routineRows = await _dbContext.Routines
-                .AsNoTracking()
-                .Where(r => r.CourseId == courseId && r.DeletedAt == null)
+                .Where(r => r.Id == routineId)
                 .Select(r => new
                 {
                     r.Id,
+                    r.CourseId,
                     r.Name,
                     Type = r.Type.ToString(),
                     r.IsActive,
@@ -203,183 +181,435 @@ MERGE (sp)-[:HAS_COURSE]->(c)
                     r.CreatedAt,
                     r.UpdatedAt
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            var routines = routineRows
-                .Select(r => new Dictionary<string, object?>
-                {
-                    ["pg_id"] = r.Id.ToString(),
-                    ["name"] = r.Name,
-                    ["type"] = r.Type,
-                    ["is_active"] = r.IsActive,
-                    ["start_date"] = r.StartDate.ToUniversalTime().ToString("O"),
-                    ["end_date"] = r.EndDate.HasValue ? r.EndDate.Value.ToUniversalTime().ToString("O") : null,
-                    ["created_at"] = r.CreatedAt.ToUniversalTime().ToString("O"),
-                    ["updated_at"] = r.UpdatedAt.HasValue ? r.UpdatedAt.Value.ToUniversalTime().ToString("O") : null,
-                    ["course_pg_id"] = courseId.ToString()
-                })
-                .ToList();
+            if (routine == null)
+            {
+                await DeleteRoutineAsync(routineId);
+                return;
+            }
 
-            var taskRows = await _dbContext.Tasks
+            var query = @"
+MERGE (r:Routine {pg_id: $pg_id})
+SET r.name = $name,
+    r.type = $type,
+    r.is_active = $is_active,
+    r.start_date = datetime($start_date),
+    r.end_date = CASE WHEN $end_date IS NULL THEN NULL ELSE datetime($end_date) END,
+    r.created_at = CASE WHEN r.created_at IS NULL THEN datetime($created_at) ELSE r.created_at END,
+    r.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH r
+OPTIONAL MATCH (:Course)-[old:HAS_ROUTINE]->(r)
+DELETE old
+WITH r
+OPTIONAL MATCH (course:Course {pg_id: $course_pg_id})
+FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
+    MERGE (course)-[:HAS_ROUTINE]->(r)
+)
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = routine.Id.ToString(),
+                ["course_pg_id"] = routine.CourseId?.ToString(),
+                ["name"] = routine.Name,
+                ["type"] = routine.Type,
+                ["is_active"] = routine.IsActive,
+                ["start_date"] = ToIso(routine.StartDate),
+                ["end_date"] = ToIsoNullable(routine.EndDate),
+                ["created_at"] = ToIso(routine.CreatedAt),
+                ["updated_at"] = ToIsoNullable(routine.UpdatedAt)
+            });
+        }
+
+        public async Task SyncTaskAsync(int taskId)
+        {
+            var task = await _dbContext.Tasks
                 .AsNoTracking()
-                .Where(t => t.CourseId == courseId && t.DeletedAt == null)
+                .Where(t => t.Id == taskId)
                 .Select(t => new
                 {
                     t.Id,
+                    t.CourseId,
+                    t.RoutineId,
                     t.Name,
                     Status = t.Status.ToString(),
                     Type = t.Type.ToString(),
                     t.Description,
                     t.StartDateTime,
                     t.EndDateTime,
-                    t.RoutineId,
                     t.CreatedAt,
                     t.UpdatedAt
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            var tasks = taskRows
-                .Select(t => new Dictionary<string, object?>
-                {
-                    ["pg_id"] = t.Id.ToString(),
-                    ["name"] = t.Name,
-                    ["status"] = t.Status,
-                    ["type"] = t.Type,
-                    ["description"] = t.Description,
-                    ["start_datetime"] = t.StartDateTime.HasValue ? t.StartDateTime.Value.ToUniversalTime().ToString("O") : null,
-                    ["end_datetime"] = t.EndDateTime.HasValue ? t.EndDateTime.Value.ToUniversalTime().ToString("O") : null,
-                    ["routine_pg_id"] = t.RoutineId.HasValue ? t.RoutineId.Value.ToString() : null,
-                    ["created_at"] = t.CreatedAt.ToUniversalTime().ToString("O"),
-                    ["updated_at"] = t.UpdatedAt.HasValue ? t.UpdatedAt.Value.ToUniversalTime().ToString("O") : null,
-                    ["course_pg_id"] = courseId.ToString()
-                })
-                .ToList();
-
-            var query = @"
-MERGE (c:Course {pg_id: $course_pg_id})
-WITH c
-OPTIONAL MATCH (c)-[oldRoutine:HAS_ROUTINE]->(:Routine)
-DELETE oldRoutine
-WITH c
-OPTIONAL MATCH (c)-[oldTask:HAS_TASK]->(:Task)
-DELETE oldTask
-WITH c
-OPTIONAL MATCH (rOld:Routine {course_pg_id: $course_pg_id})-[oldContains:CONTAINS_TASK]->(:Task {course_pg_id: $course_pg_id})
-DELETE oldContains
-WITH c
-UNWIND $routines AS routineRow
-MERGE (r:Routine {pg_id: routineRow.pg_id})
-SET r.name = routineRow.name,
-    r.type = routineRow.type,
-    r.is_active = routineRow.is_active,
-    r.start_date = datetime(routineRow.start_date),
-    r.end_date = CASE WHEN routineRow.end_date IS NULL THEN NULL ELSE datetime(routineRow.end_date) END,
-    r.created_at = CASE WHEN routineRow.created_at IS NULL THEN r.created_at ELSE datetime(routineRow.created_at) END,
-    r.updated_at = CASE WHEN routineRow.updated_at IS NULL THEN datetime() ELSE datetime(routineRow.updated_at) END,
-    r.course_pg_id = $course_pg_id
-MERGE (c)-[:HAS_ROUTINE]->(r)
-WITH c
-UNWIND $tasks AS taskRow
-MERGE (t:Task {pg_id: taskRow.pg_id})
-SET t.name = taskRow.name,
-    t.status = taskRow.status,
-    t.type = taskRow.type,
-    t.description = taskRow.description,
-    t.start_datetime = CASE WHEN taskRow.start_datetime IS NULL THEN NULL ELSE datetime(taskRow.start_datetime) END,
-    t.end_datetime = CASE WHEN taskRow.end_datetime IS NULL THEN NULL ELSE datetime(taskRow.end_datetime) END,
-    t.created_at = CASE WHEN taskRow.created_at IS NULL THEN t.created_at ELSE datetime(taskRow.created_at) END,
-    t.updated_at = CASE WHEN taskRow.updated_at IS NULL THEN datetime() ELSE datetime(taskRow.updated_at) END,
-    t.course_pg_id = $course_pg_id,
-    t.routine_pg_id = taskRow.routine_pg_id
-MERGE (c)-[:HAS_TASK]->(t)
-WITH taskRow, t
-WHERE taskRow.routine_pg_id IS NOT NULL
-MATCH (r:Routine {pg_id: taskRow.routine_pg_id})
-MERGE (r)-[:CONTAINS_TASK]->(t)
-";
-
-            var parameters = new Dictionary<string, object?>
+            if (task == null)
             {
-                ["course_pg_id"] = courseId.ToString(),
-                ["routines"] = routines,
-                ["tasks"] = tasks
-            };
-
-            await using var session = _driver.AsyncSession();
-            await session.ExecuteWriteAsync(async tx =>
-            {
-                await tx.RunAsync(query, parameters);
-            });
-
-            return taskRows.Select(t => t.Id).ToList();
-        }
-
-        public async Task SyncLogScopeAsync(int taskId)
-        {
-            var taskExists = await _dbContext.Tasks
-                .AsNoTracking()
-                .AnyAsync(t => t.Id == taskId && t.DeletedAt == null);
-
-            if (!taskExists)
-            {
+                await DeleteTaskAsync(taskId);
                 return;
             }
 
-            var logRows = await _dbContext.Logs
+            var query = @"
+MERGE (t:Task {pg_id: $pg_id})
+SET t.name = $name,
+    t.status = $status,
+    t.type = $type,
+    t.description = $description,
+    t.start_datetime = CASE WHEN $start_datetime IS NULL THEN NULL ELSE datetime($start_datetime) END,
+    t.end_datetime = CASE WHEN $end_datetime IS NULL THEN NULL ELSE datetime($end_datetime) END,
+    t.created_at = CASE WHEN t.created_at IS NULL THEN datetime($created_at) ELSE t.created_at END,
+    t.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH t
+OPTIONAL MATCH (:Course)-[oldCourse:HAS_TASK]->(t)
+DELETE oldCourse
+WITH t
+OPTIONAL MATCH (:Routine)-[oldRoutine:CONTAINS_TASK]->(t)
+DELETE oldRoutine
+WITH t
+OPTIONAL MATCH (course:Course {pg_id: $course_pg_id})
+FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
+    MERGE (course)-[:HAS_TASK]->(t)
+)
+WITH t
+OPTIONAL MATCH (routine:Routine {pg_id: $routine_pg_id})
+FOREACH (_ IN CASE WHEN routine IS NULL THEN [] ELSE [1] END |
+    MERGE (routine)-[:CONTAINS_TASK]->(t)
+)
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = task.Id.ToString(),
+                ["course_pg_id"] = task.CourseId?.ToString(),
+                ["routine_pg_id"] = task.RoutineId?.ToString(),
+                ["name"] = task.Name,
+                ["status"] = task.Status,
+                ["type"] = task.Type,
+                ["description"] = task.Description,
+                ["start_datetime"] = ToIsoNullable(task.StartDateTime),
+                ["end_datetime"] = ToIsoNullable(task.EndDateTime),
+                ["created_at"] = ToIso(task.CreatedAt),
+                ["updated_at"] = ToIsoNullable(task.UpdatedAt)
+            });
+        }
+
+        public async Task SyncLogAsync(int logId)
+        {
+            var log = await _dbContext.Logs
                 .AsNoTracking()
-                .Where(l => l.TaskId == taskId && l.DeletedAt == null)
+                .Where(l => l.Id == logId)
                 .Select(l => new
                 {
                     l.Id,
+                    l.TaskId,
                     l.Note,
                     l.ActualDuration,
                     l.CompletedAt,
+                    ComprehensionLevel = l.ComprehensionLevel.HasValue ? l.ComprehensionLevel.Value.ToString() : null,
+                    DifficultyLevel = l.DifficultyLevel.HasValue ? l.DifficultyLevel.Value.ToString() : null,
+                    l.TimerStartAt,
+                    l.TimerEndAt,
+                    l.EarnedValue,
                     l.CreatedAt,
                     l.UpdatedAt
                 })
-                .ToListAsync();
+                .FirstOrDefaultAsync();
 
-            var logs = logRows
-                .Select(l => new Dictionary<string, object?>
-                {
-                    ["pg_id"] = l.Id.ToString(),
-                    ["note"] = l.Note,
-                    ["actual_duration"] = l.ActualDuration,
-                    ["completed_at"] = l.CompletedAt.HasValue ? l.CompletedAt.Value.ToUniversalTime().ToString("O") : null,
-                    ["created_at"] = l.CreatedAt.ToUniversalTime().ToString("O"),
-                    ["updated_at"] = l.UpdatedAt.HasValue ? l.UpdatedAt.Value.ToUniversalTime().ToString("O") : null,
-                    ["task_pg_id"] = taskId.ToString()
-                })
-                .ToList();
+            if (log == null)
+            {
+                await DeleteLogAsync(logId);
+                return;
+            }
 
             var query = @"
-MERGE (t:Task {pg_id: $task_pg_id})
-WITH t
-OPTIONAL MATCH (t)-[old:HAS_LOG]->(:Log)
+MERGE (l:Log {pg_id: $pg_id})
+SET l.note = $note,
+    l.actual_duration = $actual_duration,
+    l.completed_at = CASE WHEN $completed_at IS NULL THEN NULL ELSE datetime($completed_at) END,
+    l.comprehension_level = $comprehension_level,
+    l.difficulty_level = $difficulty_level,
+    l.timer_start_at = CASE WHEN $timer_start_at IS NULL THEN NULL ELSE datetime($timer_start_at) END,
+    l.timer_end_at = CASE WHEN $timer_end_at IS NULL THEN NULL ELSE datetime($timer_end_at) END,
+    l.earned_value = $earned_value,
+    l.created_at = CASE WHEN l.created_at IS NULL THEN datetime($created_at) ELSE l.created_at END,
+    l.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH l
+OPTIONAL MATCH (:Task)-[old:HAS_LOG]->(l)
 DELETE old
-WITH t
-UNWIND $logs AS row
-MERGE (l:Log {pg_id: row.pg_id})
-SET l.note = row.note,
-    l.actual_duration = row.actual_duration,
-    l.completed_at = CASE WHEN row.completed_at IS NULL THEN NULL ELSE datetime(row.completed_at) END,
-    l.created_at = CASE WHEN row.created_at IS NULL THEN l.created_at ELSE datetime(row.created_at) END,
-    l.updated_at = CASE WHEN row.updated_at IS NULL THEN datetime() ELSE datetime(row.updated_at) END,
-    l.task_pg_id = $task_pg_id
-MERGE (t)-[:HAS_LOG]->(l)
+WITH l
+OPTIONAL MATCH (t:Task {pg_id: $task_pg_id})
+FOREACH (_ IN CASE WHEN t IS NULL THEN [] ELSE [1] END |
+    MERGE (t)-[:HAS_LOG]->(l)
+)
 ";
 
-            var parameters = new Dictionary<string, object?>
+            await ExecuteAsync(query, new Dictionary<string, object?>
             {
-                ["task_pg_id"] = taskId.ToString(),
-                ["logs"] = logs
-            };
+                ["pg_id"] = log.Id.ToString(),
+                ["task_pg_id"] = log.TaskId.ToString(),
+                ["note"] = log.Note,
+                ["actual_duration"] = log.ActualDuration,
+                ["completed_at"] = ToIsoNullable(log.CompletedAt),
+                ["comprehension_level"] = log.ComprehensionLevel,
+                ["difficulty_level"] = log.DifficultyLevel,
+                ["timer_start_at"] = ToIsoNullable(log.TimerStartAt),
+                ["timer_end_at"] = ToIsoNullable(log.TimerEndAt),
+                ["earned_value"] = log.EarnedValue,
+                ["created_at"] = ToIso(log.CreatedAt),
+                ["updated_at"] = ToIsoNullable(log.UpdatedAt)
+            });
+        }
 
+        public async Task SyncScheduleAsync(int scheduleId)
+        {
+            var schedule = await _dbContext.Schedules
+                .AsNoTracking()
+                .Where(s => s.Id == scheduleId)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.RoutineId,
+                    DayOfWeek = s.DayOfWeek.ToString(),
+                    StartTime = s.StartTime.HasValue ? s.StartTime.Value.ToString("HH:mm:ss") : null,
+                    s.Duration,
+                    s.Location,
+                    s.CreatedAt,
+                    s.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            if (schedule == null)
+            {
+                await DeleteScheduleAsync(scheduleId);
+                return;
+            }
+
+            var query = @"
+MERGE (s:Schedule {pg_id: $pg_id})
+SET s.day_of_week = $day_of_week,
+    s.start_time = $start_time,
+    s.duration = $duration,
+    s.location = $location,
+    s.created_at = CASE WHEN s.created_at IS NULL THEN datetime($created_at) ELSE s.created_at END,
+    s.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH s
+OPTIONAL MATCH (:Routine)-[old:HAS_SCHEDULE]->(s)
+DELETE old
+WITH s
+OPTIONAL MATCH (r:Routine {pg_id: $routine_pg_id})
+FOREACH (_ IN CASE WHEN r IS NULL THEN [] ELSE [1] END |
+    MERGE (r)-[:HAS_SCHEDULE]->(s)
+)
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = schedule.Id.ToString(),
+                ["routine_pg_id"] = schedule.RoutineId?.ToString(),
+                ["day_of_week"] = schedule.DayOfWeek,
+                ["start_time"] = schedule.StartTime,
+                ["duration"] = schedule.Duration,
+                ["location"] = schedule.Location,
+                ["created_at"] = ToIso(schedule.CreatedAt),
+                ["updated_at"] = ToIsoNullable(schedule.UpdatedAt)
+            });
+        }
+
+        public async Task SyncAssetAsync(int assetId)
+        {
+            var asset = await _dbContext.Assets
+                .AsNoTracking()
+                .Where(a => a.Id == assetId)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.UserId,
+                    a.FileName,
+                    a.Url,
+                    Type = a.Type.ToString(),
+                    a.Extension,
+                    a.FileSize,
+                    Status = a.Status.ToString(),
+                    a.CreatedAt,
+                    a.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            if (asset == null)
+            {
+                await DeleteAssetAsync(assetId);
+                return;
+            }
+
+            var query = @"
+MERGE (u:User {pg_id: $user_pg_id})
+MERGE (a:Asset {pg_id: $pg_id})
+SET a.file_name = $file_name,
+    a.url = $url,
+    a.type = $type,
+    a.extension = $extension,
+    a.file_size = $file_size,
+    a.status = $status,
+    a.created_at = CASE WHEN a.created_at IS NULL THEN datetime($created_at) ELSE a.created_at END,
+    a.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH u, a
+OPTIONAL MATCH (:User)-[old:OWNS_ASSET]->(a)
+DELETE old
+MERGE (u)-[:OWNS_ASSET]->(a)
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = asset.Id.ToString(),
+                ["user_pg_id"] = asset.UserId.ToString(),
+                ["file_name"] = asset.FileName,
+                ["url"] = asset.Url,
+                ["type"] = asset.Type,
+                ["extension"] = asset.Extension,
+                ["file_size"] = asset.FileSize,
+                ["status"] = asset.Status,
+                ["created_at"] = ToIso(asset.CreatedAt),
+                ["updated_at"] = ToIsoNullable(asset.UpdatedAt)
+            });
+        }
+
+        public async Task SyncAssetLinkAsync(int assetLinkId)
+        {
+            var assetLink = await _dbContext.AssetLinks
+                .AsNoTracking()
+                .Where(al => al.Id == assetLinkId)
+                .Select(al => new
+                {
+                    al.Id,
+                    al.AssetId,
+                    al.LinkedId,
+                    al.LinkedType
+                })
+                .FirstOrDefaultAsync();
+
+            if (assetLink == null)
+            {
+                await DeleteAssetLinkAsync(assetLinkId);
+                return;
+            }
+
+            var targetLabel = GetAssetLinkTargetLabel(assetLink.LinkedType);
+            var query = $@"
+MATCH (a:Asset {{pg_id: $asset_pg_id}})
+MATCH (target:{targetLabel} {{pg_id: $linked_pg_id}})
+OPTIONAL MATCH ()-[old:LINKED_TO {{asset_link_pg_id: $asset_link_pg_id}}]-()
+DELETE old
+MERGE (a)-[rel:LINKED_TO]->(target)
+SET rel.asset_link_pg_id = $asset_link_pg_id,
+    rel.linked_type = $linked_type,
+    rel.updated_at = datetime()
+ON CREATE SET rel.created_at = datetime()
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["asset_link_pg_id"] = assetLink.Id.ToString(),
+                ["asset_pg_id"] = assetLink.AssetId.ToString(),
+                ["linked_pg_id"] = assetLink.LinkedId.ToString(),
+                ["linked_type"] = assetLink.LinkedType.ToString()
+            });
+        }
+
+        public Task DeleteUserAsync(int userId)
+        {
+            return DeleteNodeAsync("User", userId);
+        }
+
+        public Task DeleteStudyPlanAsync(int studyPlanId)
+        {
+            return DeleteNodeAsync("StudyPlan", studyPlanId);
+        }
+
+        public Task DeleteCourseAsync(int courseId)
+        {
+            return DeleteNodeAsync("Course", courseId);
+        }
+
+        public Task DeleteRoutineAsync(int routineId)
+        {
+            return DeleteNodeAsync("Routine", routineId);
+        }
+
+        public Task DeleteTaskAsync(int taskId)
+        {
+            return DeleteNodeAsync("Task", taskId);
+        }
+
+        public Task DeleteLogAsync(int logId)
+        {
+            return DeleteNodeAsync("Log", logId);
+        }
+
+        public Task DeleteScheduleAsync(int scheduleId)
+        {
+            return DeleteNodeAsync("Schedule", scheduleId);
+        }
+
+        public Task DeleteAssetAsync(int assetId)
+        {
+            return DeleteNodeAsync("Asset", assetId);
+        }
+
+        public async Task DeleteAssetLinkAsync(int assetLinkId)
+        {
+            var query = @"
+MATCH ()-[rel:LINKED_TO {asset_link_pg_id: $asset_link_pg_id}]-()
+DELETE rel
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["asset_link_pg_id"] = assetLinkId.ToString()
+            });
+        }
+
+        private async Task DeleteNodeAsync(string nodeLabel, int pgId)
+        {
+            var query = $@"
+MATCH (n:{nodeLabel} {{pg_id: $pg_id}})
+DETACH DELETE n
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = pgId.ToString()
+            });
+        }
+
+        private async Task ExecuteAsync(string query, Dictionary<string, object?> parameters)
+        {
             await using var session = _driver.AsyncSession();
             await session.ExecuteWriteAsync(async tx =>
             {
                 await tx.RunAsync(query, parameters);
             });
+        }
+
+        private static string GetAssetLinkTargetLabel(AssetLinkType linkedType)
+        {
+            return linkedType switch
+            {
+                AssetLinkType.StudyPlan => "StudyPlan",
+                AssetLinkType.Course => "Course",
+                AssetLinkType.Task => "Task",
+                AssetLinkType.Log => "Log",
+                _ => throw new ArgumentOutOfRangeException(nameof(linkedType), linkedType, "Unsupported AssetLinkType")
+            };
+        }
+
+        private static string ToIso(DateTime value)
+        {
+            return value.ToUniversalTime().ToString("O");
+        }
+
+        private static string? ToIsoNullable(DateTime? value)
+        {
+            return value.HasValue ? value.Value.ToUniversalTime().ToString("O") : null;
         }
     }
 }

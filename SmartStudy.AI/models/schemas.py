@@ -17,7 +17,3 @@ class ChatRequest(BaseModel):
     user_id: int
     system_prompt: str
     course_id: Optional[int]=None
-
-class EmbedGraphRequest(BaseModel):
-    label: str
-    pg_ids: list[int]

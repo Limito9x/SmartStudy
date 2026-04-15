@@ -93,14 +93,13 @@ namespace SmartStudy.Server.Data
         {
             NormalizeDateTimeKinds();
             UpdateAuditableEntities();
+            var syncChanges = GatherGraphSyncChanges();
             UpdateSoftDeletableEntities();
-
-            var syncTriggers = GatherGraphSyncTriggers();
             var result = base.SaveChanges();
 
             if(result>0)
             {
-                DispatchGraphSyncJobs(syncTriggers);
+                DispatchGraphSyncJobs(syncChanges);
             }
 
             return result;
@@ -110,13 +109,12 @@ namespace SmartStudy.Server.Data
         {
             NormalizeDateTimeKinds();
             UpdateAuditableEntities();
+            var syncChanges = GatherGraphSyncChanges();
             UpdateSoftDeletableEntities();
-
-            var syncTriggers = GatherGraphSyncTriggers();
             var result = await base.SaveChangesAsync(cancellationToken);
 
             if(result>0)            {
-                DispatchGraphSyncJobs(syncTriggers);
+                DispatchGraphSyncJobs(syncChanges);
             }
 
             return result;
@@ -163,28 +161,45 @@ namespace SmartStudy.Server.Data
             }
         }
 
-        private List<(GraphSyncScopeType Scope, int? RootId)> GatherGraphSyncTriggers()
+        private sealed record PendingGraphSyncChange(
+            IGraphSyncTrigger Entity,
+            GraphSyncEntityType EntityType,
+            GraphSyncChangeType ChangeType);
+
+        private List<PendingGraphSyncChange> GatherGraphSyncChanges()
         {
             return ChangeTracker.Entries<IGraphSyncTrigger>()
                 .Where(e => e.State == EntityState.Added || 
                             e.State == EntityState.Modified || 
                             e.State == EntityState.Deleted)
-                .Select(e => new { Scope = e.Entity.GetSyncScope(), RootId = e.Entity.GetRootId() })
-                .Distinct()
-                .Select(x => (x.Scope, x.RootId))
+                .Select(e => new PendingGraphSyncChange(
+                    e.Entity,
+                    e.Entity.GetGraphSyncEntityType(),
+                    MapGraphSyncChangeType(e.State)))
                 .ToList();
         }
 
-        private void DispatchGraphSyncJobs(List<(GraphSyncScopeType Scope, int? RootId)> triggers)
+        private static GraphSyncChangeType MapGraphSyncChangeType(EntityState state)
         {
-            if (triggers == null || !triggers.Any()) return;
+            return state switch
+            {
+                EntityState.Added => GraphSyncChangeType.Added,
+                EntityState.Deleted => GraphSyncChangeType.Deleted,
+                EntityState.Modified => GraphSyncChangeType.Modified,
+                _ => GraphSyncChangeType.Modified
+            };
+        }
 
-            foreach (var trigger in triggers)
-            {   
-                if(!trigger.RootId.HasValue) continue;
-                
+        private void DispatchGraphSyncJobs(List<PendingGraphSyncChange> changes)
+        {
+            if (changes == null || !changes.Any()) return;
+
+            foreach (var change in changes)
+            {
+                if (change.Entity.Id <= 0) continue;
+
                 BackgroundJob.Enqueue<IGraphSyncBackgroundJob>(job => 
-                    job.ExecuteSyncAsync(trigger.Scope, trigger.RootId.Value));
+                    job.ExecuteSyncAsync(change.EntityType, change.Entity.Id, change.ChangeType));
             }
         }
     }

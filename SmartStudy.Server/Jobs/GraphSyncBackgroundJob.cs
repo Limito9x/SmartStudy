@@ -3,56 +3,112 @@ using SmartStudy.Server.Integrations.Neo4j;
 
 namespace SmartStudy.Server.Jobs
 {
-    public enum GraphSyncScopeType
+    public enum GraphSyncEntityType
     {
-        UserStudyPlans = 0,
-        StudyPlanCourses = 1,
-        CourseRoutinesAndTasks = 2,
-        TaskLogs = 3
+        User = 0,
+        StudyPlan = 1,
+        Course = 2,
+        Routine = 3,
+        Task = 4,
+        Log = 5,
+        Schedule = 6,
+        Asset = 7,
+        AssetLink = 8
+    }
+
+    public enum GraphSyncChangeType
+    {
+        Added = 0,
+        Modified = 1,
+        Deleted = 2
     }
 
     public interface IGraphSyncBackgroundJob
     {
-        Task ExecuteSyncAsync(GraphSyncScopeType scopeType, int entityId);
+        Task ExecuteSyncAsync(GraphSyncEntityType entityType, int entityId, GraphSyncChangeType changeType);
     }
 
     [AutomaticRetry(Attempts = 3)]
     public class GraphSyncBackgroundJob : IGraphSyncBackgroundJob
     {
         private readonly IGraphSyncService _graphSyncService;
-        private readonly IAiApiClient _aiApiClient;
 
-        public GraphSyncBackgroundJob(IGraphSyncService graphSyncService,
-         IAiApiClient aiApiClient)
+        public GraphSyncBackgroundJob(IGraphSyncService graphSyncService)
         {
             _graphSyncService = graphSyncService;
-            _aiApiClient = aiApiClient;
         }
 
-        public async Task ExecuteSyncAsync(GraphSyncScopeType scopeType, int entityId)
+        public async Task ExecuteSyncAsync(GraphSyncEntityType entityType, int entityId, GraphSyncChangeType changeType)
         {
-            switch (scopeType)
+            if (changeType == GraphSyncChangeType.Deleted)
             {
-                case GraphSyncScopeType.UserStudyPlans:
-                    await _graphSyncService.SyncStudyPlanScopeAsync(entityId);
-                    break;
+                switch (entityType)
+                {
+                    case GraphSyncEntityType.User:
+                        await _graphSyncService.DeleteUserAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.StudyPlan:
+                        await _graphSyncService.DeleteStudyPlanAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.Course:
+                        await _graphSyncService.DeleteCourseAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.Routine:
+                        await _graphSyncService.DeleteRoutineAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.Task:
+                        await _graphSyncService.DeleteTaskAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.Log:
+                        await _graphSyncService.DeleteLogAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.Schedule:
+                        await _graphSyncService.DeleteScheduleAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.Asset:
+                        await _graphSyncService.DeleteAssetAsync(entityId);
+                        break;
+                    case GraphSyncEntityType.AssetLink:
+                        await _graphSyncService.DeleteAssetLinkAsync(entityId);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(entityType), entityType, "Unsupported graph sync entity type.");
+                }
 
-                case GraphSyncScopeType.StudyPlanCourses:
-                    var courseIds = await _graphSyncService.SyncCourseScopeAsync(entityId);
-                    await _aiApiClient.EmbeddingGraph("Course", courseIds);
-                    break;
+                return;
+            }
 
-                case GraphSyncScopeType.CourseRoutinesAndTasks:
-                    var taskIds = await _graphSyncService.SyncRoutineAndTaskScopeAsync(entityId);
-                    await _aiApiClient.EmbeddingGraph("Task", taskIds);
+            switch (entityType)
+            {
+                case GraphSyncEntityType.User:
+                    await _graphSyncService.SyncUserAsync(entityId);
                     break;
-
-                case GraphSyncScopeType.TaskLogs:
-                    await _graphSyncService.SyncLogScopeAsync(entityId);
+                case GraphSyncEntityType.StudyPlan:
+                    await _graphSyncService.SyncStudyPlanAsync(entityId);
                     break;
-
+                case GraphSyncEntityType.Course:
+                    await _graphSyncService.SyncCourseAsync(entityId);
+                    break;
+                case GraphSyncEntityType.Routine:
+                    await _graphSyncService.SyncRoutineAsync(entityId);
+                    break;
+                case GraphSyncEntityType.Task:
+                    await _graphSyncService.SyncTaskAsync(entityId);
+                    break;
+                case GraphSyncEntityType.Log:
+                    await _graphSyncService.SyncLogAsync(entityId);
+                    break;
+                case GraphSyncEntityType.Schedule:
+                    await _graphSyncService.SyncScheduleAsync(entityId);
+                    break;
+                case GraphSyncEntityType.Asset:
+                    await _graphSyncService.SyncAssetAsync(entityId);
+                    break;
+                case GraphSyncEntityType.AssetLink:
+                    await _graphSyncService.SyncAssetLinkAsync(entityId);
+                    break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(scopeType), scopeType, "Unsupported graph sync scope type.");
+                    throw new ArgumentOutOfRangeException(nameof(entityType), entityType, "Unsupported graph sync entity type.");
             }
         }
     }
