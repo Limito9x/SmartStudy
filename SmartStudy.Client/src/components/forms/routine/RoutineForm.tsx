@@ -7,29 +7,35 @@ import {
 } from "@/components/form-controls";
 import { FormDatePicker } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
-import type {
-  ResponseCourseDto,
-  ResponsePhaseDto,
-} from "@/services/api";
+import type { ResponseCourseDto, ResponsePhaseDto } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { endOfDay, format, startOfDay } from "date-fns";
 
 interface RoutineFormProps {
   showCourseField?: boolean;
   showEventField?: boolean;
   isEditMode?: boolean;
   defaultValues?: RoutineFormValues;
+  fixedPhase?: ResponsePhaseDto | null;
   onSubmit: (values: RoutineFormValues) => void;
 }
+
+const parseDateOrUndefined = (value?: string | null) => {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+};
 
 export default function RoutineForm({
   showCourseField = true,
   showEventField = true,
   isEditMode = false,
   defaultValues,
+  fixedPhase,
   onSubmit,
 }: RoutineFormProps) {
   const { data: courses } = useCourse({
@@ -48,15 +54,58 @@ export default function RoutineForm({
         });
 
         const selectedCourseId = methods.watch("courseId");
+        const selectedEventId = methods.watch("eventId");
+        const watchedStartDate = methods.watch("startDate");
+        const watchedEndDate = methods.watch("endDate");
         const { data: events } = useTimelineEvent({
           courseId: Number(selectedCourseId),
         }).getEventsByCourse;
 
+        const activePhase = useMemo(() => {
+          if (fixedPhase) return fixedPhase;
+          if (!events || !selectedEventId) return undefined;
+          return events.find(
+            (event) => Number(event.id) === Number(selectedEventId),
+          );
+        }, [events, fixedPhase, selectedEventId]);
+
+        const phaseStartDate = parseDateOrUndefined(activePhase?.startDateTime);
+        const phaseEndDate = parseDateOrUndefined(activePhase?.endDateTime);
+
+        const minDate = phaseStartDate ? startOfDay(phaseStartDate) : undefined;
+        const maxDate = phaseEndDate ? endOfDay(phaseEndDate) : undefined;
+
         useEffect(() => {
-          if (selectedCourseId) {
+          if (selectedCourseId && events?.length && !selectedEventId) {
             methods.setValue("eventId", Number(events?.[0]?.id));
           }
-        }, [selectedCourseId]);
+        }, [selectedCourseId, events, methods, selectedEventId]);
+
+        useEffect(() => {
+          const currentStart = watchedStartDate;
+          const currentEnd = watchedEndDate;
+
+          if (minDate && currentStart && currentStart < minDate) {
+            methods.setValue("startDate", minDate);
+          }
+          if (maxDate && currentStart && currentStart > maxDate) {
+            methods.setValue("startDate", maxDate);
+          }
+
+          if (minDate && currentEnd && currentEnd < minDate) {
+            methods.setValue("endDate", minDate);
+          }
+          if (maxDate && currentEnd && currentEnd > maxDate) {
+            methods.setValue("endDate", maxDate);
+          }
+        }, [
+          maxDate,
+          methods,
+          minDate,
+          selectedEventId,
+          watchedEndDate,
+          watchedStartDate,
+        ]);
 
         return (
           <>
@@ -115,6 +164,8 @@ export default function RoutineForm({
                 control={control}
                 label="Ngày bắt đầu"
                 placeholder="Chọn ngày bắt đầu"
+                minDate={minDate}
+                maxDate={maxDate}
               />
 
               <span className="mx-4 text-gray-500">|</span>
@@ -124,12 +175,13 @@ export default function RoutineForm({
                 control={control}
                 label="Ngày kết thúc"
                 placeholder="Chọn ngày kết thúc"
+                minDate={minDate}
+                maxDate={maxDate}
               />
             </div>
-            {/* Hiện ghi chú nếu user CÓ chọn khóa học nhưng KHÔNG chọn ngày */}
-            {selectedCourseId && (
+            {activePhase && (phaseStartDate || phaseEndDate) && (
               <p className="text-xs text-blue-600 italic mt-1">
-                💡 Bỏ trống ngày nếu lịch trình này kéo dài suốt khóa học.
+                {`Phạm vi giai đoạn ${activePhase.title}: ${phaseStartDate ? format(phaseStartDate, "dd/MM/yyyy HH:mm") : "..."} - ${phaseEndDate ? format(phaseEndDate, "dd/MM/yyyy HH:mm") : "..."}`}
               </p>
             )}
 

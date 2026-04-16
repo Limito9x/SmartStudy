@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { getCourseWorkloadOptions } from "@/services/api/@tanstack/react-query.gen";
@@ -26,6 +27,8 @@ import { usePanelStore } from "@/stores/usePanelStore";
 import { getTaskTypeLabel } from "@/components/features/task/FormatTask";
 import ActionMenu from "@/components/shared/ActionMenu";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
+import { useRoutine } from "@/hooks/entities/useRoutine";
+import { useSchedule } from "@/hooks/entities/useSchedule";
 
 const PHASE_TYPE_LABELS: Record<string, string> = {
   General: "Mặc định",
@@ -165,6 +168,9 @@ function PhaseSection({
   const phaseTypeString = phase.phaseType ?? "General";
   const phaseTypeLabel = PHASE_TYPE_LABELS[phaseTypeString] || phaseTypeString;
   const { deleteEvent } = useTimelineEvent({ courseId });
+  const phaseProgress = Number(phase.progress ?? 0);
+  const phaseTotalExpectations = Number(phase.totalExpectations ?? 0);
+  const phaseTotalCompletions = Number(phase.totalCompletions ?? 0);
 
   const phaseActions = [
     {
@@ -192,56 +198,69 @@ function PhaseSection({
   return (
     <section className="rounded-2xl border bg-card overflow-hidden">
       {/* ── Full-width Phase header ── */}
-      <div className="flex items-center justify-between gap-3 border-b bg-muted/40 px-4 py-3">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onToggle}
-            className="group inline-flex items-center gap-2 text-left"
-          >
-            {isCollapsed ? (
-              <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
-            )}
-            <p className="text-base font-semibold">{phase.title ?? "Phase"}</p>
-          </button>
-          <span className="text-xs text-muted-foreground">·</span>
-          {phaseTypeString !== "General" && (
-            <span className="text-xs text-muted-foreground">
-              {phaseTypeLabel}
-            </span>
-          )}
-          {phaseTypeString === "General" && (
-            <span className="text-xs text-muted-foreground">
-              {phaseTypeLabel}
-            </span>
-          )}
-          <Badge variant="outline" className="ml-1 text-[11px]">
-            {routines.length} routine
-          </Badge>
-          <Badge variant="outline" className="text-[11px]">
-            {singleTasks.length} task
-          </Badge>
-        </div>
+      <div className="border-b bg-muted/40 px-4 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={onToggle}
+                className="group inline-flex items-center gap-2 text-left"
+              >
+                {isCollapsed ? (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+                )}
+                <p className="text-base font-semibold">
+                  {phase.title ?? "Phase"}
+                </p>
+              </button>
+              <span className="text-xs text-muted-foreground">·</span>
+              <span className="text-xs text-muted-foreground">
+                {phaseTypeLabel}
+              </span>
+              <Badge variant="outline" className="ml-1 text-[11px]">
+                {routines.length} routine
+              </Badge>
+              <Badge variant="outline" className="text-[11px]">
+                {singleTasks.length} task
+              </Badge>
+            </div>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => openDialog("ROUTINE_FORM", { courseId, phaseId })}
-          >
-            <Plus size={14} />
-            Thêm routine
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => openDialog("TASK_FORM", { courseId, phaseId })}
-          >
-            <Plus size={14} />
-            Thêm task
-          </Button>
-          <ActionMenu actions={phaseActions} />
+            <div className="space-y-1.5">
+              <p className="text-xs text-muted-foreground">
+                {formatDate(phase.startDateTime)} -{" "}
+                {formatDate(phase.endDateTime)}
+              </p>
+              <div className="flex items-center gap-3">
+                <Progress value={phaseProgress} className="h-2 w-56" />
+                <p className="whitespace-nowrap text-xs text-muted-foreground">
+                  {phaseTotalCompletions}/{phaseTotalExpectations} hoàn thành ·{" "}
+                  {phaseProgress}%
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDialog("ROUTINE_FORM", { courseId, phaseId })}
+            >
+              <Plus size={14} />
+              Thêm routine
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => openDialog("TASK_FORM", { courseId, phaseId })}
+            >
+              <Plus size={14} />
+              Thêm task
+            </Button>
+            <ActionMenu actions={phaseActions} />
+          </div>
         </div>
       </div>
 
@@ -299,20 +318,74 @@ function RoutineOccurrenceCard({
 }) {
   const { openDialog } = useDialogStore();
   const { openPanel, type: panelType, data: panelData } = usePanelStore();
+  const { deleteRoutine, toggleRoutineStatus } = useRoutine();
+  const { confirmTaskOnOccurrence } = useSchedule();
   const routineData = routine.routine;
   const occurrences = routine.occurences ?? [];
+  const routineId = toNumber(routineData?.id);
+  const isRoutineActive = Boolean(routineData?.isActive);
 
   const openRoutineEdit = () => {
-    if (!routineData?.id) {
+    if (routineId <= 0) {
       return;
     }
 
     openDialog("ROUTINE_FORM", {
-      routineId: toNumber(routineData.id),
+      routineId,
       courseId,
       phaseId,
     });
   };
+
+  const routineActions = [
+    {
+      label: "Chỉnh sửa",
+      onClick: openRoutineEdit,
+    },
+    {
+      label: isRoutineActive ? "Tắt routine" : "Bật routine",
+      onClick: () => {
+        if (routineId <= 0) {
+          return;
+        }
+
+        openDialog("CONFIRM_ACTION", {
+          title: isRoutineActive ? "Tắt routine" : "Bật routine",
+          message: isRoutineActive
+            ? "Bạn có chắc muốn tắt routine này không?"
+            : "Bạn có chắc muốn bật lại routine này không?",
+          confirmLabel: isRoutineActive ? "Tắt" : "Bật",
+          onConfirm: () => {
+            toggleRoutineStatus.mutate({
+              path: {
+                id: routineId,
+              },
+            });
+          },
+        });
+      },
+    },
+    {
+      label: "Xóa",
+      onClick: () => {
+        if (routineId <= 0) {
+          return;
+        }
+
+        openDialog("CONFIRM_DELETE", {
+          itemType: "routine",
+          itemName: routineData?.name ?? "Routine",
+          onConfirm: () => {
+            deleteRoutine.mutate({
+              path: {
+                id: routineId,
+              },
+            });
+          },
+        });
+      },
+    },
+  ];
 
   return (
     <div className="rounded-xl border bg-background p-3">
@@ -326,10 +399,11 @@ function RoutineOccurrenceCard({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Badge variant={isRoutineActive ? "default" : "secondary"}>
+            {isRoutineActive ? "Đang bật" : "Đang tắt"}
+          </Badge>
           <Badge variant="outline">{occurrences.length} buổi</Badge>
-          <Button variant="ghost" size="sm" onClick={openRoutineEdit}>
-            Chỉnh sửa
-          </Button>
+          <ActionMenu actions={routineActions} />
         </div>
       </div>
 
@@ -342,7 +416,10 @@ function RoutineOccurrenceCard({
           {occurrences.map((occurrence) => {
             const status = getOccurrenceStatus(occurrence);
             const taskId = toNumber(occurrence.taskId);
+            const scheduleId = toNumber(occurrence.schedule?.id);
             const label = formatOccurrenceLabel(occurrence.date);
+            const canConfirmSchedule =
+              taskId <= 0 && scheduleId > 0 && !!occurrence.date;
             const isActive =
               panelType === "TASK_DETAIL" &&
               panelData != null &&
@@ -358,13 +435,34 @@ function RoutineOccurrenceCard({
                 onClick={() => {
                   if (taskId > 0) {
                     openPanel("TASK_DETAIL", { taskId });
+                    return;
+                  }
+
+                  if (canConfirmSchedule) {
+                    openDialog("CONFIRM_ACTION", {
+                      title: "Xác nhận lên lịch buổi học",
+                      message:
+                        "Buổi này chưa được lên lịch, bạn có muốn lên lịch công việc cho buổi học này?",
+                      confirmLabel: "Lên lịch",
+                      onConfirm: () => {
+                        confirmTaskOnOccurrence.mutate({
+                          path: {
+                            id: scheduleId,
+                          },
+                          query: {
+                            taskDate: occurrence.date,
+                          },
+                        });
+                      },
+                    });
                   }
                 }}
-                disabled={taskId <= 0}
+                disabled={!canConfirmSchedule && taskId <= 0}
                 className={cn(
                   "flex flex-col items-center gap-0.5",
                   "focus-visible:outline-none",
-                  taskId <= 0 && "cursor-default",
+                  canConfirmSchedule && "cursor-pointer",
+                  !canConfirmSchedule && taskId <= 0 && "cursor-default",
                 )}
               >
                 {/* Label: Thứ - Ngày/Tháng */}

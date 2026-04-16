@@ -13,9 +13,16 @@ import { vi } from "date-fns/locale/vi";
 interface DateTimePickerProps {
   value: Date | undefined;
   onChange: (date: Date | undefined) => void;
+  minDate?: Date;
+  maxDate?: Date;
 }
 
-const DateTimePicker = ({ value, onChange }: DateTimePickerProps) => {
+const DateTimePicker = ({
+  value,
+  onChange,
+  minDate,
+  maxDate,
+}: DateTimePickerProps) => {
   // Kiểm tra date có hợp lệ không
   const isValidDate = value && !isNaN(value.getTime());
   // Tách time string từ Date hiện tại để hiển thị trong input
@@ -65,6 +72,10 @@ const DateTimePicker = ({ value, onChange }: DateTimePickerProps) => {
               mode="single"
               selected={value}
               onSelect={handleDateSelect}
+              disabled={[
+                ...(minDate ? [{ before: minDate }] : []),
+                ...(maxDate ? [{ after: maxDate }] : []),
+              ]}
             />
           </PopoverContent>
         </Popover>

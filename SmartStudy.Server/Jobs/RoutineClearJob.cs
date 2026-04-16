@@ -32,6 +32,15 @@ public class RoutineClearJob : IRoutineClearJob
                 .IgnoreQueryFilters() // Bỏ qua global filter nếu có (ví dụ soft delete)
                 .FirstOrDefaultAsync(r => r.Id == routineId);
 
+            var courseId = 0;
+            if (routine?.PhaseId.HasValue == true)
+            {
+                courseId = await _context.Phases
+                    .Where(p => p.Id == routine.PhaseId.Value)
+                    .Select(p => p.CourseId)
+                    .FirstOrDefaultAsync();
+            }
+
             if(routine == null)
             {
                 _logger.LogWarning("Không tìm thấy routine với ID {RoutineId} để xóa task", routineId);
@@ -52,7 +61,7 @@ public class RoutineClearJob : IRoutineClearJob
             }
 
             var unusedTasks = tasks.Where(t =>
-                (t.Status!= TaskStatus.Completed && !t.Logs.Any()) ||
+                (t.Status!= TaskStatus.Completed && (t.Logs == null || !t.Logs.Any())) ||
                 t.Status == TaskStatus.Pending);
 
             await unusedTasks.ExecuteDeleteAsync();
@@ -60,7 +69,7 @@ public class RoutineClearJob : IRoutineClearJob
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", new SignalRMessage
             {
                 Action = "ROUTINE_CLEARED",
-                Data = new { routineId, phaseId = routine.PhaseId },
+                Data = new { routineId, phaseId = routine.PhaseId, courseId },
                 Message = $"Hệ thống đã dọn dẹp các task liên quan"
             });
         

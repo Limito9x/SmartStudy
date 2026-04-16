@@ -1,12 +1,10 @@
 import { useDialogStore, type DialogDataMap } from "@/stores/useDialogStore";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
-import { useQueryClient } from "@tanstack/react-query";
-import { getCourseWorkloadQueryKey } from "@/services/api/@tanstack/react-query.gen";
 import { BaseForm } from "@/components/forms/base/BaseForm";
 import {
   FormInput,
   FormSelect,
-  FormDateTimePicker,
+  FormDatePicker,
 } from "@/components/form-controls";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,6 +17,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import z from "zod";
+import { addMonths } from "date-fns";
 
 // ─── Schema riêng cho Phase ───────────────────────────────────────────────────
 const phaseFormSchema = z.object({
@@ -69,19 +68,12 @@ const PRIORITY_OPTIONS = [
 export default function PhaseFormContainer() {
   const { data, closeDialog } = useDialogStore();
   const { courseId, phaseId } = data as DialogDataMap["PHASE_FORM"];
-  const queryClient = useQueryClient();
 
   const isEditMode = !!phaseId;
   const { getEventById, createEvent, updateEvent } = useTimelineEvent({
     courseId,
   });
   const { data: phaseData, isLoading } = getEventById(phaseId!);
-
-  const invalidate = () => {
-    queryClient.invalidateQueries({
-      queryKey: getCourseWorkloadQueryKey({ path: { courseId } }),
-    });
-  };
 
   if (isEditMode && isLoading) {
     return (
@@ -103,7 +95,7 @@ export default function PhaseFormContainer() {
             : new Date(),
           endDateTime: phaseData.endDateTime
             ? new Date(phaseData.endDateTime)
-            : new Date(Date.now() + 86400000 * 7),
+            : addMonths(new Date(), 1),
           notes: phaseData.notes ?? "",
         }
       : {
@@ -111,7 +103,7 @@ export default function PhaseFormContainer() {
           type: "ExamPrep",
           priority: 1,
           startDateTime: new Date(),
-          endDateTime: new Date(Date.now() + 86400000 * 7),
+          endDateTime: addMonths(new Date(), 1),
           notes: "",
         };
 
@@ -133,7 +125,6 @@ export default function PhaseFormContainer() {
         { path: { phaseId: phaseId! }, body },
         {
           onSuccess: () => {
-            invalidate();
             closeDialog();
           },
         },
@@ -143,7 +134,6 @@ export default function PhaseFormContainer() {
         { body },
         {
           onSuccess: () => {
-            invalidate();
             closeDialog();
           },
         },
@@ -204,12 +194,12 @@ export default function PhaseFormContainer() {
               </FormItem>
             )}
           />
-          <FormDateTimePicker
+          <FormDatePicker
             control={methods.control}
             name="startDateTime"
             label="Ngày bắt đầu"
           />
-          <FormDateTimePicker
+          <FormDatePicker
             control={methods.control}
             name="endDateTime"
             label="Ngày kết thúc"

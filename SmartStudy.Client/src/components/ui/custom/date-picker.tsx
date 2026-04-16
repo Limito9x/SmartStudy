@@ -48,10 +48,10 @@ const DatePicker = ({ date, setDate, minDate, maxDate }: DatePickerProps) => {
               setDate(date);
               setOpen(false);
             }}
-            hidden={{
-              from: minDate,
-              to: maxDate,
-            }}
+            disabled={[
+              ...(minDate ? [{ before: minDate }] : []),
+              ...(maxDate ? [{ after: maxDate }] : []),
+            ]}
           />
         </PopoverContent>
       </Popover>

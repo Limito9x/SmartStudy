@@ -1,3 +1,4 @@
+using Hangfire;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
@@ -147,8 +148,17 @@ namespace SmartStudy.Server.Services
 
             if (entity?.Course?.StudyPlan == null || entity.Course.StudyPlan.UserId != userId) return false;
 
+            var routinesToRemove = await _context.Routines.Where(r => r.PhaseId == phaseId)
+            .Select(r => r.Id)
+            .ToListAsync();
             _context.Phases.Remove(entity);
+
             await _context.SaveChangesAsync();
+
+            foreach (var routineId in routinesToRemove)
+            {
+                BackgroundJob.Enqueue<IRoutineClearJob>(x => x.CleanupTasksForRoutineAsync(routineId, true));
+            }
             return true;
         }
 

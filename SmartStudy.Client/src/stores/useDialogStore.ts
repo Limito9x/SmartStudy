@@ -62,6 +62,14 @@ export interface DialogDataMap {
     itemName: string;
     onConfirm: () => void;
   };
+  CONFIRM_ACTION: {
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    confirmLabel?: string;
+    cancelLabel?: string;
+    destructive?: boolean;
+  };
   PLAN_TEMPLATE_EDIT: {
     templateId: number;
     defaultValues: UpdatePlanTemplateDto;

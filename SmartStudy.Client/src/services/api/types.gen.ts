@@ -125,6 +125,9 @@ export type CoursePhaseWorkloadDto = {
     priority?: PriorityLevel;
     location?: null | string;
     notes?: null | string;
+    progress?: number | string;
+    totalExpectations?: number | string;
+    totalCompletions?: number | string;
     routines?: Array<CourseRoutineDto>;
     tasks?: Array<ResponseTaskDto>;
 };

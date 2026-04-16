@@ -10,18 +10,15 @@ import {
   getRoutineByIdQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
-import {
-  invalidateCalendarContext,
-} from "@/utils/query-invalidate";
+import { dispatchCourseContextInvalidation } from "@/utils/query-invalidate";
 
 export const useRoutine = () => {
   const queryClient = useQueryClient();
 
   const invalidateRoutines = () => {
-    queryClient.invalidateQueries({
-      queryKey: getRoutinesQueryKey(),
+    dispatchCourseContextInvalidation(queryClient, {
+      source: "Routine",
     });
-    invalidateCalendarContext(queryClient);
   };
 
   const getAllRoutines = ({
@@ -55,22 +52,22 @@ export const useRoutine = () => {
 
   const createRoutine = useMutation({
     ...createRoutineMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getRoutinesQueryKey(),
+    onSuccess: (_data, variables) => {
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Routine",
+        phaseId: variables.body?.phaseId,
       });
-      invalidateCalendarContext(queryClient);
     },
   });
 
   const updateRoutine = useMutation({
     ...updateRoutineMutation(),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       const routineId = data.id;
-      queryClient.invalidateQueries({
-        queryKey: getRoutinesQueryKey(),
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Routine",
+        phaseId: variables.body?.phaseId,
       });
-      invalidateCalendarContext(queryClient);
       queryClient.invalidateQueries({
         queryKey: getRoutineByIdQueryKey({
           path: {
@@ -84,10 +81,9 @@ export const useRoutine = () => {
   const toggleRoutineStatus = useMutation({
     ...toggleRoutineStatusMutation(),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: getRoutinesQueryKey(),
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Routine",
       });
-      invalidateCalendarContext(queryClient);
       queryClient.invalidateQueries({
         queryKey: getRoutineByIdQueryKey({
           path: {

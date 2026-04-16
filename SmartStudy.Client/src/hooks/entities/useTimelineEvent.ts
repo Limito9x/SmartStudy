@@ -1,13 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getPhasesOptions,
-  getPhasesQueryKey,
   getPhaseByIdOptions,
   createPhaseMutation,
   updatePhaseMutation,
   deletePhaseMutation,
 } from "@/services/api/@tanstack/react-query.gen";
-import { invalidateCourseWorkloadContext } from "@/utils/query-invalidate";
+import { dispatchCourseContextInvalidation } from "@/utils/query-invalidate";
 
 export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
   const queryClient = useQueryClient();
@@ -34,13 +33,9 @@ export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
   const createEvent = useMutation({
     ...createPhaseMutation(),
     onSuccess: () => {
-      invalidateCourseWorkloadContext(queryClient, Number(courseId));
-      queryClient.invalidateQueries({
-        queryKey: getPhasesQueryKey({
-          query: {
-            courseId: courseId,
-          },
-        }),
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Phase",
+        courseId,
       });
     },
   });
@@ -48,13 +43,9 @@ export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
   const updateEvent = useMutation({
     ...updatePhaseMutation(),
     onSuccess: () => {
-      invalidateCourseWorkloadContext(queryClient, Number(courseId));
-      queryClient.invalidateQueries({
-        queryKey: getPhasesQueryKey({
-          query: {
-            courseId: courseId,
-          },
-        }),
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Phase",
+        courseId,
       });
     },
   });
@@ -62,12 +53,9 @@ export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
   const deleteEvent = useMutation({
     ...deletePhaseMutation(),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getPhasesQueryKey({
-          query: {
-            courseId: courseId,
-          },
-        }),
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Phase",
+        courseId,
       });
     },
   });

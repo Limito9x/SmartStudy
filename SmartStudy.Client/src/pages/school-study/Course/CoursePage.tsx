@@ -13,6 +13,7 @@ import CoursePanel from "@/components/panels/CoursePanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { usePanelStore } from "@/stores/usePanelStore";
+import { useCourseContextStore } from "@/stores/useCourseContextStore";
 
 export default function CoursePage() {
   const { courseId, studyPlanId } = useParams<{
@@ -24,6 +25,7 @@ export default function CoursePage() {
   const studyPlanIdNum = Number(studyPlanId);
   const isMobile = useIsMobile();
   const { isOpen, type, openPanel, closePanel } = usePanelStore();
+  const { setActiveCourseId } = useCourseContextStore();
 
   const isChatOpen = isOpen && type === "CHAT";
   const isDesktopPanelOpen = !isMobile && isOpen;
@@ -31,6 +33,17 @@ export default function CoursePage() {
   useEffect(() => {
     closePanel();
   }, [courseIdNum, closePanel]);
+
+  useEffect(() => {
+    const normalizedCourseId =
+      Number.isFinite(courseIdNum) && courseIdNum > 0 ? courseIdNum : null;
+
+    setActiveCourseId(normalizedCourseId);
+
+    return () => {
+      setActiveCourseId(null);
+    };
+  }, [courseIdNum, setActiveCourseId]);
 
   const handleToggleChat = () => {
     if (isChatOpen) {

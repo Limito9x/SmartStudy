@@ -99,6 +99,15 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
         var totalGenerates = 0;
         var today = DateTime.Today.Date;
         var lookAheadDate = today.AddDays(14);
+        var courseId = 0;
+
+        if (routine.PhaseId.HasValue)
+        {
+            courseId = await _context.Phases
+                .Where(p => p.Id == routine.PhaseId.Value)
+                .Select(p => p.CourseId)
+                .FirstOrDefaultAsync();
+        }
             
             var startAnchor = routine.StartDate > today ? routine.StartDate.Date : today;
             var endAnchor = (routine.EndDate.HasValue && routine.EndDate.Value < lookAheadDate) 
@@ -149,7 +158,7 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", new SignalRMessage
             {
                 Action = "ROUTINE_TASKS_UPDATED",
-                Data = new { routineId = routine.Id, phaseId = routine.PhaseId },
+                Data = new { routineId = routine.Id, phaseId = routine.PhaseId, courseId },
                 Message = $"Hệ thống đã cập nhật task cho lịch trình '{routine.Name}'"
             });
 

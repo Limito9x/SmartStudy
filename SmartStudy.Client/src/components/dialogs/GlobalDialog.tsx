@@ -22,6 +22,9 @@ const StudyPlanFormContainer = lazy(
 const ConfirmDelete = lazy(
   () => import("@/components/ui/common/ConfirmDelete"),
 );
+const ConfirmAction = lazy(
+  () => import("@/components/ui/common/ConfirmAction"),
+);
 const PlanTemplateEditDialog = lazy(
   () => import("@/components/dialogs/template/PlanTemplateEditDialog"),
 );
@@ -65,10 +68,12 @@ const DIALOG_TITLES: {
   LOG_WORK_FORM: (data) =>
     data.logId ? "Cập nhật nhật ký làm việc" : "Tạo nhật ký làm việc mới",
   CONFIRM_DELETE: (data) => `Xác nhận xóa ${data.itemType}`,
+  CONFIRM_ACTION: (data) => data.title,
   PLAN_TEMPLATE_EDIT: () => "Chỉnh sửa template",
   PLAN_TEMPLATE_SELECT_PLAN: () => "Tạo template từ kế hoạch",
   EVENT_FORM: (data) => (data.eventId ? "Cập nhật sự kiện" : "Tạo sự kiện mới"),
-  PHASE_FORM: (data) => (data.phaseId ? "Cập nhật giai đoạn" : "Thêm giai đoạn mới"),
+  PHASE_FORM: (data) =>
+    data.phaseId ? "Cập nhật giai đoạn" : "Thêm giai đoạn mới",
 };
 
 const DIALOG_COMPONENTS: {
@@ -101,10 +106,30 @@ const DIALOG_COMPONENTS: {
       />
     );
   },
+  CONFIRM_ACTION: () => {
+    const { data, closeDialog } = useDialogStore();
+    const { message, onConfirm, confirmLabel, cancelLabel, destructive } =
+      data as DialogDataMap["CONFIRM_ACTION"];
+
+    return (
+      <ConfirmAction
+        message={message}
+        confirmLabel={confirmLabel}
+        cancelLabel={cancelLabel}
+        destructive={destructive}
+        onConfirm={() => {
+          onConfirm();
+          closeDialog();
+        }}
+        onCancel={closeDialog}
+      />
+    );
+  },
 };
 
 const DIALOG_SIZES: { [K in DialogType]: string } = {
   CONFIRM_DELETE: "sm:max-w-sm", // Hộp thoại xác nhận
+  CONFIRM_ACTION: "sm:max-w-sm", // Hộp thoại xác nhận chung
   STUDY_PLAN_FORM: "sm:max-w-lg", // Form tạo Study Plan vừa vừa (512px)
   TASK_FORM: "sm:max-w-lg", // Form tạo Task vừa vừa (512px)
   COURSE_FORM: "sm:max-w-md", // Form tạo môn học (448px)

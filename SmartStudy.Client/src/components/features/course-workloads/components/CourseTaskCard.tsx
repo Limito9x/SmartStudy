@@ -95,72 +95,6 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
 
   const isMilestone = task.type === "Milestone";
 
-  if (isMilestone) {
-    return (
-      <div
-        role="button"
-        tabIndex={0}
-        aria-selected={isActive}
-        onClick={handleOpenTaskDetail}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            event.preventDefault();
-            handleOpenTaskDetail();
-          }
-        }}
-        className={cn(
-          "rounded-xl border-2 p-3 transition-colors",
-          isActive
-            ? "border-rose-300 bg-rose-100/80"
-            : "border-rose-200 bg-rose-50 hover:bg-rose-100/60",
-        )}
-      >
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Flag size={18} className="shrink-0 text-rose-600" />
-            <div className="min-w-0">
-              <p
-                className={cn(
-                  "truncate text-sm font-semibold text-rose-700",
-                  task.status === "Completed" &&
-                    "line-through text-muted-foreground",
-                )}
-              >
-                {task.name}
-              </p>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-rose-500">
-                <CalendarClock size={12} />
-                <span>
-                  {task.startDateTime
-                    ? formatTaskDateTime(task.startDateTime, task.endDateTime)
-                    : "Chưa có hạn"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <ActionMenu
-              actions={[
-                { label: "Mở chi tiết", onClick: handleOpenTaskDetail },
-                {
-                  label:
-                    task.status === "Completed"
-                      ? "Đánh dấu đang làm"
-                      : "Đánh dấu hoàn thành",
-                  onClick: handleToggleTaskStatus,
-                },
-              ]}
-            />
-            <Badge className={cn("border", statusStyle.badgeClass)}>
-              {statusStyle.label}
-            </Badge>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       role="button"
@@ -175,7 +109,12 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
       }}
       className={cn(
         "rounded-xl border p-3 transition-colors",
-        isActive ? "border-sky-300 bg-sky-100/70" : "bg-card hover:bg-muted/30",
+        isMilestone && "border-rose-200 bg-rose-50/70",
+        isMilestone && isActive && "border-rose-300 bg-rose-100/70",
+        !isMilestone &&
+          (isActive
+            ? "border-sky-300 bg-sky-100/70"
+            : "bg-card hover:bg-muted/30"),
       )}
     >
       <div className="flex items-start justify-between gap-3">
@@ -183,9 +122,12 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
           <div
             className={cn(
               "flex h-9 w-9 shrink-0 items-center justify-center rounded-md",
-              isActive
+              isMilestone && "bg-rose-100 text-rose-700",
+              !isMilestone && isActive
                 ? "bg-sky-200 text-sky-800"
-                : "bg-primary/10 text-primary",
+                : !isMilestone
+                  ? "bg-primary/10 text-primary"
+                  : "",
             )}
           >
             {renderTaskIcon(task.type)}
@@ -195,6 +137,7 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
             <p
               className={cn(
                 "truncate text-sm font-medium",
+                isMilestone && "text-rose-700",
                 task.status === "Completed" &&
                   "line-through text-muted-foreground",
               )}
@@ -208,6 +151,11 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
                   ? formatTaskDateTime(task.startDateTime, task.endDateTime)
                   : "Chưa có hạn"}
               </span>
+              {isMilestone && (
+                <Badge className="border border-rose-300 bg-rose-100 text-rose-700 hover:bg-rose-100">
+                  <Flag className="mr-1 h-3 w-3" /> Cột mốc
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -230,12 +178,6 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
           <Badge className={cn("border", statusStyle.badgeClass)}>
             {statusStyle.label}
           </Badge>
-          <ChevronRight
-            className={cn(
-              "h-4 w-4 text-muted-foreground transition-transform",
-              isActive && "translate-x-0.5 text-sky-700",
-            )}
-          />
         </div>
       </div>
     </div>

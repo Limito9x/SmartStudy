@@ -94,6 +94,9 @@ namespace SmartStudy.Server.Dtos
         public PriorityLevel Priority { get; set; }
         public string? Location { get; set; }
         public string? Notes { get; set; }
+        public double Progress { get; set; }
+        public int TotalExpectations { get; set; }
+        public int TotalCompletions { get; set; }
         public List<CourseRoutineDto> Routines { get; set; } = [];
         public List<ResponseTaskDto> Tasks { get; set; } = [];
     }

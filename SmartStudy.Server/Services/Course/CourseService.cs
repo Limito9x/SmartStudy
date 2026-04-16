@@ -117,12 +117,20 @@ namespace SmartStudy.Server.Services
                 _context.Courses.Add(course);
                 await _context.SaveChangesAsync();
 
+                var studyPlan = await _context.StudyPlans.FirstOrDefaultAsync(sp => sp.Id == course.StudyPlanId);
+                if (studyPlan == null || studyPlan.UserId != _currentUserService.UserId)
+                {
+                    throw new KeyNotFoundException("Không tìm thấy kế hoạch học tập hoặc bạn không có quyền thêm khóa học vào kế hoạch này.");
+                }
+
                 var generalPhase = new Phase
                 {
                     CourseId = course.Id,
                     Title = "Giai đoạn chung",
                     Type = PhaseType.General,
-                    Priority = PriorityLevel.Low
+                    Priority = PriorityLevel.Low,
+                    StartDateTime = studyPlan.StartDate,
+                    EndDateTime = studyPlan.EndDate,
                 };
                 _context.Phases.Add(generalPhase);
                 await _context.SaveChangesAsync();
@@ -276,6 +284,13 @@ namespace SmartStudy.Server.Services
                 .Where(r => r.PhaseId.HasValue && phaseIds.Contains(r.PhaseId.Value))
                 .ToListAsync();
 
+            var singleTasksForProgress = await _context.Tasks
+                .AsNoTracking()
+                .Where(t => t.PhaseId.HasValue
+                    && phaseIds.Contains(t.PhaseId.Value)
+                    && t.RoutineId == null)
+                .ToListAsync();
+
             var routineIds = routines.Select(r => r.Id).ToList();
             var routineTasks = routineIds.Count == 0
                 ? []
@@ -294,12 +309,17 @@ namespace SmartStudy.Server.Services
                 var phaseTitleMatched = keyword != null
                                         && phase.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase);
 
+                var phaseSingleTasksForProgress = singleTasksForProgress
+                    .Where(t => t.PhaseId == phase.Id)
+                    .ToList();
+
                 var phaseSingleTasks = singleTasks
                     .Where(t => t.PhaseId == phase.Id)
+                    .OrderBy(t => t.StartDateTime)
                     .Select(t => _mapper.Map<ResponseTaskDto>(t))
                     .ToList();
 
-                var phaseRoutines = routines
+                var phaseRoutinesSource = routines
                     .Where(r => r.PhaseId == phase.Id)
                     .Where(r =>
                     {
@@ -314,6 +334,9 @@ namespace SmartStudy.Server.Services
                         return routineTasksByRoutineId.TryGetValue(r.Id, out var tasks)
                                && tasks.Any(t => t.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase));
                     })
+                    .ToList();
+
+                var phaseRoutines = phaseRoutinesSource
                     .Select(routine =>
                     {
                         routineTasksByRoutineId.TryGetValue(routine.Id, out var thisRoutineTasks);
@@ -356,6 +379,13 @@ namespace SmartStudy.Server.Services
                     })
                     .ToList();
 
+                var phaseProgress = CalculatePhaseProgress(
+                    phase,
+                    phaseSingleTasksForProgress,
+                    routines.Where(r => r.PhaseId == phase.Id).ToList(),
+                    routineTasksByRoutineId
+                );
+
                 return new CoursePhaseWorkloadDto
                 {
                     Id = phase.Id,
@@ -366,6 +396,9 @@ namespace SmartStudy.Server.Services
                     Priority = phase.Priority,
                     Location = phase.Location,
                     Notes = phase.Notes,
+                    Progress = phaseProgress.Progress,
+                    TotalExpectations = phaseProgress.TotalExpectations,
+                    TotalCompletions = phaseProgress.TotalCompletions,
                     Tasks = phaseSingleTasks,
                     Routines = phaseRoutines
                 };
@@ -402,6 +435,69 @@ namespace SmartStudy.Server.Services
             }
 
             return DateTime.UtcNow.AddHours(7);
+        }
+
+        private static CourseProgressDto CalculatePhaseProgress(
+            Phase phase,
+            List<SmartStudy.Server.Entities.TaskItem> phaseSingleTasks,
+            List<Routine> phaseRoutines,
+            Dictionary<int, List<SmartStudy.Server.Entities.TaskItem>> routineTasksByRoutineId)
+        {
+            var allRoutineTasks = phaseRoutines
+                .SelectMany(routine =>
+                    routineTasksByRoutineId.TryGetValue(routine.Id, out var tasks)
+                        ? tasks
+                        : [])
+                .ToList();
+
+            var allPhaseTasks = phaseSingleTasks.Concat(allRoutineTasks).ToList();
+            var totalCompletedTasks = allPhaseTasks
+                .Where(t => t.Status == TaskStatus.Completed)
+                .ToList();
+
+            var totalSingleExpectations = phaseSingleTasks.Count(t =>
+                t.Status == TaskStatus.Pending || t.Status == TaskStatus.InProgress);
+
+            var totalRoutineExpectations = 0;
+
+            foreach (var routine in phaseRoutines)
+            {
+                var endAnchor = CalculateRoutineEndDate(phase.EndDateTime, routine.EndDate);
+
+                if (endAnchor < routine.StartDate)
+                {
+                    continue;
+                }
+
+                var occurrences = RoutineHelper.GetOccurences(routine.StartDate, endAnchor, routine);
+                var occurrenceCount = occurrences.Count();
+                var completedRoutineTasks = allRoutineTasks.Count(t =>
+                    t.RoutineId == routine.Id && t.Status == TaskStatus.Completed);
+
+                var thisRoutineExpectations = occurrenceCount - completedRoutineTasks;
+                if (thisRoutineExpectations < 0)
+                {
+                    thisRoutineExpectations = 0;
+                }
+
+                if (routine.IsActive)
+                {
+                    totalRoutineExpectations += thisRoutineExpectations;
+                }
+            }
+
+            var totalCompletions = totalCompletedTasks.Count;
+            var totalExpectations = totalSingleExpectations + totalRoutineExpectations + totalCompletedTasks.Count;
+            var progress = totalExpectations > 0
+                ? Math.Min(1.0, (double)totalCompletions / totalExpectations)
+                : 0;
+
+            return new CourseProgressDto
+            {
+                Progress = Math.Round(progress * 100, 1),
+                TotalExpectations = totalExpectations,
+                TotalCompletions = totalCompletions
+            };
         }
 
         private CourseProgressDto CalculateProgress(Course course)

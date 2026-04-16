@@ -7,6 +7,7 @@ import { routineFormMapper } from "@/utils/mapper/formMapper";
 import { useMemo } from "react";
 import { routineApiMapper } from "@/utils/mapper/apiMapper";
 import type { RoutineFormValues } from "@/components/forms/routine/schema";
+import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 
 export default function RoutineFormContainer() {
   const { data, closeDialog } = useDialogStore();
@@ -15,9 +16,14 @@ export default function RoutineFormContainer() {
 
   const isEditMode = !!routineId;
   const effectivePhaseId = phaseId ?? eventId;
+  const fixedPhaseId = effectivePhaseId ? Number(effectivePhaseId) : 0;
   const showCourseField = !courseId;
   const showEventField = !effectivePhaseId;
   const { getRoutineById, createRoutine, updateRoutine } = useRoutine();
+  const { getEventById } = useTimelineEvent({
+    courseId: courseId ? Number(courseId) : undefined,
+  });
+  const { data: fixedPhase } = getEventById(fixedPhaseId);
 
   // NẾU LÀ EDIT: Fetch data ngầm.
   const { data: routineData, isLoading } = getRoutineById(routineId!);
@@ -94,6 +100,7 @@ export default function RoutineFormContainer() {
       showEventField={showEventField}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
+      fixedPhase={fixedPhase ?? null}
       onSubmit={handleSubmit}
     />
   );

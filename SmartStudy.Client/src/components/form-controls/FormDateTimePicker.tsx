@@ -5,14 +5,18 @@ import type { FieldValues } from "react-hook-form";
 
 interface FormDateTimePickerProps<
   T extends FieldValues,
-> extends BaseFormControlProps<T> {}
+> extends BaseFormControlProps<T> {
+  minDate?: Date;
+  maxDate?: Date;
+}
 
 export function FormDateTimePicker<T extends FieldValues>({
   control,
   name,
   label,
+  minDate,
+  maxDate,
 }: FormDateTimePickerProps<T>) {
-
   return (
     <BaseFormField
       control={control}
@@ -22,6 +26,8 @@ export function FormDateTimePicker<T extends FieldValues>({
         <DateTimePicker
           value={field.value}
           onChange={(date) => field.onChange(date)}
+          minDate={minDate}
+          maxDate={maxDate}
         />
       )}
     />

@@ -6,27 +6,165 @@ import {
   getInboxItemsQueryKey,
   getTaskDetailByIdQueryKey,
   getCourseAssetQueryKey,
+  getPhaseByIdQueryKey,
+  getPhasesQueryKey,
+  getRoutinesQueryKey,
+  getTasksQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type {
   AssetStatus,
   AssetLinkType,
   CourseAssetResponseDto,
   CourseWorkloadDto,
+  ResponsePhaseDto,
   TaskDetailDto,
 } from "@/services/api";
+import { useCourseContextStore } from "@/stores/useCourseContextStore";
 
 type QueryKeyRoot = {
   _id?: string;
   path?: {
     courseId?: number | string;
   };
+  query?: {
+    courseId?: number | string;
+  };
 };
+
+export interface CourseContextInvalidationSignal {
+  source?: "Task" | "Routine" | "Phase" | "Course" | "Unknown";
+  courseId?: number | string | null;
+  phaseId?: number | string | null;
+  includeCalendar?: boolean;
+}
 
 const QUERY_KEY_ID = {
   taskDetailById: "getTaskDetailById",
   courseAsset: "getCourseAsset",
   courseWorkload: "getCourseWorkload",
+  phases: "getPhases",
 } as const;
+
+const normalizeCourseId = (value?: number | string | null) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return undefined;
+  }
+  return parsed;
+};
+
+const resolveCourseIdByPhaseCache = (
+  queryClient: QueryClient,
+  phaseId?: number | string | null,
+) => {
+  const normalizedPhaseId = Number(phaseId);
+  if (!Number.isFinite(normalizedPhaseId) || normalizedPhaseId <= 0) {
+    return undefined;
+  }
+
+  const phaseById = queryClient.getQueryData<ResponsePhaseDto>(
+    getPhaseByIdQueryKey({
+      path: {
+        phaseId: normalizedPhaseId,
+      },
+    }),
+  );
+
+  const courseIdFromPhaseById = normalizeCourseId(phaseById?.courseId);
+  if (courseIdFromPhaseById) {
+    return courseIdFromPhaseById;
+  }
+
+  const phaseQueryEntries = queryClient.getQueriesData<ResponsePhaseDto[]>({
+    predicate: (query) => {
+      const root = query.queryKey[0] as QueryKeyRoot | undefined;
+      return root?._id === QUERY_KEY_ID.phases;
+    },
+  });
+
+  for (const [queryKey, phases] of phaseQueryEntries) {
+    if (!Array.isArray(phases) || phases.length === 0) {
+      continue;
+    }
+
+    const root = queryKey[0] as QueryKeyRoot | undefined;
+    const matchedPhase = phases.find(
+      (phase) => Number(phase.id) === normalizedPhaseId,
+    );
+
+    if (matchedPhase) {
+      const matchedCourseId = normalizeCourseId(matchedPhase.courseId);
+      if (matchedCourseId) {
+        return matchedCourseId;
+      }
+
+      const courseIdFromQueryKey = normalizeCourseId(root?.query?.courseId);
+      if (courseIdFromQueryKey) {
+        return courseIdFromQueryKey;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const resolveCourseIdFromSignal = (
+  queryClient: QueryClient,
+  signal?: CourseContextInvalidationSignal,
+) => {
+  const directCourseId = normalizeCourseId(signal?.courseId);
+  if (directCourseId) {
+    return directCourseId;
+  }
+
+  const phaseDerivedCourseId = resolveCourseIdByPhaseCache(
+    queryClient,
+    signal?.phaseId,
+  );
+  if (phaseDerivedCourseId) {
+    return phaseDerivedCourseId;
+  }
+
+  return normalizeCourseId(useCourseContextStore.getState().activeCourseId);
+};
+
+export const dispatchCourseContextInvalidation = (
+  queryClient: QueryClient,
+  signal?: CourseContextInvalidationSignal,
+) => {
+  const resolvedCourseId = resolveCourseIdFromSignal(queryClient, signal);
+
+  queryClient.invalidateQueries({
+    queryKey: getTasksQueryKey(),
+  });
+
+  queryClient.invalidateQueries({
+    queryKey: getRoutinesQueryKey(),
+  });
+
+  queryClient.invalidateQueries({
+    queryKey: getPhasesQueryKey(
+      resolvedCourseId
+        ? {
+            query: {
+              courseId: resolvedCourseId,
+            },
+          }
+        : undefined,
+    ),
+  });
+
+  if (signal?.includeCalendar !== false) {
+    invalidateCalendarContext(queryClient);
+  }
+
+  if (resolvedCourseId) {
+    invalidateCourseContext(queryClient, resolvedCourseId);
+    return;
+  }
+
+  invalidateCourseWorkloadContext(queryClient);
+};
 
 export const invalidateCourseContext = (
   queryClient: QueryClient,

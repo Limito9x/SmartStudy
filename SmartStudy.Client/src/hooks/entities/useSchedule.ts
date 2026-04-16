@@ -10,6 +10,7 @@ import {
   confirmTaskOnOccurrenceMutation,
   getCalendarQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
+import { dispatchCourseContextInvalidation } from "@/utils/query-invalidate";
 
 export const useSchedule = () => {
   const queryClient = useQueryClient();
@@ -56,6 +57,9 @@ export const useSchedule = () => {
   const confirmTaskOnOccurrence = useMutation({
     ...confirmTaskOnOccurrenceMutation(),
     onSuccess: () => {
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Routine",
+      });
       queryClient.invalidateQueries({
         queryKey: getCalendarQueryKey(),
       });

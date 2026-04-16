@@ -7,6 +7,7 @@ import type { TaskFormValues } from "@/components/forms/task/schema";
 import { taskFormMapper } from "@/utils/mapper/formMapper";
 import { useMemo } from "react";
 import { taskApiMapper } from "@/utils/mapper/apiMapper";
+import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 
 export default function TaskFormContainer() {
   const { data, closeDialog } = useDialogStore();
@@ -15,9 +16,14 @@ export default function TaskFormContainer() {
 
   const isEditMode = !!taskId;
   const effectivePhaseId = phaseId ?? eventId;
+  const fixedPhaseId = effectivePhaseId ? Number(effectivePhaseId) : 0;
   const showCourseField = !courseId;
   const showEventField = !effectivePhaseId;
   const { getTaskById, createTask, updateTaskInfo } = useTask();
+  const { getEventById } = useTimelineEvent({
+    courseId: courseId ? Number(courseId) : undefined,
+  });
+  const { data: fixedPhase } = getEventById(fixedPhaseId);
 
   // NẾU LÀ EDIT: Fetch data ngầm.
   const { data: taskData, isLoading } = getTaskById(taskId!);
@@ -90,6 +96,7 @@ export default function TaskFormContainer() {
       showEventField={showEventField}
       isEditMode={isEditMode}
       defaultValues={finalDefaultValues}
+      fixedPhase={fixedPhase ?? null}
       onSubmit={handleSubmit}
     />
   );

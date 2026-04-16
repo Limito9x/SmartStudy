@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getTaskByIdOptions,
   getTasksOptions,
-  getTasksQueryKey,
   getTaskDetailByIdOptions,
   createTaskMutation,
   createTaskLogWorkMutation,
@@ -13,10 +12,7 @@ import {
   getTaskByIdQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskStatus } from "@/services/api";
-import {
-  invalidateCalendarContext,
-} from "@/utils/query-invalidate";
-import { invalidateCourseWorkloadContext } from "@/utils/query-invalidate";
+import { dispatchCourseContextInvalidation } from "@/utils/query-invalidate";
 
 export const useTask = () => {
   const queryClient = useQueryClient();
@@ -79,11 +75,11 @@ export const useTask = () => {
 
   const createTask = useMutation({
     ...createTaskMutation(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getTasksQueryKey(),
+    onSuccess: (_data, variables) => {
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Task",
+        phaseId: variables.body?.phaseId,
       });
-      invalidateCalendarContext(queryClient);
     },
   });
 
@@ -92,17 +88,21 @@ export const useTask = () => {
     onSuccess: (data) => {
       const taskId = data.taskId;
       invalidateTaskRelatedQueries(taskId);
-      invalidateCalendarContext(queryClient);
-      invalidateCourseWorkloadContext(queryClient);
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Task",
+      });
     },
   });
 
   const updateTaskInfo = useMutation({
     ...updateTaskInfoMutation(),
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       const taskId = data.id;
       invalidateTaskRelatedQueries(taskId);
-      invalidateCalendarContext(queryClient);
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Task",
+        phaseId: variables.body?.phaseId,
+      });
     },
   });
 
@@ -111,18 +111,18 @@ export const useTask = () => {
     onSuccess: (data) => {
       const taskId = data.id;
       invalidateTaskRelatedQueries(taskId);
-      invalidateCalendarContext(queryClient);
-      invalidateCourseWorkloadContext(queryClient);
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Task",
+      });
     },
   });
 
   const deleteTaskById = useMutation({
     ...deleteTaskByIdMutation(),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: getTasksQueryKey(),
+      dispatchCourseContextInvalidation(queryClient, {
+        source: "Task",
       });
-      invalidateCalendarContext(queryClient);
     },
   });
 
