@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,18 +9,47 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useGetPlanTemplateById } from "@/hooks/entities/usePlanTemplate.ts";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  useGetPlanTemplateById,
+  usePlanTemplate,
+} from "@/hooks/entities/usePlanTemplate.ts";
 import CloneTemplateDialog from "@/components/features/plan/CloneTemplateDialog";
 import { useAuthStore } from "@/stores/useAuthStore";
+import type { PlanTemplateDetailDto } from "@/services/api";
 
-const dayOfWeekMap: Record<number, string> = {
-  0: "Chủ nhật",
-  1: "Thứ 2",
-  2: "Thứ 3",
-  3: "Thứ 4",
-  4: "Thứ 5",
-  5: "Thứ 6",
-  6: "Thứ 7",
+type DetailCourse = NonNullable<PlanTemplateDetailDto["courses"]>[number];
+type DetailPhase = NonNullable<DetailCourse["phases"]>[number];
+type DetailItem = NonNullable<DetailPhase["items"]>[number];
+
+const getTypeLabel = (type?: string) =>
+  type === "Personal" ? "Kế hoạch cá nhân" : "Lộ trình đại học";
+
+const getCourseDescription = (course: DetailCourse) => {
+  const text = course.description?.trim();
+  if (text) {
+    return text;
+  }
+
+  return `Lộ trình học tập môn ${course.name || "này"} được tối ưu hóa theo giai đoạn.`;
+};
+
+const getPhaseDateLabel = (phase: DetailPhase) => {
+  const startDay = Number(phase.startDayOffset ?? 0);
+  const hasEnd =
+    phase.endDayOffset !== null && phase.endDayOffset !== undefined;
+  const endDay = hasEnd ? Number(phase.endDayOffset) : startDay;
+  if (phase.type === "General") {
+    return "Giai đoạn chung";
+  }
+
+  return `Ngày ${startDay} - Ngày ${endDay}`;
+};
+
+const getRoutineLine = (item: DetailItem) => {
+  const totalSessions = Number(item.totalSessions ?? 0);
+  const durationDays = Number(item.durationDays ?? 0);
+  return `${item.name || "Routine"} • ${totalSessions} buổi học • Diễn ra trong ${durationDays} ngày.`;
 };
 
 const extractStudyPlanId = (data: unknown): number | null => {
@@ -47,18 +76,52 @@ const extractStudyPlanId = (data: unknown): number | null => {
 export default function TemplateDetailPage() {
   const navigate = useNavigate();
   const { templateId } = useParams();
+  const [searchParams] = useSearchParams();
   const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
+  const [selectedCourseRefs, setSelectedCourseRefs] = useState<string[]>([]);
   const { user } = useAuthStore();
   const isAdmin = user?.role === "admin";
+  const isPreviewMode = searchParams.get("mode") === "preview";
+  const { importSelectedCourses, importSelectedCoursesMutation } =
+    usePlanTemplate();
 
   const parsedTemplateId = Number(templateId);
   const { data, isLoading, error } = useGetPlanTemplateById(parsedTemplateId);
 
   const courseCount = data?.courseCount ?? 0;
-  const routineCount = data?.routineCount ?? 0;
   const durationDays = data?.durationDays ?? 0;
+  const phaseCount = data?.phaseCount ?? 0;
+  const milestoneCount = data?.milestoneCount ?? 0;
 
-  const courses = useMemo(() => data?.payload?.courses ?? [], [data]);
+  const courses = useMemo(() => data?.courses ?? [], [data]);
+
+  const canImport =
+    !isAdmin &&
+    !isPreviewMode &&
+    selectedCourseRefs.length > 0 &&
+    !importSelectedCoursesMutation.isPending;
+
+  const toggleCourseRef = (courseRef: string) => {
+    setSelectedCourseRefs((prev) =>
+      prev.includes(courseRef)
+        ? prev.filter((item) => item !== courseRef)
+        : [...prev, courseRef],
+    );
+  };
+
+  const handleImportSelectedCourses = async () => {
+    if (selectedCourseRefs.length === 0) {
+      return;
+    }
+
+    await importSelectedCourses({
+      templateId: parsedTemplateId,
+      targetPlanId: 0,
+      courseRefs: selectedCourseRefs,
+    });
+
+    setSelectedCourseRefs([]);
+  };
 
   if (isLoading) {
     return (
@@ -82,136 +145,178 @@ export default function TemplateDetailPage() {
 
   return (
     <div className="space-y-6 p-6">
-      <div className="rounded-xl border bg-slate-50 p-8">
-        <div className="flex flex-col items-start justify-between gap-6 md:flex-row">
-          <div className="space-y-4">
-            <h1 className="text-3xl font-bold">{data.name}</h1>
-            <p className="text-lg text-slate-600">
-              {data.description || "Không có mô tả"}
-            </p>
-            <p className="text-sm font-medium text-slate-700">
-              {data.createdByName
-                ? `Tạo bởi ${data.createdByName}`
-                : "Tác giả chưa cập nhật"}
-            </p>
-          </div>
+      <div className="rounded-xl border bg-slate-50 p-6">
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold">{data.name}</h1>
+          <p className="text-sm text-slate-600">
+            {data.description || "Template chưa có mô tả"}
+          </p>
 
-          <div className="w-full space-y-3 md:w-[320px]">
-            {!isAdmin ? (
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={() => setIsCloneDialogOpen(true)}
-              >
-                Dùng template này
-              </Button>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="outline">{getTypeLabel(data.type)}</Badge>
+            {isPreviewMode ? <Badge variant="secondary">Preview</Badge> : null}
+            <Badge variant="secondary">{courseCount} môn học</Badge>
+            <Badge variant="secondary">{phaseCount} giai đoạn</Badge>
+            <Badge variant="secondary">{milestoneCount} cột mốc</Badge>
+            <Badge variant="secondary">{durationDays} ngày</Badge>
+            {data.universityTag ? (
+              <Badge variant="outline">{data.universityTag}</Badge>
             ) : null}
-
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">
-                {data.isPublic ? "Public" : "Private"}
-              </Badge>
-              <Badge variant="secondary">{courseCount} môn học</Badge>
-              <Badge variant="secondary">{routineCount} routines</Badge>
-              <Badge variant="secondary">{durationDays} ngày</Badge>
-            </div>
+            {data.majorTag ? (
+              <Badge variant="outline">{data.majorTag}</Badge>
+            ) : null}
           </div>
         </div>
       </div>
 
-      <div className="space-y-3">
-        {courses.length === 0 ? (
-          <div className="rounded border bg-muted/40 p-4 text-sm text-muted-foreground">
-            Template này chưa có dữ liệu môn học.
-          </div>
-        ) : (
-          <Accordion
-            type="single"
-            collapsible
-            defaultValue={`course-0`}
-            className="space-y-3"
-          >
-            {courses.map((course, courseIndex) => (
-              <AccordionItem
-                key={`${course.name || "course"}-${courseIndex}`}
-                value={`course-${courseIndex}`}
-                className="rounded-lg border bg-background px-4"
-              >
-                <AccordionTrigger className="hover:no-underline">
-                  <div className="space-y-1 text-left">
-                    <h3 className="text-base font-semibold">
-                      {course.name || `Môn ${courseIndex + 1}`}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {course.goal || "Không có mục tiêu"}
-                    </p>
-                  </div>
-                </AccordionTrigger>
+      <div
+        className={
+          isPreviewMode
+            ? "grid grid-cols-1 gap-6"
+            : "grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]"
+        }
+      >
+        <div className="space-y-3">
+          {courses.length === 0 ? (
+            <div className="rounded border bg-muted/40 p-4 text-sm text-muted-foreground">
+              Template này chưa có dữ liệu môn học.
+            </div>
+          ) : (
+            <Accordion
+              type="multiple"
+              defaultValue={courses.map((_, index) => `course-${index}`)}
+              className="space-y-3"
+            >
+              {courses.map((course, courseIndex) => (
+                <AccordionItem
+                  key={`${course.ref || course.name || "course"}-${courseIndex}`}
+                  value={`course-${courseIndex}`}
+                  className="rounded-lg border bg-background px-4"
+                >
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="space-y-1 text-left">
+                      <h3 className="text-base font-semibold">
+                        {course.name || `Môn ${courseIndex + 1}`}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {course.subjectCode
+                          ? `Mã môn: ${course.subjectCode}`
+                          : "Chưa có mã môn"}
+                      </p>
+                    </div>
+                  </AccordionTrigger>
 
-                <AccordionContent className="pb-4 pt-2">
-                  <div className="space-y-3">
-                    {(course.routines ?? []).length === 0 ? (
+                  <AccordionContent className="space-y-4 pb-4 pt-2">
+                    <p className="text-sm text-muted-foreground">
+                      {getCourseDescription(course)}
+                    </p>
+
+                    {(course.phases ?? []).length === 0 ? (
                       <div className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                        Môn học này chưa có routine.
+                        Môn học này chưa có giai đoạn.
                       </div>
                     ) : (
-                      (course.routines ?? []).map((routine, routineIndex) => (
-                        <div
-                          key={`${routine.name || "routine"}-${routineIndex}`}
-                          className="rounded-r-md border-l-4 border-primary bg-slate-50 p-4"
-                        >
-                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                            <div className="space-y-1">
-                              <p className="font-semibold">
-                                {routine.name || `Routine ${routineIndex + 1}`}
+                      <div className="space-y-3">
+                        {(course.phases ?? []).map((phase, phaseIndex) => (
+                          <div
+                            key={`${phase.ref || phase.title || "phase"}-${phaseIndex}`}
+                            className="rounded-md border bg-slate-50 p-3"
+                          >
+                            <div className="mb-2 flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-slate-800">
+                                {phase.title || "Giai đoạn"}
                               </p>
-                              <p className="text-sm text-slate-600">
-                                Ngày học: {routine.startDayOffset ?? 0} -{" "}
-                                {routine.endDayOffset ?? "?"}
-                              </p>
+                              <Badge variant="outline" className="text-xs">
+                                {getPhaseDateLabel(phase)}
+                              </Badge>
                             </div>
 
-                            <Badge variant="outline" className="w-fit">
-                              {routine.type || "N/A"}
-                            </Badge>
-                          </div>
-
-                          <div className="mt-3 space-y-2">
-                            {(routine.schedules ?? []).length === 0 ? (
+                            {(phase.items ?? []).length === 0 ? (
                               <p className="text-sm text-muted-foreground">
-                                Không có lịch cố định.
+                                Chưa có item trong giai đoạn này.
                               </p>
                             ) : (
-                              (routine.schedules ?? []).map(
-                                (schedule, scheduleIndex) => (
-                                  <div
-                                    key={`${routine.name || "routine"}-schedule-${scheduleIndex}`}
-                                    className="flex flex-col gap-1 rounded-md border border-slate-200 bg-white p-3 text-sm md:flex-row md:items-center md:justify-between"
+                              <ul className="space-y-2">
+                                {(phase.items ?? []).map((item, itemIndex) => (
+                                  <li
+                                    key={`${item.name || "item"}-${itemIndex}`}
+                                    className="rounded border bg-white px-3 py-2 text-sm"
                                   >
-                                    <p className="font-medium text-slate-700">
-                                      {dayOfWeekMap[
-                                        Number(schedule.dayOfWeek)
-                                      ] || "Không rõ thứ"}
-                                    </p>
-                                    <p className="text-slate-600">
-                                      {schedule.startTime?.slice(0, 5) ||
-                                        "--:--"}{" "}
-                                      · {schedule.duration ?? 0} phút
-                                    </p>
-                                  </div>
-                                ),
-                              )
+                                    {item.itemType === "Milestone" ? (
+                                      <p className="font-medium text-slate-800">
+                                        ⚑ {item.name}
+                                      </p>
+                                    ) : (
+                                      <p className="text-slate-700">
+                                        {getRoutineLine(item)}
+                                      </p>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
                             )}
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
+        </div>
+
+        {!isAdmin && !isPreviewMode ? (
+          <div className="h-fit space-y-4 rounded-xl border bg-white p-4">
+            <div>
+              <h2 className="text-base font-semibold">Import môn học</h2>
+              <p className="text-sm text-muted-foreground">
+                Chọn môn để import vào kế hoạch đang hoạt động cùng loại.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Danh sách môn</p>
+              <div className="max-h-60 space-y-2 overflow-auto rounded-md border p-2">
+                {courses.map((course, courseIndex) => {
+                  const courseRef =
+                    course.ref || course.name || `course-${courseIndex}`;
+                  const isChecked = selectedCourseRefs.includes(courseRef);
+                  return (
+                    <label
+                      key={courseRef}
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-slate-50"
+                    >
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={() => toggleCourseRef(courseRef)}
+                      />
+                      <span>{course.name}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={handleImportSelectedCourses}
+              disabled={!canImport}
+            >
+              {importSelectedCoursesMutation.isPending
+                ? "Đang import..."
+                : "Import"}
+            </Button>
+
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setIsCloneDialogOpen(true)}
+            >
+              Dùng toàn bộ template
+            </Button>
+          </div>
+        ) : null}
       </div>
 
       {!isAdmin ? (

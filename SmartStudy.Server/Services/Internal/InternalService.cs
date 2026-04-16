@@ -19,9 +19,16 @@ public class InternalService: IInternalService
     }
     
     public async Task<List<int>?> GetAllowedAssetsAsync(int userId, int? courseId)
-    { 
-        var taskIds = await _context.Tasks
-            .Where(t => t.CourseId == courseId && t.UserId == userId)
+    {
+        var tasksQuery = _context.Tasks
+            .Where(t => t.UserId == userId);
+
+        if (courseId.HasValue)
+        {
+            tasksQuery = tasksQuery.Where(t => t.Phase != null && t.Phase.CourseId == courseId.Value);
+        }
+
+        var taskIds = await tasksQuery
             .Select(t => t.Id)
             .ToListAsync();
         

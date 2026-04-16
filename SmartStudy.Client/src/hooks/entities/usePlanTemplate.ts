@@ -3,6 +3,7 @@ import {
   clonePlanTemplateMutation,
   createPlanTemplateMutation,
   deletePlanTemplateMutation,
+  importSelectedCoursesMutation,
   getMyPlanTemplatesOptions,
   getMyPlanTemplatesQueryKey,
   getPlanTemplateByIdOptions,
@@ -13,6 +14,7 @@ import {
 import type {
   CloneTemplateDto,
   CreatePlanTemplateDto,
+  ImportSelectedCoursesDto,
   UpdatePlanTemplateDto,
 } from "@/services/api";
 import { toast } from "sonner";
@@ -56,16 +58,20 @@ interface GetPlanTemplatesParams {
   pageIndex?: number;
   pageSize?: number;
   searchTerm?: string;
+  type?: "Academic" | "Personal";
 }
 
 export const useGetPlanTemplates = (params?: GetPlanTemplatesParams) => {
+  const query = {
+    PageIndex: params?.pageIndex,
+    PageSize: params?.pageSize,
+    SearchTerm: params?.searchTerm,
+    ...(params?.type ? { Type: params.type } : {}),
+  };
+
   return useQuery({
     ...getPlanTemplatesOptions({
-      query: {
-        PageIndex: params?.pageIndex,
-        PageSize: params?.pageSize,
-        SearchTerm: params?.searchTerm,
-      },
+      query: query as never,
     }),
   });
 };
@@ -162,6 +168,23 @@ export const useClonePlanTemplate = () => {
   });
 };
 
+export const useImportSelectedCourses = () => {
+  const invalidateTemplateQueries = useInvalidateTemplateQueries();
+
+  return useMutation({
+    ...importSelectedCoursesMutation(),
+    onSuccess: () => {
+      invalidateTemplateQueries();
+      toast.success("Import môn học thành công");
+    },
+    onError: (error) => {
+      const errorMessage =
+        getApiErrorMessage(error) || "Không thể import môn học";
+      toast.error(errorMessage);
+    },
+  });
+};
+
 export const useTogglePublishTemplate = () => {
   const updatePlanTemplate = useUpdatePlanTemplate();
 
@@ -186,6 +209,7 @@ export const usePlanTemplate = (params?: GetPlanTemplatesParams) => {
   const updatePlanTemplate = useUpdatePlanTemplate();
   const deletePlanTemplate = useDeletePlanTemplate();
   const clonePlanTemplate = useClonePlanTemplate();
+  const importSelectedCoursesMutation = useImportSelectedCourses();
   const togglePublish = useTogglePublishTemplate();
 
   const createTemplate = async (body: CreatePlanTemplateDto) => {
@@ -206,6 +230,10 @@ export const usePlanTemplate = (params?: GetPlanTemplatesParams) => {
     return clonePlanTemplate.mutateAsync({ body });
   };
 
+  const importSelectedCourses = async (body: ImportSelectedCoursesDto) => {
+    return importSelectedCoursesMutation.mutateAsync({ body });
+  };
+
   return {
     getPlanTemplates,
     getMyPlanTemplates,
@@ -213,9 +241,11 @@ export const usePlanTemplate = (params?: GetPlanTemplatesParams) => {
     updatePlanTemplate,
     deletePlanTemplate,
     clonePlanTemplate,
+    importSelectedCoursesMutation,
     createTemplate,
     updateTemplate,
     cloneTemplate,
+    importSelectedCourses,
     togglePublish,
   };
 };

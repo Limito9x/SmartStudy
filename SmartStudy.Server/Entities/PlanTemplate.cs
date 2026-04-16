@@ -5,7 +5,9 @@ namespace SmartStudy.Server.Entities;
 
 public class TemplatePayload
 {
+    public int PayloadVersion { get; set; } = 2;
     public int DurationDays { get; set; }
+    public List<string> Tags { get; set; } = [];
     public List<TemplateCourse> Courses { get; set; } = [];
 }
 
@@ -18,11 +20,28 @@ public class TemplateSubject
 
 public class TemplateCourse
 {
+    public string Ref { get; set; } = string.Empty;
     public string Name { get; set; } = null!;
     public string? Goal { get; set; }
     public double? TargetScore { get; set; }
     public TemplateSubject? Subject { get; set; }
+    public List<TemplatePhase> Phases { get; set; } = [];
+
+    // Legacy payload compatibility (v1).
     public List<TemplateRoutine> Routines { get; set; } = [];
+}
+
+public class TemplatePhase
+{
+    public string Ref { get; set; } = string.Empty;
+    public string Title { get; set; } = null!;
+    public PhaseType Type { get; set; } = PhaseType.General;
+    public PriorityLevel Priority { get; set; } = PriorityLevel.Low;
+    public int StartDayOffset { get; set; }
+    public int? EndDayOffset { get; set; }
+    public string? Notes { get; set; }
+    public List<TemplateRoutine> Routines { get; set; } = [];
+    public List<TemplateTask> Tasks { get; set; } = [];
 }
 
 public class TemplateRoutine
@@ -32,6 +51,15 @@ public class TemplateRoutine
     public int StartDayOffset { get; set; }
     public int? EndDayOffset { get; set; }
     public List<TemplateSchedule> Schedules { get; set; } = [];
+}
+
+public class TemplateTask
+{
+    public string Name { get; set; } = null!;
+    public TaskType Type { get; set; } = TaskType.Milestone;
+    public string? Description { get; set; }
+    public int StartDayOffset { get; set; }
+    public int? EndDayOffset { get; set; }
 }
 
 public class TemplateSchedule

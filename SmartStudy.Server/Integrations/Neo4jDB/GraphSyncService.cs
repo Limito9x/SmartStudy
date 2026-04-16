@@ -189,6 +189,8 @@ MERGE (sp)-[:HAS_COURSE]->(c)
             }
 
             var query = @"
+MERGE (c:Course {pg_id: $course_pg_id})
+SET c.updated_at = datetime()
 MERGE (p:Phase {pg_id: $pg_id})
 SET p.title = $title,
     p.type = $type,
@@ -196,14 +198,10 @@ SET p.title = $title,
     p.end_datetime = CASE WHEN $end_datetime IS NULL THEN NULL ELSE datetime($end_datetime) END,
     p.created_at = CASE WHEN p.created_at IS NULL THEN datetime($created_at) ELSE p.created_at END,
     p.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
-WITH p
+WITH c, p
 OPTIONAL MATCH (:Course)-[old:HAS_PHASE]->(p)
 DELETE old
-WITH p
-OPTIONAL MATCH (course:Course {pg_id: $course_pg_id})
-FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
-    MERGE (course)-[:HAS_PHASE]->(p)
-)
+MERGE (c)-[:HAS_PHASE]->(p)
 ";
 
             await ExecuteAsync(query, new Dictionary<string, object?>

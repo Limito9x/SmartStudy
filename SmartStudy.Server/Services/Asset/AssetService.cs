@@ -1,4 +1,4 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
@@ -186,7 +186,9 @@ namespace SmartStudy.Server.Services
             var relatedTasks = await _context.Tasks
                 .Include(t=>t.Routine)
                 .Include(t=>t.Logs)
-                .Where(t => t.CourseId == courseId && t.UserId == userId)
+                .Where(t => t.UserId == userId
+                    && t.Phase != null
+                    && t.Phase.CourseId == courseId)
                 .ToListAsync();
 
             var taskIds = relatedTasks.Select(t => t.Id).ToList();
@@ -212,11 +214,12 @@ namespace SmartStudy.Server.Services
                     (link.LinkedType == AssetLinkType.Task && t.Id == link.LinkedId) ||
                     (link.LinkedType == AssetLinkType.Log && t.Logs.Any(l => l.Id == link.LinkedId))
                 );
-                if(task.Routine != null)
+
+                if (task?.Routine != null)
                 {
                     sourceName = $"Routine: {task.Routine.Name}";
                 }
-                else
+                else if (task != null)
                 {
                     sourceName = $"Task: {task.Name}";
                 }

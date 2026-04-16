@@ -5,7 +5,13 @@ import type {
   ResponseStudyPlanDto,
   SimpleResponseCourseDto,
 } from "@/services/api";
-import { ArchiveRestore, CalendarDays, ChevronDown } from "lucide-react";
+import {
+  ArchiveRestore,
+  CalendarDays,
+  ChevronDown,
+  Eye,
+  Upload,
+} from "lucide-react";
 import { useMemo } from "react";
 import { getCourseColumns, type CourseTableMeta } from "./courseColumn";
 
@@ -20,6 +26,10 @@ interface ArchivePlanRowProps {
   onUpdateCourseFinalScore: (courseId: number, score: number) => Promise<void>;
   onRestore: () => void;
   isRestoring: boolean;
+  onPreviewTemplate: () => void;
+  onPublishTemplate: () => void;
+  isPreviewingTemplate: boolean;
+  isPublishingTemplate: boolean;
 }
 
 const PLAN_TYPE_BADGE_CLASS: Record<string, string> = {
@@ -53,6 +63,10 @@ export default function ArchivePlanRow({
   onUpdateCourseFinalScore,
   onRestore,
   isRestoring,
+  onPreviewTemplate,
+  onPublishTemplate,
+  isPreviewingTemplate,
+  isPublishingTemplate,
 }: ArchivePlanRowProps) {
   const type = String(plan.type || "Personal");
   const status = String(plan.status || "Completed");
@@ -131,6 +145,32 @@ export default function ArchivePlanRow({
             </p>
             <p className="text-right text-xs text-slate-500">khóa học</p>
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isPreviewingTemplate || isPublishingTemplate}
+            onClick={(event) => {
+              event.stopPropagation();
+              onPreviewTemplate();
+            }}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            {isPreviewingTemplate ? "Đang mở..." : "Xem preview"}
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            disabled={isPublishingTemplate || isPreviewingTemplate}
+            onClick={(event) => {
+              event.stopPropagation();
+              onPublishTemplate();
+            }}
+          >
+            <Upload className="mr-2 h-4 w-4" />
+            {isPublishingTemplate ? "Đang public..." : "Public"}
+          </Button>
 
           <Button
             variant="outline"

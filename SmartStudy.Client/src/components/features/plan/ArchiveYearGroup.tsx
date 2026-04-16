@@ -19,6 +19,10 @@ interface ArchiveYearGroupProps {
     score: number,
   ) => Promise<void>;
   onRestorePlan: (plan: ResponseStudyPlanDto) => void;
+  onPreviewTemplate: (plan: ResponseStudyPlanDto) => void;
+  onPublishTemplate: (plan: ResponseStudyPlanDto) => void;
+  previewingPlanId: number | null;
+  publishingPlanId: number | null;
 }
 
 export default function ArchiveYearGroup({
@@ -31,6 +35,10 @@ export default function ArchiveYearGroup({
   onToggleExpand,
   onUpdateCourseFinalScore,
   onRestorePlan,
+  onPreviewTemplate,
+  onPublishTemplate,
+  previewingPlanId,
+  publishingPlanId,
 }: ArchiveYearGroupProps) {
   return (
     <section className="space-y-2">
@@ -60,6 +68,10 @@ export default function ArchiveYearGroup({
                 onUpdateCourseFinalScore(planId, courseId, score)
               }
               onRestore={() => onRestorePlan(plan)}
+              onPreviewTemplate={() => onPreviewTemplate(plan)}
+              onPublishTemplate={() => onPublishTemplate(plan)}
+              isPreviewingTemplate={previewingPlanId === planId}
+              isPublishingTemplate={publishingPlanId === planId}
             />
           );
         })}

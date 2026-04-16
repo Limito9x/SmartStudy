@@ -148,6 +148,7 @@ export type CreatePlanTemplateDto = {
     name: null | string;
     description: null | string;
     isPublic?: boolean;
+    scope?: null | TemplateScope;
 };
 
 export type DashboardSummaryDto = {
@@ -173,6 +174,21 @@ export type FileType = number;
 export type IFormFile = Blob | File;
 
 export type IFormFileCollection = Array<IFormFile>;
+
+export type ImportSelectedCoursesDto = {
+    templateId: number | string;
+    targetPlanId: number | string;
+    courseRefs: Array<string>;
+};
+
+export type ImportSelectedCoursesResultDto = {
+    targetPlanId?: number | string;
+    createdCourseIds?: Array<number | string>;
+    createdPhaseIds?: Array<number | string>;
+    createdRoutineIds?: Array<number | string>;
+    createdTaskIds?: Array<number | string>;
+    skippedCourses?: Array<string>;
+};
 
 export type InboxResponseDto = {
     floatingTasks?: Array<UnscheduledItemDto>;
@@ -266,7 +282,15 @@ export type PlanTemplateDetailDto = {
     sourcePlanId?: null | number | string;
     courseCount?: number | string;
     routineCount?: number | string;
+    phaseCount?: number | string;
+    milestoneCount?: number | string;
+    cloneCount?: number | string;
     durationDays?: null | number | string;
+    scope?: TemplateScope;
+    tags?: Array<string>;
+    coursePreviewNames?: Array<string>;
+    phasePreviewNames?: Array<string>;
+    contextTag?: null | string;
 };
 
 export type PlanTemplateDto = {
@@ -279,7 +303,15 @@ export type PlanTemplateDto = {
     sourcePlanId?: null | number | string;
     courseCount?: number | string;
     routineCount?: number | string;
+    phaseCount?: number | string;
+    milestoneCount?: number | string;
+    cloneCount?: number | string;
     durationDays?: null | number | string;
+    scope?: TemplateScope;
+    tags?: Array<string>;
+    coursePreviewNames?: Array<string>;
+    phasePreviewNames?: Array<string>;
+    contextTag?: null | string;
 };
 
 export type PriorityLevel = number;
@@ -547,16 +579,32 @@ export type TaskStatusDto = {
 export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting' | 'Milestone';
 
 export type TemplateCourse = {
+    ref?: string;
     name?: string;
     goal?: null | string;
     targetScore?: null | number | string;
     subject?: null | TemplateSubject;
+    phases?: Array<TemplatePhase>;
     routines?: Array<TemplateRoutine>;
 };
 
 export type TemplatePayload = {
+    payloadVersion?: number | string;
     durationDays?: number | string;
+    tags?: Array<string>;
     courses?: Array<TemplateCourse>;
+};
+
+export type TemplatePhase = {
+    ref?: string;
+    title?: string;
+    type?: PhaseType;
+    priority?: PriorityLevel;
+    startDayOffset?: number | string;
+    endDayOffset?: null | number | string;
+    notes?: null | string;
+    routines?: Array<TemplateRoutine>;
+    tasks?: Array<TemplateTask>;
 };
 
 export type TemplateRoutine = {
@@ -573,10 +621,20 @@ export type TemplateSchedule = {
     duration?: null | number | string;
 };
 
+export type TemplateScope = number;
+
 export type TemplateSubject = {
     name?: string;
     code?: null | string;
     credits?: null | number | string;
+};
+
+export type TemplateTask = {
+    name?: string;
+    type?: TaskType;
+    description?: null | string;
+    startDayOffset?: number | string;
+    endDayOffset?: null | number | string;
 };
 
 export type TodayTaskDto = {
@@ -620,6 +678,7 @@ export type UpdatePlanTemplateDto = {
     name: string;
     description: null | string;
     isPublic: boolean;
+    scope?: null | TemplateScope;
 };
 
 export type UpdateScheduleDto = {
@@ -1347,6 +1406,7 @@ export type GetPlanTemplatesData = {
     body?: never;
     path?: never;
     query?: {
+        Scope?: TemplateScope;
         PageIndex?: number | string;
         PageSize?: number | string;
         SearchTerm?: string;
@@ -1460,6 +1520,22 @@ export type ClonePlanTemplateResponses = {
      */
     200: unknown;
 };
+
+export type ImportSelectedCoursesData = {
+    body: ImportSelectedCoursesDto;
+    path?: never;
+    query?: never;
+    url: '/api/templates/import-courses';
+};
+
+export type ImportSelectedCoursesResponses = {
+    /**
+     * OK
+     */
+    200: ImportSelectedCoursesResultDto;
+};
+
+export type ImportSelectedCoursesResponse = ImportSelectedCoursesResponses[keyof ImportSelectedCoursesResponses];
 
 export type DeleteRoutineData = {
     body?: never;

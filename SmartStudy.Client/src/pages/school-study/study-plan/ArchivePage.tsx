@@ -3,6 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  useCreatePlanTemplate,
+  useUpdatePlanTemplate,
+} from "@/hooks/entities/usePlanTemplate";
 import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 import {
   getCoursesQueryKey,
@@ -13,6 +17,7 @@ import type { ResponseStudyPlanDto } from "@/services/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Archive, BarChart3, GraduationCap, Search } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import ArchiveYearGroup from "../../../components/features/plan/ArchiveYearGroup";
 
@@ -48,6 +53,7 @@ const getSortKey = (yearLabel: string) => {
 };
 
 export default function ArchivePage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
     getAllStudyPlans,
@@ -55,6 +61,8 @@ export default function ArchivePage() {
     getAcademicContext,
     getSummaryPlanProgress,
   } = useStudyPlan();
+  const createPlanTemplate = useCreatePlanTemplate();
+  const updatePlanTemplate = useUpdatePlanTemplate();
 
   const [searchText, setSearchText] = useState("");
   const [selectedType, setSelectedType] = useState<ArchiveTypeFilter>("all");
@@ -63,6 +71,8 @@ export default function ArchivePage() {
   const [restoringPlanId, setRestoringPlanId] = useState<number | null>(null);
   const [expandedPlanId, setExpandedPlanId] = useState<number | null>(null);
   const [savingCourseId, setSavingCourseId] = useState<number | null>(null);
+  const [previewingPlanId, setPreviewingPlanId] = useState<number | null>(null);
+  const [publishingPlanId, setPublishingPlanId] = useState<number | null>(null);
 
   const updateCourseFinalScore = useMutation({
     ...updateCourseFinalScoreMutation(),
@@ -217,6 +227,80 @@ export default function ArchivePage() {
     }
   };
 
+  const upsertTemplateFromPlan = async (
+    plan: ResponseStudyPlanDto,
+    publish: boolean,
+  ) => {
+    const sourcePlanId = Number(plan.id);
+    if (!sourcePlanId) {
+      throw new Error("Không tìm thấy Study Plan ID hợp lệ.");
+    }
+
+    const createdOrUpdated = await createPlanTemplate.mutateAsync({
+      body: {
+        sourcePlanId,
+        name: plan.name || null,
+        description: null,
+        isPublic: publish,
+      },
+    });
+
+    const templateId = Number(createdOrUpdated?.id);
+    if (!templateId) {
+      throw new Error("Không lấy được Template ID sau khi tạo.");
+    }
+
+    if (publish && !createdOrUpdated?.isPublic) {
+      await updatePlanTemplate.mutateAsync({
+        path: { templateId },
+        body: {
+          name:
+            createdOrUpdated.name ||
+            plan.name ||
+            `Template từ plan ${sourcePlanId}`,
+          description: createdOrUpdated.description ?? null,
+          isPublic: true,
+        },
+      });
+    }
+
+    return templateId;
+  };
+
+  const handlePreviewTemplate = async (plan: ResponseStudyPlanDto) => {
+    const planId = Number(plan.id);
+    if (!planId) {
+      return;
+    }
+
+    try {
+      setPreviewingPlanId(planId);
+      const templateId = await upsertTemplateFromPlan(plan, false);
+      navigate(`/app/templates/${templateId}?mode=preview`);
+    } catch {
+      toast.error("Không thể mở preview template cho kế hoạch này.");
+    } finally {
+      setPreviewingPlanId(null);
+    }
+  };
+
+  const handlePublishTemplate = async (plan: ResponseStudyPlanDto) => {
+    const planId = Number(plan.id);
+    if (!planId) {
+      return;
+    }
+
+    try {
+      setPublishingPlanId(planId);
+      await upsertTemplateFromPlan(plan, true);
+      toast.success("Đã public template từ kế hoạch hoàn tất.");
+    } catch {
+      toast.error("Không thể public template cho kế hoạch này.");
+    } finally {
+      setPublishingPlanId(null);
+    }
+  };
+
   return (
     <div className="h-full space-y-4 overflow-y-auto p-4">
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr),420px] lg:items-start">
@@ -348,9 +432,13 @@ export default function ArchivePage() {
               restoringPlanId={restoringPlanId}
               expandedPlanId={expandedPlanId}
               savingCourseId={savingCourseId}
+              previewingPlanId={previewingPlanId}
+              publishingPlanId={publishingPlanId}
               onToggleExpand={handleToggleExpand}
               onUpdateCourseFinalScore={handleUpdateCourseFinalScore}
               onRestorePlan={handleRestorePlan}
+              onPreviewTemplate={handlePreviewTemplate}
+              onPublishTemplate={handlePublishTemplate}
             />
           ))}
         </div>

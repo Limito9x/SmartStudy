@@ -19,9 +19,9 @@ public class PlanTemplateController: ControllerBase
     }
     
     [HttpGet(Name = "GetPlanTemplates")]
-    public async Task<ActionResult<PagedResult<PlanTemplateDto>>> GetPlanTemplates([FromQuery]PaginationParams paginationParams)
+    public async Task<ActionResult<PagedResult<PlanTemplateDto>>> GetPlanTemplates([FromQuery] TemplateQueryParams queryParams)
     {
-        var templates = await _planTemplateService.GetTemplatesAsync(paginationParams);
+        var templates = await _planTemplateService.GetTemplatesAsync(queryParams);
         return Ok(templates);
     }
 
@@ -66,5 +66,13 @@ public class PlanTemplateController: ControllerBase
     {
         var newPlanId = await _planTemplateService.CloneToStudyPlanAsync(cloneDto);
         return Ok(new { newPlanId });
+    }
+
+    [HttpPost("import-courses", Name = "ImportSelectedCourses")]
+    public async Task<ActionResult<ImportSelectedCoursesResultDto>> ImportSelectedCourses(
+        [FromBody] ImportSelectedCoursesDto importDto)
+    {
+        var result = await _planTemplateService.ImportSelectedCoursesAsync(importDto);
+        return Ok(result);
     }
 }

@@ -7,11 +7,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { PlanTemplateDto } from "@/services/api";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type TemplateTypeTab = "Academic" | "Personal";
 
 export default function TemplateGalleryPage() {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
   const [pageIndex, setPageIndex] = useState(0);
+  const [activeType, setActiveType] = useState<TemplateTypeTab>("Academic");
   const [accumulatedTemplates, setAccumulatedTemplates] = useState<
     PlanTemplateDto[]
   >([]);
@@ -23,6 +27,7 @@ export default function TemplateGalleryPage() {
     pageIndex,
     pageSize,
     searchTerm: debouncedSearch || undefined,
+    type: activeType,
   });
 
   const templates = useMemo(
@@ -61,6 +66,11 @@ export default function TemplateGalleryPage() {
     }
   };
 
+  const emptyText =
+    activeType === "Academic"
+      ? "Hiện chưa có lộ trình đại học phù hợp với từ khóa tìm kiếm."
+      : "Hiện chưa có kế hoạch cá nhân phù hợp với từ khóa tìm kiếm.";
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -85,6 +95,21 @@ export default function TemplateGalleryPage() {
         </div>
       </div>
 
+      <Tabs
+        value={activeType}
+        onValueChange={(nextValue) => {
+          const parsedType = nextValue as TemplateTypeTab;
+          setActiveType(parsedType);
+          setPageIndex(0);
+          setAccumulatedTemplates([]);
+        }}
+      >
+        <TabsList className="w-full justify-start gap-2 md:w-auto">
+          <TabsTrigger value="Academic">Lộ trình Đại học</TabsTrigger>
+          <TabsTrigger value="Personal">Kế hoạch Cá nhân</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
       {getPlanTemplates.isLoading && accumulatedTemplates.length === 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
@@ -97,7 +122,7 @@ export default function TemplateGalleryPage() {
         </div>
       ) : accumulatedTemplates.length === 0 ? (
         <div className="rounded border bg-muted/40 p-6 text-sm text-muted-foreground">
-          Không có template nào phù hợp với từ khóa tìm kiếm.
+          {emptyText}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
