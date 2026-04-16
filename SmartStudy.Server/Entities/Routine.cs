@@ -1,5 +1,6 @@
-﻿using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Jobs;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartStudy.Server.Entities
 {
@@ -16,10 +17,20 @@ namespace SmartStudy.Server.Entities
         public User User { get; set; }
         public int? StudyPlanId { get; set; }
         public StudyPlan? StudyPlan { get; set; }
-        public int? CourseId { get; set; }
-        public Course? Course { get; set; }
-        public int? TimelineEventId { get; set; }
-        public TimelineEvent? TimelineEvent { get; set; }
+        public int? PhaseId { get; set; }
+        public Phase? Phase { get; set; }
+        [NotMapped]
+        public int? CourseId
+        {
+            get => Phase?.CourseId;
+            set { }
+        }
+        [NotMapped]
+        public Course? Course
+        {
+            get => Phase?.Course;
+            set { }
+        }
         // Các Task do Routine tạo ra
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
         // Routine có nhiều khung giờ

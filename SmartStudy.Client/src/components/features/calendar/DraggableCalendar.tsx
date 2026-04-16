@@ -36,6 +36,7 @@ import {
   ChevronRight,
   ClipboardCheck,
   Clock3,
+  Flag,
   Link2,
   Repeat,
   Users,
@@ -135,6 +136,7 @@ const taskTypeColorMap: Record<TaskType, string> = {
   SelfStudy: "#0f766e",
   AssignmentWork: "#7c3aed",
   Meeting: "#ea580c",
+  Milestone: "#be123c",
 };
 
 function occurrenceDateKey(task: MyTask) {
@@ -165,6 +167,8 @@ function getIconForTask(task: MyTask) {
   }
 
   if (task.entityType === "Task") {
+    if (task.taskType === "Milestone")
+      return <Flag className="h-3.5 w-3.5" />;
     if (task.taskType === "ClassSession")
       return <BookOpen className="h-3.5 w-3.5" />;
     if (task.taskType === "AssignmentWork")
@@ -374,6 +378,7 @@ export default function DraggableCalendar({
     const opacity = task.isVirtual ? 0.72 : 0.92;
     const isGeneratedTask = task.entityType === "Task" && !!task.routineId;
     const isCompleted = task.status === "Completed";
+    const isMilestone = task.taskType === "Milestone";
 
     return {
       style: {
@@ -381,13 +386,21 @@ export default function DraggableCalendar({
         opacity,
         border: task.isVirtual
           ? "2px dashed rgba(255,255,255,0.65)"
-          : "1px solid rgba(255,255,255,0.15)",
-        borderLeft: isGeneratedTask
-          ? "4px solid rgba(15,23,42,0.5)"
-          : undefined,
+          : isMilestone
+            ? "2px solid rgba(255,255,255,0.8)"
+            : "1px solid rgba(255,255,255,0.15)",
+        borderLeft: isMilestone
+          ? "4px solid #fff"
+          : isGeneratedTask
+            ? "4px solid rgba(15,23,42,0.5)"
+            : undefined,
         borderRadius: "6px",
         color: "white",
         filter: isCompleted ? "saturate(0.45)" : undefined,
+        boxShadow: isMilestone
+          ? "0 0 8px rgba(190,18,60,0.55)"
+          : undefined,
+        fontWeight: isMilestone ? "600" : undefined,
       },
     };
   }, []);

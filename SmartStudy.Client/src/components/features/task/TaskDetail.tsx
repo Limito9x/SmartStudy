@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { useTask } from "@/hooks/entities/useTask";
-import type { TaskStatus, TaskType } from "@/services/api";
+import type { TaskType } from "@/services/api";
 import { formatTaskDateTime } from "@/utils/dateUtils";
 import { toast } from "sonner";
+import { getStatusStyle, resolveTaskDisplayStatus } from "./FormatTask";
 
 interface TaskDetailProps {
   taskId: number;
@@ -42,6 +43,7 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
   }
 
   const isCompleted = task.status === "Completed";
+  const statusStyle = getStatusStyle(resolveTaskDisplayStatus(task));
   const normalizedTaskId = Number(task.id);
 
   const handleToggleCompleted = (checked: boolean) => {
@@ -83,9 +85,7 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
             </div>
           </div>
 
-          <Badge className={getStatusBadgeClass(task.status)}>
-            {getStatusLabel(task.status)}
-          </Badge>
+          <Badge className={statusStyle.badgeClass}>{statusStyle.label}</Badge>
         </div>
 
         <div className="flex items-center justify-end gap-2">
@@ -120,41 +120,9 @@ function getTaskTypeLabel(type: TaskType) {
       return "Bài tập";
     case "Meeting":
       return "Cuộc họp";
+    case "Milestone":
+      return "Cột mốc";
     default:
       return String(type);
-  }
-}
-
-function getStatusLabel(status: TaskStatus) {
-  switch (status) {
-    case "Pending":
-      return "Chờ xử lý";
-    case "InProgress":
-      return "Đang thực hiện";
-    case "Completed":
-      return "Hoàn thành";
-    case "Cancelled":
-      return "Đã hủy";
-    case "Archived":
-      return "Lưu trữ";
-    default:
-      return String(status);
-  }
-}
-
-function getStatusBadgeClass(status: TaskStatus) {
-  switch (status) {
-    case "Pending":
-      return "border border-amber-300 bg-amber-100 text-amber-800";
-    case "InProgress":
-      return "border border-blue-300 bg-blue-100 text-blue-800";
-    case "Completed":
-      return "border border-emerald-300 bg-emerald-100 text-emerald-800";
-    case "Cancelled":
-      return "border border-rose-300 bg-rose-100 text-rose-800";
-    case "Archived":
-      return "border border-slate-300 bg-slate-100 text-slate-700";
-    default:
-      return "border border-border bg-muted text-muted-foreground";
   }
 }

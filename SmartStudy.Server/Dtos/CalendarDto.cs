@@ -57,7 +57,7 @@ public enum CalendarEntityType
 {
     Task,
     Routine,
-    TimelineEvent
+    Phase
 }
 
 public record RescheduleTaskDto

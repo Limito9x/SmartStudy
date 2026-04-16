@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SmartStudy.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialPhaseArchitecture : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -399,7 +399,7 @@ namespace SmartStudy.Server.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "timeline_events",
+                name: "phase",
                 columns: table => new
                 {
                     id = table.Column<int>(type: "integer", nullable: false)
@@ -407,8 +407,8 @@ namespace SmartStudy.Server.Migrations
                     course_id = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<int>(type: "integer", nullable: false),
                     title = table.Column<string>(type: "character varying(300)", maxLength: 300, nullable: false),
-                    start_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    end_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    start_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    end_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     is_all_day = table.Column<bool>(type: "boolean", nullable: false),
                     type = table.Column<int>(type: "integer", nullable: false),
                     priority = table.Column<int>(type: "integer", nullable: false),
@@ -420,9 +420,9 @@ namespace SmartStudy.Server.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("pk_timeline_events", x => x.id);
+                    table.PrimaryKey("pk_phase", x => x.id);
                     table.ForeignKey(
-                        name: "fk_timeline_events_courses_course_id",
+                        name: "fk_phase_courses_course_id",
                         column: x => x.course_id,
                         principalTable: "courses",
                         principalColumn: "id",
@@ -545,8 +545,7 @@ namespace SmartStudy.Server.Migrations
                     is_active = table.Column<bool>(type: "boolean", nullable: false),
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     study_plan_id = table.Column<int>(type: "integer", nullable: true),
-                    course_id = table.Column<int>(type: "integer", nullable: true),
-                    timeline_event_id = table.Column<int>(type: "integer", nullable: true),
+                    phase_id = table.Column<int>(type: "integer", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
@@ -555,20 +554,15 @@ namespace SmartStudy.Server.Migrations
                 {
                     table.PrimaryKey("pk_routines", x => x.id);
                     table.ForeignKey(
-                        name: "fk_routines_courses_course_id",
-                        column: x => x.course_id,
-                        principalTable: "courses",
+                        name: "fk_routines_phase_phase_id",
+                        column: x => x.phase_id,
+                        principalTable: "phase",
                         principalColumn: "id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "fk_routines_study_plans_study_plan_id",
                         column: x => x.study_plan_id,
                         principalTable: "study_plans",
-                        principalColumn: "id");
-                    table.ForeignKey(
-                        name: "fk_routines_timeline_events_timeline_event_id",
-                        column: x => x.timeline_event_id,
-                        principalTable: "timeline_events",
                         principalColumn: "id");
                     table.ForeignKey(
                         name: "fk_routines_users_user_id",
@@ -621,9 +615,8 @@ namespace SmartStudy.Server.Migrations
                     user_id = table.Column<int>(type: "integer", nullable: false),
                     routine_id = table.Column<int>(type: "integer", nullable: true),
                     schedule_id = table.Column<int>(type: "integer", nullable: true),
-                    course_id = table.Column<int>(type: "integer", nullable: true),
                     study_plan_id = table.Column<int>(type: "integer", nullable: true),
-                    timeline_event_id = table.Column<int>(type: "integer", nullable: true),
+                    phase_id = table.Column<int>(type: "integer", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
                     deleted_at = table.Column<DateTime>(type: "timestamp without time zone", nullable: true)
@@ -632,10 +625,11 @@ namespace SmartStudy.Server.Migrations
                 {
                     table.PrimaryKey("pk_tasks", x => x.id);
                     table.ForeignKey(
-                        name: "fk_tasks_courses_course_id",
-                        column: x => x.course_id,
-                        principalTable: "courses",
-                        principalColumn: "id");
+                        name: "fk_tasks_phase_phase_id",
+                        column: x => x.phase_id,
+                        principalTable: "phase",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "fk_tasks_routines_routine_id",
                         column: x => x.routine_id,
@@ -650,11 +644,6 @@ namespace SmartStudy.Server.Migrations
                         name: "fk_tasks_study_plans_study_plan_id",
                         column: x => x.study_plan_id,
                         principalTable: "study_plans",
-                        principalColumn: "id");
-                    table.ForeignKey(
-                        name: "fk_tasks_timeline_events_timeline_event_id",
-                        column: x => x.timeline_event_id,
-                        principalTable: "timeline_events",
                         principalColumn: "id");
                     table.ForeignKey(
                         name: "fk_tasks_users_user_id",
@@ -813,6 +802,11 @@ namespace SmartStudy.Server.Migrations
                 column: "task_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_phase_course_id",
+                table: "phase",
+                column: "course_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_plan_templates_created_by_id",
                 table: "plan_templates",
                 column: "created_by_id");
@@ -828,33 +822,28 @@ namespace SmartStudy.Server.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_routines_course_id",
+                name: "ix_routines_name_phase_id",
                 table: "routines",
-                column: "course_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_routines_name_course_id",
-                table: "routines",
-                columns: new[] { "name", "course_id" },
+                columns: new[] { "name", "phase_id" },
                 unique: true,
-                filter: "deleted_at IS NULL AND course_id IS NOT NULL");
+                filter: "deleted_at IS NULL AND phase_id IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "ix_routines_name_user_id",
                 table: "routines",
                 columns: new[] { "name", "user_id" },
                 unique: true,
-                filter: "deleted_at IS NULL AND course_id IS NULL");
+                filter: "deleted_at IS NULL AND phase_id IS NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_routines_phase_id",
+                table: "routines",
+                column: "phase_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_routines_study_plan_id",
                 table: "routines",
                 column: "study_plan_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_routines_timeline_event_id",
-                table: "routines",
-                column: "timeline_event_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_routines_user_id",
@@ -899,9 +888,9 @@ namespace SmartStudy.Server.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_tasks_course_id",
+                name: "ix_tasks_phase_id",
                 table: "tasks",
-                column: "course_id");
+                column: "phase_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_tasks_routine_id_schedule_id_start_date_time",
@@ -920,19 +909,9 @@ namespace SmartStudy.Server.Migrations
                 column: "study_plan_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_tasks_timeline_event_id",
-                table: "tasks",
-                column: "timeline_event_id");
-
-            migrationBuilder.CreateIndex(
                 name: "ix_tasks_user_id",
                 table: "tasks",
                 column: "user_id");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_timeline_events_course_id",
-                table: "timeline_events",
-                column: "course_id");
 
             migrationBuilder.AddForeignKey(
                 name: "fk_chat_messages_chat_sessions_session_id",
@@ -1038,7 +1017,7 @@ namespace SmartStudy.Server.Migrations
                 name: "routines");
 
             migrationBuilder.DropTable(
-                name: "timeline_events");
+                name: "phase");
 
             migrationBuilder.DropTable(
                 name: "courses");

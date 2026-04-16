@@ -44,15 +44,9 @@ namespace SmartStudy.Server.Services
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             var routine = await _context.Routines
-                .Include(r => r.Course)
-                    .Include(r => r.StudyPlan)
+                .Include(r => r.StudyPlan)
                 .FirstOrDefaultAsync(r => r.Id == dto.RoutineId && r.UserId == userId)
                 ?? throw new KeyNotFoundException("Không tìm thấy routine");
-
-            if (routine.CourseId <= 0)
-            {
-                throw new AppException("Routine chưa liên kết course, không thể tạo task từ schedule.");
-            }
 
             var schedule = new ScheduleEntity
             {
@@ -172,8 +166,7 @@ namespace SmartStudy.Server.Services
                 ScheduleId = schedule.Id,
                 Status = TaskStatus.Pending,
                 Type = schedule.Routine.Type,
-                TimelineEventId = schedule.Routine.TimelineEventId,
-                CourseId = schedule.Routine.CourseId,
+                PhaseId = schedule.Routine.PhaseId,
                 StudyPlanId = schedule.Routine.StudyPlanId
             };
             
@@ -240,8 +233,7 @@ namespace SmartStudy.Server.Services
                     ScheduleId = schedule.Id,
                     Status = TaskStatus.Pending,
                     Type = routine.Type,
-                    TimelineEventId = routine.TimelineEventId,
-                    CourseId = routine.CourseId,
+                    PhaseId = routine.PhaseId,
                     StudyPlanId = routine.StudyPlanId
                 });
             }

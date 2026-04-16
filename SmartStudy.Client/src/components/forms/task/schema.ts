@@ -9,7 +9,7 @@ export const taskSchema = z.object({
   description: z.string().nullable().optional(),
   startDateTime: z.date().nullable().optional(),
   endDateTime: z.date().nullable().optional(),
-  type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting"], {
+  type: z.enum(["ClassSession", "SelfStudy", "AssignmentWork", "Meeting", "Milestone"], {
     message: "Loại nhiệm vụ không được để trống",
   }),
   location: z.string().nullable().optional(),

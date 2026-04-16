@@ -15,6 +15,11 @@ export interface DialogDataMap {
     eventId?: number;
     defaultValues?: TimelineEventFormValues;
   };
+  PHASE_FORM: {
+    courseId: number;
+    phaseId?: number;
+    defaultValues?: TimelineEventFormValues;
+  };
   STUDY_PLAN_FORM: {
     studyPlanId?: number;
     defaultValues?: StudyPlanFormValues;
@@ -26,12 +31,14 @@ export interface DialogDataMap {
   TASK_FORM: {
     taskId?: number;
     courseId?: number;
+    phaseId?: number;
     eventId?: number;
     defaultValues?: TaskFormValues;
   };
   ROUTINE_FORM: {
     routineId?: number;
     courseId?: number;
+    phaseId?: number;
     eventId?: number;
     defaultValues?: RoutineFormValues;
   };

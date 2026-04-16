@@ -6,7 +6,7 @@ import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
 import type { SubjectFormValues } from "@/components/forms/subject/schema";
 import type {
   ResponseCourseDto,
-  ResponseTimelineEventDto,
+  ResponsePhaseDto,
   ResponseTaskDto,
   ResponseRoutineDto,
   ResponseSubjectDto,
@@ -18,9 +18,11 @@ import type { TimelineEventFormValues } from "@/components/forms/timeline-event/
 
 export const studyPlanFormMapper = {
   toFormValues: (studyPlanDto: ResponseStudyPlanDto): StudyPlanFormValues => ({
-    name: studyPlanDto.name,
-    startDate: new Date(studyPlanDto.startDate) || "",
-    endDate: new Date(studyPlanDto.endDate) || "",
+    name: studyPlanDto.name || "",
+    startDate: studyPlanDto.startDate
+      ? new Date(studyPlanDto.startDate)
+      : new Date(),
+    endDate: studyPlanDto.endDate ? new Date(studyPlanDto.endDate) : new Date(),
     termId: Number(studyPlanDto.termId) || null,
     yearId: Number(studyPlanDto.yearId) || null,
     type: studyPlanDto.type || "Academic",
@@ -39,9 +41,7 @@ export const courseFormMapper = {
 };
 
 export const timelineEventFormMapper = {
-  toFormValues: (
-    eventDto: ResponseTimelineEventDto,
-  ): TimelineEventFormValues => ({
+  toFormValues: (eventDto: ResponsePhaseDto): TimelineEventFormValues => ({
     title: eventDto.title,
     type: eventDto.type,
     priority: eventDto.priority,
@@ -59,11 +59,13 @@ export const taskFormMapper = {
     name: taskDto.name,
     description: taskDto.description || "",
     type: taskDto.type,
-    startDateTime: new Date(taskDto.startDateTime || ""),
-    endDateTime: new Date(taskDto.endDateTime || ""),
+    startDateTime: taskDto.startDateTime
+      ? new Date(taskDto.startDateTime)
+      : null,
+    endDateTime: taskDto.endDateTime ? new Date(taskDto.endDateTime) : null,
     location: taskDto.location || "",
-    courseId: Number(taskDto.courseId),
-    eventId: Number(taskDto.timelineEventId) || null,
+    courseId: null,
+    eventId: Number(taskDto.phaseId) || null,
   }),
 };
 
@@ -72,11 +74,11 @@ export const routineFormMapper = {
     name: routineDto.name,
     instructor: routineDto.instructor || "",
     description: routineDto.description || "",
-    type: routineDto.type,
+    type: routineDto.type === "Milestone" ? "SelfStudy" : routineDto.type,
     startDate: new Date(routineDto.startDate) || null,
     endDate: routineDto.endDate ? new Date(routineDto.endDate) : null,
-    courseId: Number(routineDto.courseId),
-    eventId: Number(routineDto.timelineEventId),
+    courseId: undefined,
+    eventId: Number(routineDto.phaseId) || undefined,
     schedules:
       routineDto.schedules?.map((s) => ({
         id: Number(s.id),

@@ -57,10 +57,13 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
         
         var activeRoutines = await _context.Routines
             .Include(r => r.Schedules)
-            .Include(r => r.Course) // Include Khóa học để xét tư cách
+            .Include(r => r.Phase)
+            .ThenInclude(p => p.Course) // Include Khóa học qua phase để xét tư cách
             .Where(r => 
                 r.IsActive == true && // Tư cách 1: Lịch đang bật
-                r.Course.Status == CourseStatus.Enrolled && // Tư cách 2: Môn học chưa chốt sổ
+                r.Phase != null &&
+                r.Phase.Course != null &&
+                r.Phase.Course.Status == CourseStatus.Enrolled && // Tư cách 2: Môn học chưa chốt sổ
                 r.StartDate <= lookAheadDate && 
                 (r.EndDate == null || r.EndDate >= today))
             .ToListAsync();
@@ -135,9 +138,8 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
                         ScheduleId = occurence.Schedule.Id,
                         Status = TaskStatus.Pending,
                         Type = routine.Type,
-                        TimelineEventId = routine.TimelineEventId,
-                        StudyPlanId = routine.StudyPlanId,
-                        CourseId = routine.CourseId
+                        PhaseId = routine.PhaseId,
+                        StudyPlanId = routine.StudyPlanId
                     };
                     _context.Tasks.Add(task);
                     totalGenerates++;
@@ -147,7 +149,7 @@ public class RoutineTaskGenerator: IRoutineTaskGenerator
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", new SignalRMessage
             {
                 Action = "ROUTINE_TASKS_UPDATED",
-                Data = new { routineId = routine.Id, courseId = routine.CourseId },
+                Data = new { routineId = routine.Id, phaseId = routine.PhaseId },
                 Message = $"Hệ thống đã cập nhật task cho lịch trình '{routine.Name}'"
             });
 

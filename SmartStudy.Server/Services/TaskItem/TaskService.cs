@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Helpers;
@@ -13,7 +14,7 @@ namespace SmartStudy.Server.Services
         Task<ResponseTaskDto> CreateTaskAsync(RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> GetTaskByIdAsync(int taskId);
         Task<TaskDetailDto> GetTaskDetailByIdAsync(int taskId);
-        Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status);
+        Task<List<ResponseTaskDto>> GetTasksAsync(int? phaseId, TaskStatus? status);
         Task<ResponseTaskDto> UpdateTaskInfoAsync(int taskId, RequestTaskDto taskItemDto);
         Task<ResponseTaskDto> UpdateTaskStatusAsync(int taskId, TaskStatusDto taskStatusDto);
         Task<LogDto> LogWorkAsync(int taskId, LogWorkDto dto);
@@ -43,6 +44,7 @@ namespace SmartStudy.Server.Services
             var userId = _currentUserService.UserId;
             var Task = _mapper.Map<Entities.TaskItem>(taskItemDto);
             Task.UserId = userId;
+
             await _context.Tasks.AddAsync(Task);
             await _context.SaveChangesAsync();
             return _mapper.Map<ResponseTaskDto>(Task);
@@ -84,16 +86,16 @@ namespace SmartStudy.Server.Services
             return BuildTaskDetailDto(taskItem, logs, links);
         }
 
-        public async Task<List<ResponseTaskDto>> GetTasksAsync(int?courseId,TaskStatus? status)
+        public async Task<List<ResponseTaskDto>> GetTasksAsync(int? phaseId, TaskStatus? status)
         {
             var userId = _currentUserService.UserId;
             var query = _context.Tasks
                 .AsNoTracking()
                 .Where(t => t.UserId == userId);
             
-            if(courseId.HasValue)
+            if (phaseId.HasValue)
             {
-                query = query.Where(t => t.CourseId == courseId.Value);
+                query = query.Where(t => t.PhaseId == phaseId.Value);
             }
 
             if (status.HasValue)

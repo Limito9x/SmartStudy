@@ -50,7 +50,7 @@ public class StudentDashboardService: IStudentDashboardService
 
     // Tasks hôm nay
     var todayTasks = await _context.Tasks
-        .Include(t => t.Course)
+        .Include(t => t.Phase).ThenInclude(p => p!.Course)
         .Where(t => t.UserId == userId
                  && t.StartDateTime.HasValue
                  && t.StartDateTime.Value.Date == today && t.Status!= Entities.Enums.TaskStatus.Completed)
@@ -58,7 +58,7 @@ public class StudentDashboardService: IStudentDashboardService
 
     // Overdue
     var overdueTasks = await _context.Tasks
-        .Include(t => t.Course)
+        .Include(t => t.Phase).ThenInclude(p => p!.Course)
         .Where(t => t.UserId == userId
                  && t.StartDateTime.HasValue
                  && t.StartDateTime.Value.Date < today
@@ -114,11 +114,12 @@ public class StudentDashboardService: IStudentDashboardService
           / weekTasks.Count * 100
         : 0;
     
-    var upcomingEvents = await _context.TimelineEvents
+    var upcomingEvents = await _context.Phases
         .Include(e => e.Course)
         .Where(e => e.Course.StudyPlan.UserId == userId
-                 && e.EndDateTime.Date > today
-                 && e.EndDateTime.Date <= today.AddDays(30))
+                 && e.EndDateTime.HasValue
+                 && e.EndDateTime.Value.Date > today
+                 && e.EndDateTime.Value.Date <= today.AddDays(30))
         .ToListAsync();
 
     return new DashboardSummaryDto
@@ -132,12 +133,30 @@ public class StudentDashboardService: IStudentDashboardService
                                 ? (int)(currentPlan.EndDate.Value - today).TotalDays
                                 : null,
         CurrentPlanName       = currentPlan?.Name,
-        TodayTasks            = todayTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
-        OverdueTasks          = overdueTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
-        CompletedTasks = completedTasks.Select(t => t.Adapt<TodayTaskDto>()).ToList(),
+        TodayTasks            = todayTasks.Select(t => new TodayTaskDto
+        {
+            Id = t.Id, Name = t.Name, StartDateTime = t.StartDateTime!.Value,
+            EndDateTime = t.EndDateTime, Type = t.Type, Status = t.Status,
+            CourseName = t.Phase?.Course?.Name
+        }).ToList(),
+        OverdueTasks          = overdueTasks.Select(t => new TodayTaskDto
+        {
+            Id = t.Id, Name = t.Name, StartDateTime = t.StartDateTime!.Value,
+            EndDateTime = t.EndDateTime, Type = t.Type, Status = t.Status,
+            CourseName = t.Phase?.Course?.Name
+        }).ToList(),
+        CompletedTasks = completedTasks.Select(t => new TodayTaskDto
+        {
+            Id = t.Id, Name = t.Name,
+            StartDateTime = t.StartDateTime ?? DateTime.UtcNow,
+            EndDateTime = t.EndDateTime, Type = t.Type, Status = t.Status,
+            CourseName = null
+        }).ToList(),
         UpcomingEvents = upcomingEvents.Select(e => {
             var dto = e.Adapt<UpcomingEventDto>();
-            dto.DaysUntil = (int)(e.EndDateTime.Date - today).TotalDays;
+            dto.DaysUntil = e.EndDateTime.HasValue
+                ? (int)(e.EndDateTime.Value.Date - today).TotalDays
+                : 0;
             dto.CourseName = e.Course?.Name ?? "";
             return dto;
         }).ToList()

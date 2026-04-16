@@ -1,4 +1,4 @@
-﻿using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
@@ -8,8 +8,7 @@ namespace SmartStudy.Server.Dtos
         string? Instructor,
         string? Description,
         TaskType Type,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         DateTime? StartDate,
         DateTime? EndDate,
         int? StudyPlanId,
@@ -24,8 +23,7 @@ namespace SmartStudy.Server.Dtos
         DateTime StartDate,
         DateTime? EndDate,
         TaskType Type,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         int? StudyPlanId,
         List<ScheduleDto>? Schedules
     );
@@ -38,8 +36,7 @@ namespace SmartStudy.Server.Dtos
         TaskType Type,
         DateTime StartDate,
         DateTime? EndDate,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         bool IsActive,
         int? StudyPlanId,
         List<ScheduleDto> Schedules,
@@ -55,8 +52,7 @@ namespace SmartStudy.Server.Dtos
         DateTime? EndDate,
         TaskType Type,
         bool IsActive,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         List<ScheduleDto> Schedules
     );
 }

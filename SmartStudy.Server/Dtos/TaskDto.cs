@@ -1,4 +1,4 @@
-﻿using SmartStudy.Server.Entities;
+using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
@@ -11,8 +11,7 @@ namespace SmartStudy.Server.Dtos
         DateTime? StartDateTime,
         DateTime? EndDateTime,
         TaskType Type,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         int? StudyPlanId
     );
 
@@ -31,11 +30,11 @@ namespace SmartStudy.Server.Dtos
         TaskType Type,
         string? Location,
         Entities.Enums.TaskStatus Status,
+        bool IsOverdue,
         List<LogDto>? Logs,
         int? RoutineId,
         int? ScheduleId,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         int? StudyPlanId
     );
 
@@ -48,10 +47,10 @@ namespace SmartStudy.Server.Dtos
         DateTime? EndDateTime,
         TaskType Type,
         Entities.Enums.TaskStatus Status,
+        bool IsOverdue,
         int? RoutineId,
         int? ScheduleId,
-        int? CourseId,
-        int? TimelineEventId,
+        int? PhaseId,
         int StudyPlanId
     );
 

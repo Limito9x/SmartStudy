@@ -60,7 +60,7 @@ public class RoutineClearJob : IRoutineClearJob
             await _hubContext.Clients.All.SendAsync("ReceiveNotification", new SignalRMessage
             {
                 Action = "ROUTINE_CLEARED",
-                Data = new { routineId, courseId = routine.CourseId },
+                Data = new { routineId, phaseId = routine.PhaseId },
                 Message = $"Hệ thống đã dọn dẹp các task liên quan"
             });
         

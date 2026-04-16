@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities.Enums;
@@ -27,11 +27,11 @@ namespace SmartStudy.Server.Controllers
         [HttpGet(Name ="GetRoutines")]
         public async Task<ActionResult<List<SimpleResponseRoutineDto>>> GetAllRoutines(
             [FromQuery] int? StudyPlanId,
-            [FromQuery] int? CourseId,
+            [FromQuery] int? phaseId,
             [FromQuery] TaskType? Type
             )
         {
-            var Routines = await _routineService.GetRoutinesByUserIdAsync(StudyPlanId, CourseId , Type);
+            var Routines = await _routineService.GetRoutinesByUserIdAsync(StudyPlanId, phaseId, Type);
             return Ok(Routines);
         }
 

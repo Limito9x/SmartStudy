@@ -46,7 +46,7 @@ export type BehaviorChartDto = {
     totalHours?: number | string;
 };
 
-export type CalendarEntityType = 'Task' | 'Routine' | 'TimelineEvent';
+export type CalendarEntityType = 'Task' | 'Routine' | 'Phase';
 
 export type CalendarEventDto = {
     calendarId?: string;
@@ -98,31 +98,46 @@ export type CourseAssetResponseDto = {
     status?: AssetStatus;
 };
 
-export type CourseEventDto = {
+export type CourseOccurenceDto = {
+    number?: number | string;
+    date?: string;
+    schedule?: CourseOccurenceScheduleDto;
+    taskId?: number | string;
+    taskName?: string;
+    status?: string;
+    isCompleted?: boolean;
+};
+
+export type CourseOccurenceScheduleDto = {
+    id?: number | string;
+    dayOfWeek?: DayOfWeek;
+    startTime?: null | string;
+    duration?: null | number | string;
+    location?: null | string;
+};
+
+export type CoursePhaseWorkloadDto = {
     id?: number | string;
     title?: string;
-    startDateTime?: string;
-    endDateTime?: string;
-    eventType?: EventType;
+    startDateTime?: null | string;
+    endDateTime?: null | string;
+    phaseType?: PhaseType;
     priority?: PriorityLevel;
     location?: null | string;
     notes?: null | string;
-    completedTasks?: number | string;
-    totalTasks?: number | string;
-    tasks?: Array<EventTaskDto>;
-    routines?: Array<EventRoutineDto>;
+    routines?: Array<CourseRoutineDto>;
+    tasks?: Array<ResponseTaskDto>;
 };
 
 export type CourseRoutineDto = {
     routine?: SimpleResponseRoutineDto;
-    tasks?: Array<ResponseTaskDto>;
+    occurences?: Array<CourseOccurenceDto>;
 };
 
 export type CourseStatus = 'Enrolled' | 'Completed' | 'Dropped';
 
 export type CourseWorkloadDto = {
-    routines?: Array<CourseRoutineDto>;
-    singleTasks?: Array<ResponseTaskDto>;
+    phases?: Array<CoursePhaseWorkloadDto>;
 };
 
 export type CreatePlanTemplateDto = {
@@ -149,23 +164,6 @@ export type DashboardSummaryDto = {
 export type DayOfWeek = number;
 
 export type DifficultyLevel = number;
-
-export type EventRoutineDto = {
-    id?: number | string;
-    name?: string;
-    type?: TaskType;
-    totalCompletion?: number | string;
-    totalOccurrences?: number | string;
-};
-
-export type EventTaskDto = {
-    id?: number | string;
-    name?: string;
-    type?: TaskType;
-    status?: TaskStatus;
-};
-
-export type EventType = 'Exam' | 'Assignment' | 'Presentation' | 'ProjectDeadline' | 'Other';
 
 export type FileType = number;
 
@@ -252,6 +250,8 @@ export type PagedResultOfUserAdminDto = {
     hasNextPage?: boolean;
 };
 
+export type PhaseType = 'General' | 'ExamPrep' | 'Project' | 'Assignment' | 'Custom';
+
 export type PlanTemplateDetailDto = {
     payload?: TemplatePayload;
     id?: number | string;
@@ -291,13 +291,24 @@ export type RequestCourseDto = {
     subjectId: null | number | string;
 };
 
+export type RequestPhaseDto = {
+    courseId: number | string;
+    title: string;
+    startDateTime: null | string;
+    endDateTime: null | string;
+    isAllDay: boolean;
+    type: PhaseType;
+    priority: PriorityLevel;
+    location: null | string;
+    notes: null | string;
+};
+
 export type RequestRoutineDto = {
     name: string;
     instructor: null | string;
     description: null | string;
     type: TaskType;
-    courseId: null | number | string;
-    timelineEventId: null | number | string;
+    phaseId: null | number | string;
     startDate: null | string;
     endDate: null | string;
     studyPlanId: null | number | string;
@@ -334,21 +345,8 @@ export type RequestTaskDto = {
     startDateTime: null | string;
     endDateTime: null | string;
     type: TaskType;
-    courseId: null | number | string;
-    timelineEventId: null | number | string;
+    phaseId: null | number | string;
     studyPlanId: null | number | string;
-};
-
-export type RequestTimelineEventDto = {
-    courseId: number | string;
-    title: string;
-    startDateTime: string;
-    endDateTime: string;
-    isAllDay: boolean;
-    type: EventType;
-    priority: PriorityLevel;
-    location: null | string;
-    notes: null | string;
 };
 
 export type RescheduleTaskDto = {
@@ -370,7 +368,20 @@ export type ResponseCourseDto = {
     totalExpectations?: number | string;
     totalCompletions?: number | string;
     subjectId?: null | number | string;
-    timelineEvents?: null | Array<ResponseTimelineEventDto>;
+    phases?: null | Array<ResponsePhaseDto>;
+};
+
+export type ResponsePhaseDto = {
+    id: number | string;
+    courseId: number | string;
+    title: string;
+    startDateTime: null | string;
+    endDateTime: null | string;
+    isAllDay: boolean;
+    type: PhaseType;
+    priority: PriorityLevel;
+    location: null | string;
+    notes: null | string;
 };
 
 export type ResponseRoutineDto = {
@@ -381,8 +392,7 @@ export type ResponseRoutineDto = {
     type: TaskType;
     startDate: string;
     endDate: null | string;
-    courseId: null | number | string;
-    timelineEventId: null | number | string;
+    phaseId: null | number | string;
     isActive: boolean;
     studyPlanId: null | number | string;
     schedules: Array<ScheduleDto>;
@@ -437,25 +447,12 @@ export type ResponseTaskDto = {
     type: TaskType;
     location: null | string;
     status: TaskStatus;
+    isOverdue: boolean;
     logs: null | Array<LogDto>;
     routineId: null | number | string;
     scheduleId: null | number | string;
-    courseId: null | number | string;
-    timelineEventId: null | number | string;
+    phaseId: null | number | string;
     studyPlanId: null | number | string;
-};
-
-export type ResponseTimelineEventDto = {
-    id: number | string;
-    courseId: number | string;
-    title: string;
-    startDateTime: string;
-    endDateTime: string;
-    isAllDay: boolean;
-    type: EventType;
-    priority: PriorityLevel;
-    location: null | string;
-    notes: null | string;
 };
 
 export type ScheduleDto = {
@@ -498,8 +495,7 @@ export type SimpleResponseRoutineDto = {
     endDate: null | string;
     type: TaskType;
     isActive: boolean;
-    courseId: null | number | string;
-    timelineEventId: null | number | string;
+    phaseId: null | number | string;
     schedules: Array<ScheduleDto>;
 };
 
@@ -545,7 +541,7 @@ export type TaskStatusDto = {
     status: TaskStatus;
 };
 
-export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting';
+export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting' | 'Milestone';
 
 export type TemplateCourse = {
     name?: string;
@@ -563,7 +559,6 @@ export type TemplatePayload = {
 export type TemplateRoutine = {
     name?: string;
     type?: TaskType;
-    instructor?: null | string;
     startDayOffset?: number | string;
     endDayOffset?: null | number | string;
     schedules?: Array<TemplateSchedule>;
@@ -573,7 +568,6 @@ export type TemplateSchedule = {
     dayOfWeek?: DayOfWeek;
     startTime?: null | string;
     duration?: null | number | string;
-    location?: null | string;
 };
 
 export type TemplateSubject = {
@@ -609,7 +603,7 @@ export type UpcomingEventDto = {
     id?: number | string;
     title?: string;
     dueDate?: null | string;
-    type?: EventType;
+    type?: PhaseType;
     priority?: PriorityLevel;
     courseName?: string;
     daysUntil?: number | string;
@@ -1137,24 +1131,6 @@ export type GetCourseWorkloadResponses = {
 
 export type GetCourseWorkloadResponse = GetCourseWorkloadResponses[keyof GetCourseWorkloadResponses];
 
-export type GetCourseEventsData = {
-    body?: never;
-    path: {
-        courseId: number | string;
-    };
-    query?: never;
-    url: '/api/courses/{courseId}/events';
-};
-
-export type GetCourseEventsResponses = {
-    /**
-     * OK
-     */
-    200: Array<CourseEventDto>;
-};
-
-export type GetCourseEventsResponse = GetCourseEventsResponses[keyof GetCourseEventsResponses];
-
 export type UpdateCourseStatusData = {
     body: UpdateCourseStatusDto;
     path: {
@@ -1263,6 +1239,23 @@ export type PostApiDevSeedMeaningfulResponses = {
     200: unknown;
 };
 
+export type PostApiDevSeedMeaningfulIsolatedData = {
+    body?: never;
+    path?: never;
+    query?: {
+        runTag?: string;
+        overwrite?: boolean;
+    };
+    url: '/api/dev/seed-meaningful-isolated';
+};
+
+export type PostApiDevSeedMeaningfulIsolatedResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type PostApiDevResetData = {
     body?: never;
     path?: never;
@@ -1271,20 +1264,6 @@ export type PostApiDevResetData = {
 };
 
 export type PostApiDevResetResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
-export type PostApiDevTriggerGarbageCollectorData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/dev/trigger-garbage-collector';
-};
-
-export type PostApiDevTriggerGarbageCollectorResponses = {
     /**
      * OK
      */
@@ -1536,7 +1515,7 @@ export type GetRoutinesData = {
     path?: never;
     query?: {
         StudyPlanId?: number | string;
-        CourseId?: number | string;
+        phaseId?: number | string;
         Type?: TaskType;
     };
     url: '/api/routines';
@@ -1952,7 +1931,7 @@ export type GetTasksData = {
     body?: never;
     path?: never;
     query?: {
-        courseId?: number | string;
+        phaseId?: number | string;
         status?: TaskStatus;
     };
     url: '/api/tasks';
@@ -2089,92 +2068,92 @@ export type CreateTaskLogWorkResponses = {
 
 export type CreateTaskLogWorkResponse = CreateTaskLogWorkResponses[keyof CreateTaskLogWorkResponses];
 
-export type GetEventsData = {
+export type GetPhasesData = {
     body?: never;
     path?: never;
     query?: {
         studyPlanId?: number | string;
         courseId?: number | string;
     };
-    url: '/api/events';
+    url: '/api/phases';
 };
 
-export type GetEventsResponses = {
+export type GetPhasesResponses = {
     /**
      * OK
      */
-    200: Array<ResponseTimelineEventDto>;
+    200: Array<ResponsePhaseDto>;
 };
 
-export type GetEventsResponse = GetEventsResponses[keyof GetEventsResponses];
+export type GetPhasesResponse = GetPhasesResponses[keyof GetPhasesResponses];
 
-export type CreateEventData = {
-    body: RequestTimelineEventDto;
+export type CreatePhaseData = {
+    body: RequestPhaseDto;
     path?: never;
     query?: never;
-    url: '/api/events';
+    url: '/api/phases';
 };
 
-export type CreateEventResponses = {
+export type CreatePhaseResponses = {
     /**
      * OK
      */
-    200: ResponseTimelineEventDto;
+    200: ResponsePhaseDto;
 };
 
-export type CreateEventResponse = CreateEventResponses[keyof CreateEventResponses];
+export type CreatePhaseResponse = CreatePhaseResponses[keyof CreatePhaseResponses];
 
-export type GetEventByIdData = {
+export type DeletePhaseData = {
     body?: never;
     path: {
-        eventId: number;
+        phaseId: number;
     };
     query?: never;
-    url: '/api/events/{eventId}';
+    url: '/api/phases/{phaseId}';
 };
 
-export type GetEventByIdResponses = {
-    /**
-     * OK
-     */
-    200: ResponseTimelineEventDto;
-};
-
-export type GetEventByIdResponse = GetEventByIdResponses[keyof GetEventByIdResponses];
-
-export type DeleteEventData = {
-    body?: never;
-    path: {
-        timelineEventId: number;
-    };
-    query?: never;
-    url: '/api/events/{timelineEventId}';
-};
-
-export type DeleteEventResponses = {
+export type DeletePhaseResponses = {
     /**
      * OK
      */
     200: unknown;
 };
 
-export type UpdateEventData = {
-    body: RequestTimelineEventDto;
+export type GetPhaseByIdData = {
+    body?: never;
     path: {
-        timelineEventId: number;
+        phaseId: number;
     };
     query?: never;
-    url: '/api/events/{timelineEventId}';
+    url: '/api/phases/{phaseId}';
 };
 
-export type UpdateEventResponses = {
+export type GetPhaseByIdResponses = {
     /**
      * OK
      */
-    200: ResponseTimelineEventDto;
+    200: ResponsePhaseDto;
 };
 
-export type UpdateEventResponse = UpdateEventResponses[keyof UpdateEventResponses];
+export type GetPhaseByIdResponse = GetPhaseByIdResponses[keyof GetPhaseByIdResponses];
+
+export type UpdatePhaseData = {
+    body: RequestPhaseDto;
+    path: {
+        phaseId: number;
+    };
+    query?: never;
+    url: '/api/phases/{phaseId}';
+};
+
+export type UpdatePhaseResponses = {
+    /**
+     * OK
+     */
+    200: ResponsePhaseDto;
+};
+
+export type UpdatePhaseResponse = UpdatePhaseResponses[keyof UpdatePhaseResponses];
 
 export type SettingStudentInfoData = {
     body: StudentInfoDto;

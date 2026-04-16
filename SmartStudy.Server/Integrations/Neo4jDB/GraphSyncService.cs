@@ -164,6 +164,61 @@ MERGE (sp)-[:HAS_COURSE]->(c)
             });
         }
 
+        public async Task SyncPhaseAsync(int phaseId)
+        {
+            var phase = await _dbContext.Phases
+                .AsNoTracking()
+                .Where(p => p.Id == phaseId)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.CourseId,
+                    p.Title,
+                    Type = p.Type.ToString(),
+                    p.StartDateTime,
+                    p.EndDateTime,
+                    p.CreatedAt,
+                    p.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            if (phase == null)
+            {
+                await DeletePhaseAsync(phaseId);
+                return;
+            }
+
+            var query = @"
+MERGE (p:Phase {pg_id: $pg_id})
+SET p.title = $title,
+    p.type = $type,
+    p.start_datetime = CASE WHEN $start_datetime IS NULL THEN NULL ELSE datetime($start_datetime) END,
+    p.end_datetime = CASE WHEN $end_datetime IS NULL THEN NULL ELSE datetime($end_datetime) END,
+    p.created_at = CASE WHEN p.created_at IS NULL THEN datetime($created_at) ELSE p.created_at END,
+    p.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH p
+OPTIONAL MATCH (:Course)-[old:HAS_PHASE]->(p)
+DELETE old
+WITH p
+OPTIONAL MATCH (course:Course {pg_id: $course_pg_id})
+FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
+    MERGE (course)-[:HAS_PHASE]->(p)
+)
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = phase.Id.ToString(),
+                ["course_pg_id"] = phase.CourseId.ToString(),
+                ["title"] = phase.Title,
+                ["type"] = phase.Type,
+                ["start_datetime"] = ToIsoNullable(phase.StartDateTime),
+                ["end_datetime"] = ToIsoNullable(phase.EndDateTime),
+                ["created_at"] = ToIso(phase.CreatedAt),
+                ["updated_at"] = ToIsoNullable(phase.UpdatedAt)
+            });
+        }
+
         public async Task SyncRoutineAsync(int routineId)
         {
             var routine = await _dbContext.Routines
@@ -172,7 +227,7 @@ MERGE (sp)-[:HAS_COURSE]->(c)
                 .Select(r => new
                 {
                     r.Id,
-                    r.CourseId,
+                    r.PhaseId,
                     r.Name,
                     Type = r.Type.ToString(),
                     r.IsActive,
@@ -199,19 +254,19 @@ SET r.name = $name,
     r.created_at = CASE WHEN r.created_at IS NULL THEN datetime($created_at) ELSE r.created_at END,
     r.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
 WITH r
-OPTIONAL MATCH (:Course)-[old:HAS_ROUTINE]->(r)
+OPTIONAL MATCH (:Phase)-[old:CONTAINS]->(r)
 DELETE old
 WITH r
-OPTIONAL MATCH (course:Course {pg_id: $course_pg_id})
-FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
-    MERGE (course)-[:HAS_ROUTINE]->(r)
+OPTIONAL MATCH (phase:Phase {pg_id: $phase_pg_id})
+FOREACH (_ IN CASE WHEN phase IS NULL THEN [] ELSE [1] END |
+    MERGE (phase)-[:CONTAINS]->(r)
 )
 ";
 
             await ExecuteAsync(query, new Dictionary<string, object?>
             {
                 ["pg_id"] = routine.Id.ToString(),
-                ["course_pg_id"] = routine.CourseId?.ToString(),
+                ["phase_pg_id"] = routine.PhaseId?.ToString(),
                 ["name"] = routine.Name,
                 ["type"] = routine.Type,
                 ["is_active"] = routine.IsActive,
@@ -230,7 +285,7 @@ FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
                 .Select(t => new
                 {
                     t.Id,
-                    t.CourseId,
+                    t.PhaseId,
                     t.RoutineId,
                     t.Name,
                     Status = t.Status.ToString(),
@@ -260,15 +315,15 @@ SET t.name = $name,
     t.created_at = CASE WHEN t.created_at IS NULL THEN datetime($created_at) ELSE t.created_at END,
     t.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
 WITH t
-OPTIONAL MATCH (:Course)-[oldCourse:HAS_TASK]->(t)
-DELETE oldCourse
+OPTIONAL MATCH (:Phase)-[oldPhase:CONTAINS]->(t)
+DELETE oldPhase
 WITH t
 OPTIONAL MATCH (:Routine)-[oldRoutine:CONTAINS_TASK]->(t)
 DELETE oldRoutine
 WITH t
-OPTIONAL MATCH (course:Course {pg_id: $course_pg_id})
-FOREACH (_ IN CASE WHEN course IS NULL THEN [] ELSE [1] END |
-    MERGE (course)-[:HAS_TASK]->(t)
+OPTIONAL MATCH (phase:Phase {pg_id: $phase_pg_id})
+FOREACH (_ IN CASE WHEN phase IS NULL THEN [] ELSE [1] END |
+    MERGE (phase)-[:CONTAINS]->(t)
 )
 WITH t
 OPTIONAL MATCH (routine:Routine {pg_id: $routine_pg_id})
@@ -280,7 +335,7 @@ FOREACH (_ IN CASE WHEN routine IS NULL THEN [] ELSE [1] END |
             await ExecuteAsync(query, new Dictionary<string, object?>
             {
                 ["pg_id"] = task.Id.ToString(),
-                ["course_pg_id"] = task.CourseId?.ToString(),
+                ["phase_pg_id"] = task.PhaseId?.ToString(),
                 ["routine_pg_id"] = task.RoutineId?.ToString(),
                 ["name"] = task.Name,
                 ["status"] = task.Status,
@@ -528,6 +583,11 @@ ON CREATE SET rel.created_at = datetime()
         public Task DeleteCourseAsync(int courseId)
         {
             return DeleteNodeAsync("Course", courseId);
+        }
+
+        public Task DeletePhaseAsync(int phaseId)
+        {
+            return DeleteNodeAsync("Phase", phaseId);
         }
 
         public Task DeleteRoutineAsync(int routineId)

@@ -8,17 +8,25 @@ import { timelineEventApiMapper } from "@/utils/mapper/apiMapper";
 import { timelineEventFormMapper } from "@/utils/mapper/formMapper";
 
 export default function EventFormContainer() {
-  const { data, closeDialog } = useDialogStore();
-  const { courseId, eventId, defaultValues } =
-    data as DialogDataMap["EVENT_FORM"];
+  const { data, type, closeDialog } = useDialogStore();
 
-  const isEditMode = !!eventId;
+  // Hỗ trợ cả EVENT_FORM lẫn PHASE_FORM
+  const rawData = data as
+    | DialogDataMap["EVENT_FORM"]
+    | DialogDataMap["PHASE_FORM"];
+  const courseId = rawData?.courseId;
+  const eventId = "eventId" in rawData ? rawData.eventId : undefined;
+  const phaseId = "phaseId" in rawData ? rawData.phaseId : undefined;
+  const resolvedEventId = eventId ?? phaseId;
+  const defaultValues = rawData?.defaultValues;
+
+  const isEditMode = !!resolvedEventId;
   const { getEventById, createEvent, updateEvent } = useTimelineEvent({
     courseId,
   });
 
   // NẾU LÀ EDIT: Fetch data ngầm.
-  const { data: EventData, isLoading } = getEventById(eventId!);
+  const { data: EventData, isLoading } = getEventById(resolvedEventId!);
 
   // NẾU LÀ EDIT MÀ DATA CHƯA VỀ -> HIỆN KHUNG XƯƠNG LOADING
   if (isEditMode && isLoading) {
@@ -32,12 +40,12 @@ export default function EventFormContainer() {
 
   const finalDefaultValues =
     isEditMode && EventData
-      ? timelineEventFormMapper.toFormValues(EventData) // Map lại chuẩn form nếu cần
+      ? timelineEventFormMapper.toFormValues(EventData)
       : {
           ...defaultValues,
           priority: defaultValues?.priority || 1,
           title: defaultValues?.title || "",
-          type: defaultValues?.type || "Assignment",
+          type: defaultValues?.type || "General",
           courseId: Number(defaultValues?.courseId || courseId),
           startDateTime: defaultValues?.startDateTime
             ? new Date(defaultValues.startDateTime)
@@ -52,7 +60,7 @@ export default function EventFormContainer() {
     if (isEditMode) {
       updateEvent.mutate(
         {
-          path: { timelineEventId: eventId! },
+          path: { phaseId: resolvedEventId! },
           body: timelineEventApiMapper.toRequestTimelineEventDto(values),
         },
         {

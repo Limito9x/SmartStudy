@@ -4,8 +4,8 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 import type { AxiosError } from 'axios';
 
 import { client } from '../client.gen';
-import { bulkCreateSubjects, clonePlanTemplate, confirmTaskOnOccurrence, createChatSession, createCourse, createEvent, createPlanTemplate, createRoutine, createSchedule, createStudyPlan, createSubject, createTask, createTaskLogWork, deleteAsset, deleteCourse, deleteEvent, deleteLog, deletePlanTemplate, deleteRoutine, deleteSchedule, deleteStudyPlan, deleteSubject, deleteTaskById, generateTasks, getAcademicContext, getAllChatSessions, getAllowedAssets, getAssets, getBehavior, getCalendar, getChatSessionById, getCourseAsset, getCourseById, getCourseEvents, getCourses, getCourseWorkload, getEventById, getEvents, getInboxItems, getKpi, getLogById, getLogs, getMyPlanTemplates, getPlanTemplateById, getPlanTemplates, getProfile, getRoutineById, getRoutines, getStudentDashboardSummary, getStudyPlanById, getStudyPlans, getStudyPlanStats, getSubject, getSubjects, getSummaryPlanProgress, getTaskById, getTaskDetailById, getTasks, getUpcomingRoutineTasks, getUserGrowth, getUsers, googleLogin, login, type Options, postApiChatSessionsBySessionIdStream, postApiDevReset, postApiDevSeedBogus, postApiDevSeedMeaningful, postApiDevTriggerGarbageCollector, register, rescheduleCalendar, settingStudentInfo, toggleRoutineStatus, toggleUserStatus, updateCourse, updateCourseFinalScore, updateCourseGoal, updateCourseStatus, updateCourseTargetScore, updateEvent, updateLog, updatePlanTemplate, updateRoutine, updateSchedule, updateStudyPlan, updateStudyPlanStatus, updateSubject, updateTaskInfo, updateTaskStatus, uploadAssets } from '../sdk.gen';
-import type { BulkCreateSubjectsData, BulkCreateSubjectsResponse, ClonePlanTemplateData, ConfirmTaskOnOccurrenceData, CreateChatSessionData, CreateCourseData, CreateCourseResponse, CreateEventData, CreateEventResponse, CreatePlanTemplateData, CreatePlanTemplateResponse, CreateRoutineData, CreateRoutineResponse, CreateScheduleData, CreateScheduleResponse, CreateStudyPlanData, CreateStudyPlanResponse, CreateSubjectData, CreateSubjectResponse, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponse, CreateTaskResponse, DeleteAssetData, DeleteCourseData, DeleteEventData, DeleteLogData, DeletePlanTemplateData, DeleteRoutineData, DeleteScheduleData, DeleteStudyPlanData, DeleteSubjectData, DeleteTaskByIdData, GenerateTasksData, GetAcademicContextData, GetAcademicContextResponse, GetAllChatSessionsData, GetAllChatSessionsResponse, GetAllowedAssetsData, GetAllowedAssetsResponse, GetAssetsData, GetAssetsResponse, GetBehaviorData, GetBehaviorResponse, GetCalendarData, GetCalendarResponse, GetChatSessionByIdData, GetChatSessionByIdResponse, GetCourseAssetData, GetCourseAssetResponse, GetCourseByIdData, GetCourseByIdResponse, GetCourseEventsData, GetCourseEventsResponse, GetCoursesData, GetCoursesResponse, GetCourseWorkloadData, GetCourseWorkloadResponse, GetEventByIdData, GetEventByIdResponse, GetEventsData, GetEventsResponse, GetInboxItemsData, GetInboxItemsResponse, GetKpiData, GetKpiResponse, GetLogByIdData, GetLogByIdResponse, GetLogsData, GetLogsResponse, GetMyPlanTemplatesData, GetMyPlanTemplatesResponse, GetPlanTemplateByIdData, GetPlanTemplateByIdResponse, GetPlanTemplatesData, GetPlanTemplatesResponse, GetProfileData, GetProfileResponse, GetRoutineByIdData, GetRoutineByIdResponse, GetRoutinesData, GetRoutinesResponse, GetStudentDashboardSummaryData, GetStudentDashboardSummaryResponse, GetStudyPlanByIdData, GetStudyPlanByIdResponse, GetStudyPlansData, GetStudyPlansResponse, GetStudyPlanStatsData, GetStudyPlanStatsResponse, GetSubjectData, GetSubjectResponse, GetSubjectsData, GetSubjectsResponse, GetSummaryPlanProgressData, GetSummaryPlanProgressResponse, GetTaskByIdData, GetTaskByIdResponse, GetTaskDetailByIdData, GetTaskDetailByIdResponse, GetTasksData, GetTasksResponse, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponse, GetUserGrowthData, GetUserGrowthResponse, GetUsersData, GetUsersResponse, GoogleLoginData, GoogleLoginResponse, LoginData, LoginResponse, PostApiChatSessionsBySessionIdStreamData, PostApiDevResetData, PostApiDevSeedBogusData, PostApiDevSeedMeaningfulData, PostApiDevTriggerGarbageCollectorData, RegisterData, RegisterResponse, RescheduleCalendarData, SettingStudentInfoData, ToggleRoutineStatusData, ToggleRoutineStatusResponse, ToggleUserStatusData, UpdateCourseData, UpdateCourseFinalScoreData, UpdateCourseGoalData, UpdateCourseResponse, UpdateCourseStatusData, UpdateCourseTargetScoreData, UpdateEventData, UpdateEventResponse, UpdateLogData, UpdateLogResponse, UpdatePlanTemplateData, UpdatePlanTemplateResponse, UpdateRoutineData, UpdateRoutineResponse, UpdateScheduleData, UpdateScheduleResponse, UpdateStudyPlanData, UpdateStudyPlanResponse, UpdateStudyPlanStatusData, UpdateSubjectData, UpdateSubjectResponse, UpdateTaskInfoData, UpdateTaskInfoResponse, UpdateTaskStatusData, UpdateTaskStatusResponse, UploadAssetsData, UploadAssetsResponse } from '../types.gen';
+import { bulkCreateSubjects, clonePlanTemplate, confirmTaskOnOccurrence, createChatSession, createCourse, createPhase, createPlanTemplate, createRoutine, createSchedule, createStudyPlan, createSubject, createTask, createTaskLogWork, deleteAsset, deleteCourse, deleteLog, deletePhase, deletePlanTemplate, deleteRoutine, deleteSchedule, deleteStudyPlan, deleteSubject, deleteTaskById, generateTasks, getAcademicContext, getAllChatSessions, getAllowedAssets, getAssets, getBehavior, getCalendar, getChatSessionById, getCourseAsset, getCourseById, getCourses, getCourseWorkload, getInboxItems, getKpi, getLogById, getLogs, getMyPlanTemplates, getPhaseById, getPhases, getPlanTemplateById, getPlanTemplates, getProfile, getRoutineById, getRoutines, getStudentDashboardSummary, getStudyPlanById, getStudyPlans, getStudyPlanStats, getSubject, getSubjects, getSummaryPlanProgress, getTaskById, getTaskDetailById, getTasks, getUpcomingRoutineTasks, getUserGrowth, getUsers, googleLogin, login, type Options, postApiChatSessionsBySessionIdStream, postApiDevReset, postApiDevSeedBogus, postApiDevSeedMeaningful, postApiDevSeedMeaningfulIsolated, register, rescheduleCalendar, settingStudentInfo, toggleRoutineStatus, toggleUserStatus, updateCourse, updateCourseFinalScore, updateCourseGoal, updateCourseStatus, updateCourseTargetScore, updateLog, updatePhase, updatePlanTemplate, updateRoutine, updateSchedule, updateStudyPlan, updateStudyPlanStatus, updateSubject, updateTaskInfo, updateTaskStatus, uploadAssets } from '../sdk.gen';
+import type { BulkCreateSubjectsData, BulkCreateSubjectsResponse, ClonePlanTemplateData, ConfirmTaskOnOccurrenceData, CreateChatSessionData, CreateCourseData, CreateCourseResponse, CreatePhaseData, CreatePhaseResponse, CreatePlanTemplateData, CreatePlanTemplateResponse, CreateRoutineData, CreateRoutineResponse, CreateScheduleData, CreateScheduleResponse, CreateStudyPlanData, CreateStudyPlanResponse, CreateSubjectData, CreateSubjectResponse, CreateTaskData, CreateTaskLogWorkData, CreateTaskLogWorkResponse, CreateTaskResponse, DeleteAssetData, DeleteCourseData, DeleteLogData, DeletePhaseData, DeletePlanTemplateData, DeleteRoutineData, DeleteScheduleData, DeleteStudyPlanData, DeleteSubjectData, DeleteTaskByIdData, GenerateTasksData, GetAcademicContextData, GetAcademicContextResponse, GetAllChatSessionsData, GetAllChatSessionsResponse, GetAllowedAssetsData, GetAllowedAssetsResponse, GetAssetsData, GetAssetsResponse, GetBehaviorData, GetBehaviorResponse, GetCalendarData, GetCalendarResponse, GetChatSessionByIdData, GetChatSessionByIdResponse, GetCourseAssetData, GetCourseAssetResponse, GetCourseByIdData, GetCourseByIdResponse, GetCoursesData, GetCoursesResponse, GetCourseWorkloadData, GetCourseWorkloadResponse, GetInboxItemsData, GetInboxItemsResponse, GetKpiData, GetKpiResponse, GetLogByIdData, GetLogByIdResponse, GetLogsData, GetLogsResponse, GetMyPlanTemplatesData, GetMyPlanTemplatesResponse, GetPhaseByIdData, GetPhaseByIdResponse, GetPhasesData, GetPhasesResponse, GetPlanTemplateByIdData, GetPlanTemplateByIdResponse, GetPlanTemplatesData, GetPlanTemplatesResponse, GetProfileData, GetProfileResponse, GetRoutineByIdData, GetRoutineByIdResponse, GetRoutinesData, GetRoutinesResponse, GetStudentDashboardSummaryData, GetStudentDashboardSummaryResponse, GetStudyPlanByIdData, GetStudyPlanByIdResponse, GetStudyPlansData, GetStudyPlansResponse, GetStudyPlanStatsData, GetStudyPlanStatsResponse, GetSubjectData, GetSubjectResponse, GetSubjectsData, GetSubjectsResponse, GetSummaryPlanProgressData, GetSummaryPlanProgressResponse, GetTaskByIdData, GetTaskByIdResponse, GetTaskDetailByIdData, GetTaskDetailByIdResponse, GetTasksData, GetTasksResponse, GetUpcomingRoutineTasksData, GetUpcomingRoutineTasksResponse, GetUserGrowthData, GetUserGrowthResponse, GetUsersData, GetUsersResponse, GoogleLoginData, GoogleLoginResponse, LoginData, LoginResponse, PostApiChatSessionsBySessionIdStreamData, PostApiDevResetData, PostApiDevSeedBogusData, PostApiDevSeedMeaningfulData, PostApiDevSeedMeaningfulIsolatedData, RegisterData, RegisterResponse, RescheduleCalendarData, SettingStudentInfoData, ToggleRoutineStatusData, ToggleRoutineStatusResponse, ToggleUserStatusData, UpdateCourseData, UpdateCourseFinalScoreData, UpdateCourseGoalData, UpdateCourseResponse, UpdateCourseStatusData, UpdateCourseTargetScoreData, UpdateLogData, UpdateLogResponse, UpdatePhaseData, UpdatePhaseResponse, UpdatePlanTemplateData, UpdatePlanTemplateResponse, UpdateRoutineData, UpdateRoutineResponse, UpdateScheduleData, UpdateScheduleResponse, UpdateStudyPlanData, UpdateStudyPlanResponse, UpdateStudyPlanStatusData, UpdateSubjectData, UpdateSubjectResponse, UpdateTaskInfoData, UpdateTaskInfoResponse, UpdateTaskStatusData, UpdateTaskStatusResponse, UploadAssetsData, UploadAssetsResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseURL' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -433,21 +433,6 @@ export const getCourseWorkloadOptions = (options: Options<GetCourseWorkloadData>
     queryKey: getCourseWorkloadQueryKey(options)
 });
 
-export const getCourseEventsQueryKey = (options: Options<GetCourseEventsData>) => createQueryKey('getCourseEvents', options);
-
-export const getCourseEventsOptions = (options: Options<GetCourseEventsData>) => queryOptions<GetCourseEventsResponse, AxiosError<DefaultError>, GetCourseEventsResponse, ReturnType<typeof getCourseEventsQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getCourseEvents({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getCourseEventsQueryKey(options)
-});
-
 export const updateCourseStatusMutation = (options?: Partial<Options<UpdateCourseStatusData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<UpdateCourseStatusData>> => {
     const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<UpdateCourseStatusData>> = {
         mutationFn: async (fnOptions) => {
@@ -547,10 +532,10 @@ export const postApiDevSeedMeaningfulMutation = (options?: Partial<Options<PostA
     return mutationOptions;
 };
 
-export const postApiDevResetMutation = (options?: Partial<Options<PostApiDevResetData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevResetData>> => {
-    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevResetData>> = {
+export const postApiDevSeedMeaningfulIsolatedMutation = (options?: Partial<Options<PostApiDevSeedMeaningfulIsolatedData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevSeedMeaningfulIsolatedData>> => {
+    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevSeedMeaningfulIsolatedData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await postApiDevReset({
+            const { data } = await postApiDevSeedMeaningfulIsolated({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -561,10 +546,10 @@ export const postApiDevResetMutation = (options?: Partial<Options<PostApiDevRese
     return mutationOptions;
 };
 
-export const postApiDevTriggerGarbageCollectorMutation = (options?: Partial<Options<PostApiDevTriggerGarbageCollectorData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevTriggerGarbageCollectorData>> => {
-    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevTriggerGarbageCollectorData>> = {
+export const postApiDevResetMutation = (options?: Partial<Options<PostApiDevResetData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevResetData>> => {
+    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<PostApiDevResetData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await postApiDevTriggerGarbageCollector({
+            const { data } = await postApiDevReset({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -1237,11 +1222,11 @@ export const createTaskLogWorkMutation = (options?: Partial<Options<CreateTaskLo
     return mutationOptions;
 };
 
-export const getEventsQueryKey = (options?: Options<GetEventsData>) => createQueryKey('getEvents', options);
+export const getPhasesQueryKey = (options?: Options<GetPhasesData>) => createQueryKey('getPhases', options);
 
-export const getEventsOptions = (options?: Options<GetEventsData>) => queryOptions<GetEventsResponse, AxiosError<DefaultError>, GetEventsResponse, ReturnType<typeof getEventsQueryKey>>({
+export const getPhasesOptions = (options?: Options<GetPhasesData>) => queryOptions<GetPhasesResponse, AxiosError<DefaultError>, GetPhasesResponse, ReturnType<typeof getPhasesQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getEvents({
+        const { data } = await getPhases({
             ...options,
             ...queryKey[0],
             signal,
@@ -1249,13 +1234,13 @@ export const getEventsOptions = (options?: Options<GetEventsData>) => queryOptio
         });
         return data;
     },
-    queryKey: getEventsQueryKey(options)
+    queryKey: getPhasesQueryKey(options)
 });
 
-export const createEventMutation = (options?: Partial<Options<CreateEventData>>): UseMutationOptions<CreateEventResponse, AxiosError<DefaultError>, Options<CreateEventData>> => {
-    const mutationOptions: UseMutationOptions<CreateEventResponse, AxiosError<DefaultError>, Options<CreateEventData>> = {
+export const createPhaseMutation = (options?: Partial<Options<CreatePhaseData>>): UseMutationOptions<CreatePhaseResponse, AxiosError<DefaultError>, Options<CreatePhaseData>> => {
+    const mutationOptions: UseMutationOptions<CreatePhaseResponse, AxiosError<DefaultError>, Options<CreatePhaseData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await createEvent({
+            const { data } = await createPhase({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -1266,25 +1251,10 @@ export const createEventMutation = (options?: Partial<Options<CreateEventData>>)
     return mutationOptions;
 };
 
-export const getEventByIdQueryKey = (options: Options<GetEventByIdData>) => createQueryKey('getEventById', options);
-
-export const getEventByIdOptions = (options: Options<GetEventByIdData>) => queryOptions<GetEventByIdResponse, AxiosError<DefaultError>, GetEventByIdResponse, ReturnType<typeof getEventByIdQueryKey>>({
-    queryFn: async ({ queryKey, signal }) => {
-        const { data } = await getEventById({
-            ...options,
-            ...queryKey[0],
-            signal,
-            throwOnError: true
-        });
-        return data;
-    },
-    queryKey: getEventByIdQueryKey(options)
-});
-
-export const deleteEventMutation = (options?: Partial<Options<DeleteEventData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<DeleteEventData>> => {
-    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<DeleteEventData>> = {
+export const deletePhaseMutation = (options?: Partial<Options<DeletePhaseData>>): UseMutationOptions<unknown, AxiosError<DefaultError>, Options<DeletePhaseData>> => {
+    const mutationOptions: UseMutationOptions<unknown, AxiosError<DefaultError>, Options<DeletePhaseData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await deleteEvent({
+            const { data } = await deletePhase({
                 ...options,
                 ...fnOptions,
                 throwOnError: true
@@ -1295,10 +1265,25 @@ export const deleteEventMutation = (options?: Partial<Options<DeleteEventData>>)
     return mutationOptions;
 };
 
-export const updateEventMutation = (options?: Partial<Options<UpdateEventData>>): UseMutationOptions<UpdateEventResponse, AxiosError<DefaultError>, Options<UpdateEventData>> => {
-    const mutationOptions: UseMutationOptions<UpdateEventResponse, AxiosError<DefaultError>, Options<UpdateEventData>> = {
+export const getPhaseByIdQueryKey = (options: Options<GetPhaseByIdData>) => createQueryKey('getPhaseById', options);
+
+export const getPhaseByIdOptions = (options: Options<GetPhaseByIdData>) => queryOptions<GetPhaseByIdResponse, AxiosError<DefaultError>, GetPhaseByIdResponse, ReturnType<typeof getPhaseByIdQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getPhaseById({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getPhaseByIdQueryKey(options)
+});
+
+export const updatePhaseMutation = (options?: Partial<Options<UpdatePhaseData>>): UseMutationOptions<UpdatePhaseResponse, AxiosError<DefaultError>, Options<UpdatePhaseData>> => {
+    const mutationOptions: UseMutationOptions<UpdatePhaseResponse, AxiosError<DefaultError>, Options<UpdatePhaseData>> = {
         mutationFn: async (fnOptions) => {
-            const { data } = await updateEvent({
+            const { data } = await updatePhase({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

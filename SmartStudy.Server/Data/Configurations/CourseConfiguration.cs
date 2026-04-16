@@ -13,9 +13,9 @@ namespace SmartStudy.Server.Data.Configurations
                 .HasForeignKey(c => c.StudyPlanId)
                 .OnDelete(DeleteBehavior.Cascade);
             
-            builder.HasMany(c => c.Routines)
-                .WithOne(r => r.Course)
-                .HasForeignKey(r => r.CourseId)
+            builder.HasMany(c => c.Phases)
+                .WithOne(p => p.Course)
+                .HasForeignKey(p => p.CourseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasIndex(c => new { c.Name, c.StudyPlanId })

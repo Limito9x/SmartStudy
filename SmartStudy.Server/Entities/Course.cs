@@ -1,5 +1,6 @@
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Jobs;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SmartStudy.Server.Entities
 {
@@ -15,9 +16,11 @@ namespace SmartStudy.Server.Entities
         public Subject? Subject { get; set; }
         public int StudyPlanId { get; set; }
         public StudyPlan? StudyPlan { get; set; }
-        public ICollection<TimelineEvent> TimelineEvents { get; set; } = new List<TimelineEvent>();
-        public ICollection<TaskItem>? Tasks { get; set; } = new List<TaskItem>();
-        public ICollection<Routine>? Routines { get; set; } = new List<Routine>();
+        public ICollection<Phase> Phases { get; set; } = new List<Phase>();
+        [NotMapped]
+        public ICollection<TaskItem> Tasks => Phases.SelectMany(p => p.Tasks).ToList();
+        [NotMapped]
+        public ICollection<Routine> Routines => Phases.SelectMany(p => p.Routines).ToList();
         public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
 
         public GraphSyncEntityType GetGraphSyncEntityType()

@@ -6,12 +6,14 @@ import ActionMenu from "@/components/shared/ActionMenu";
 import { useDialogStore } from "@/stores/useDialogStore";
 import type { PanelDataMap } from "@/stores/usePanelStore";
 import { usePanelStore } from "@/stores/usePanelStore";
-import { CalendarClock, ChevronRight } from "lucide-react";
+import { CalendarClock, ChevronRight, Flag } from "lucide-react";
 import { formatTaskDateTime } from "@/utils/dateUtils";
-import { renderTaskIcon, getStatusStyle } from "../../task/FormatTask";
+import {
+  renderTaskIcon,
+  getStatusStyle,
+  resolveTaskDisplayStatus,
+} from "../../task/FormatTask";
 import { toast } from "sonner";
-import { invalidateCourseContext } from "@/utils/query-invalidate";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface CourseTaskCardProps {
   taskData: ResponseTaskDto;
@@ -22,14 +24,13 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
   const { openDialog } = useDialogStore();
   const { openPanel, isOpen, type, data } = usePanelStore();
   const task = taskData;
-  const queryClient = useQueryClient();
 
   if (!task) {
     return null;
   }
 
   const taskId = normalizeId(task.id);
-  const statusStyle = getStatusStyle(task.status);
+  const statusStyle = getStatusStyle(resolveTaskDisplayStatus(task));
   const activeTaskId =
     isOpen && type === "TASK_DETAIL"
       ? normalizeId((data as PanelDataMap["TASK_DETAIL"] | null)?.taskId ?? 0)
@@ -43,8 +44,7 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
   const handleEditTask = () => {
     openDialog("TASK_FORM", {
       taskId,
-      courseId: Number(task.courseId ?? 0),
-      eventId: Number(task.timelineEventId ?? 0),
+      phaseId: Number(task.phaseId ?? 0),
     });
   };
 
@@ -82,7 +82,6 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
           },
           {
             onSuccess: () => {
-              invalidateCourseContext(queryClient, Number(task.courseId));
               toast.success("Đã xóa task");
             },
             onError: () => {
@@ -93,6 +92,74 @@ export default function CourseTaskCard({ taskData }: CourseTaskCardProps) {
       },
     });
   };
+
+  const isMilestone = task.type === "Milestone";
+
+  if (isMilestone) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-selected={isActive}
+        onClick={handleOpenTaskDetail}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            handleOpenTaskDetail();
+          }
+        }}
+        className={cn(
+          "rounded-xl border-2 p-3 transition-colors",
+          isActive
+            ? "border-rose-300 bg-rose-100/80"
+            : "border-rose-200 bg-rose-50 hover:bg-rose-100/60",
+        )}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Flag size={18} className="shrink-0 text-rose-600" />
+            <div className="min-w-0">
+              <p
+                className={cn(
+                  "truncate text-sm font-semibold text-rose-700",
+                  task.status === "Completed" &&
+                    "line-through text-muted-foreground",
+                )}
+              >
+                {task.name}
+              </p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-rose-500">
+                <CalendarClock size={12} />
+                <span>
+                  {task.startDateTime
+                    ? formatTaskDateTime(task.startDateTime, task.endDateTime)
+                    : "Chưa có hạn"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <ActionMenu
+              actions={[
+                { label: "Mở chi tiết", onClick: handleOpenTaskDetail },
+                {
+                  label:
+                    task.status === "Completed"
+                      ? "Đánh dấu đang làm"
+                      : "Đánh dấu hoàn thành",
+                  onClick: handleToggleTaskStatus,
+                },
+              ]}
+            />
+            <Badge className={cn("border", statusStyle.badgeClass)}>
+              {statusStyle.label}
+            </Badge>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

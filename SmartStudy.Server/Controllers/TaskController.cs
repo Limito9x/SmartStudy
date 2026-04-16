@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Services;
@@ -42,11 +42,11 @@ namespace SmartStudy.Server.Controllers
         
         [HttpGet(Name = "GetTasks")]
         public async Task<ActionResult<List<ResponseTaskDto>>> GetTasks(
-            [FromQuery] int? courseId,
+            [FromQuery] int? phaseId,
             [FromQuery] TaskStatus? status
             )
         {
-            var tasks = await _TaskService.GetTasksAsync(courseId, status);
+            var tasks = await _TaskService.GetTasksAsync(phaseId, status);
             return Ok(tasks);
         }
 

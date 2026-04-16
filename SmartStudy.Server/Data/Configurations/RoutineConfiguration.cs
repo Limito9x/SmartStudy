@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartStudy.Server.Entities;
 
@@ -14,11 +14,16 @@ namespace SmartStudy.Server.Data.Configurations
                 .HasMaxLength(200);
             builder.HasIndex(r => new { r.Name, r.UserId })
                 .IsUnique()
-                .HasFilter("deleted_at IS NULL AND course_id IS NULL");
-            
-            builder.HasIndex(r => new { r.Name, r.CourseId })
+                .HasFilter("deleted_at IS NULL AND phase_id IS NULL");
+
+            builder.HasIndex(r => new { r.Name, r.PhaseId })
                 .IsUnique()
-                .HasFilter("deleted_at IS NULL AND course_id IS NOT NULL");
+                .HasFilter("deleted_at IS NULL AND phase_id IS NOT NULL");
+
+            builder.HasOne(r => r.Phase)
+                .WithMany(p => p.Routines)
+                .HasForeignKey(r => r.PhaseId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasMany(r => r.Schedules)
                 .WithOne(s => s.Routine)

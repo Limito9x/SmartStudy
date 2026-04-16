@@ -1,24 +1,78 @@
-import { useTask } from "@/hooks/entities/useTask"; // File useTask.ts của bác
-import TaskForm from "../forms/task/TaskForm";
+import { useTask } from "@/hooks/entities/useTask";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type DialogDataMap } from "@/stores/useDialogStore";
-import type { TaskFormValues } from "../forms/task/schema";
-import { taskApiMapper } from "@/utils/mapper/apiMapper";
+import TaskForm from "@/components/forms/task/TaskForm";
+import type { TaskFormValues } from "@/components/forms/task/schema";
 import { taskFormMapper } from "@/utils/mapper/formMapper";
+import { useMemo } from "react";
+import { taskApiMapper } from "@/utils/mapper/apiMapper";
 
 export default function TaskFormContainer() {
   const { data, closeDialog } = useDialogStore();
-  const { courseId, eventId, taskId, defaultValues } =
+  const { courseId, phaseId, eventId, taskId, defaultValues } =
     data as DialogDataMap["TASK_FORM"];
 
   const isEditMode = !!taskId;
+  const effectivePhaseId = phaseId ?? eventId;
   const showCourseField = !courseId;
-  const showEventField = !eventId;
+  const showEventField = !effectivePhaseId;
   const { getTaskById, createTask, updateTaskInfo } = useTask();
 
   // NẾU LÀ EDIT: Fetch data ngầm.
   const { data: taskData, isLoading } = getTaskById(taskId!);
+  const finalDefaultValues = useMemo(() => {
+    const mapped = taskData ? taskFormMapper.toFormValues(taskData) : undefined;
+    const base = defaultValues ??
+      mapped ?? {
+        name: "",
+        description: "",
+        startDateTime: null,
+        endDateTime: null,
+        type: "SelfStudy" as const,
+        location: "",
+        courseId: null,
+        eventId: null,
+      };
+
+    return {
+      ...base,
+      courseId: courseId ?? base.courseId ?? null,
+      eventId: effectivePhaseId ?? base.eventId ?? null,
+    };
+  }, [courseId, defaultValues, effectivePhaseId, taskData]);
+
+  const handleSubmit = (values: TaskFormValues) => {
+    const payload = taskApiMapper.toRequestTaskDto(values);
+
+    if (isEditMode) {
+      updateTaskInfo.mutate(
+        {
+          path: { taskId: taskId! },
+          body: {
+            ...payload,
+            phaseId: effectivePhaseId ?? payload.phaseId ?? null,
+          },
+        },
+        {
+          onSuccess: () => closeDialog(),
+        },
+      );
+      return;
+    }
+
+    createTask.mutate(
+      {
+        body: {
+          ...payload,
+          phaseId: effectivePhaseId ?? payload.phaseId ?? null,
+        },
+      },
+      {
+        onSuccess: () => closeDialog(),
+      },
+    );
+  };
 
   // NẾU LÀ EDIT MÀ DATA CHƯA VỀ -> HIỆN KHUNG XƯƠNG LOADING
   if (isEditMode && isLoading) {
@@ -29,41 +83,6 @@ export default function TaskFormContainer() {
       </div>
     );
   }
-
-  // Chập data mồi (Create) hoặc data fetch được (Edit) vào form
-  const finalDefaultValues =
-    isEditMode && taskData
-      ? taskFormMapper.toFormValues(taskData) // Map lại chuẩn form nếu cần
-      : {
-          ...defaultValues,
-          name: defaultValues?.name || "",
-          type: defaultValues?.type || "SelfStudy",
-          courseId: courseId || defaultValues?.courseId,
-          eventId: eventId || defaultValues?.eventId,
-        };
-
-  const handleSubmit = (values: TaskFormValues) => {
-    if (isEditMode) {
-      updateTaskInfo.mutate(
-        {
-          path: { taskId: taskId! },
-          body: taskApiMapper.toRequestTaskDto(values),
-        },
-        {
-          onSuccess: () => closeDialog(),
-        },
-      );
-    } else {
-      createTask.mutate(
-        {
-          body: taskApiMapper.toRequestTaskDto(values),
-        },
-        {
-          onSuccess: () => closeDialog(),
-        },
-      );
-    }
-  };
 
   return (
     <TaskForm

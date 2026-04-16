@@ -85,7 +85,7 @@ public class DevController : ControllerBase
         _context.Tasks.RemoveRange(_context.Tasks);
         _context.Schedules.RemoveRange(_context.Schedules);
         _context.Routines.RemoveRange(_context.Routines);
-        _context.TimelineEvents.RemoveRange(_context.TimelineEvents);
+        _context.Phases.RemoveRange(_context.Phases);
         _context.Courses.RemoveRange(_context.Courses);
         _context.StudyPlans.RemoveRange(_context.StudyPlans);
         _context.ChatMessages.RemoveRange(_context.ChatMessages);

@@ -37,7 +37,7 @@ public class UpcomingEventDto
     public int Id { get; set; }
     public string Title { get; set; } = null!;
     public DateTime? DueDate { get; set; }
-    public EventType Type { get; set; }
+    public PhaseType Type { get; set; }
     public PriorityLevel Priority { get; set; }
     public string CourseName { get; set; } = null!;
     public int DaysUntil { get; set; }        // computed: DueDate - today

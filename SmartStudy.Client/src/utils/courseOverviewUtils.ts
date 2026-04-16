@@ -30,6 +30,7 @@ export const ROUTINE_TASK_TYPE_LABELS: Record<TaskType, string> = {
   SelfStudy: "Tự học",
   AssignmentWork: "Làm bài tập",
   Meeting: "Họp",
+  Milestone: "Deadline Phase",
 };
 
 export function toNumber(value: unknown): number {

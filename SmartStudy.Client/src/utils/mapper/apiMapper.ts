@@ -3,7 +3,7 @@ import type {
   RequestCourseDto,
   RequestTaskDto,
   RequestRoutineDto,
-  RequestTimelineEventDto,
+  RequestPhaseDto,
   RequestScheduleDto,
   LogWorkDto,
   RequestStudyPlanDto,
@@ -55,9 +55,7 @@ export const routineApiMapper = {
     instructor: routineData.instructor || null,
     description: routineData.description || null,
     type: routineData.type,
-    courseId:
-      typeof routineData.courseId === "number" ? routineData.courseId : null,
-    timelineEventId: routineData.eventId || null,
+    phaseId: routineData.eventId || null,
     startDate: routineData.startDate?.toISOString() || null,
     endDate: routineData.endDate?.toISOString() || null,
     schedules:
@@ -108,15 +106,14 @@ export const taskApiMapper = {
     startDateTime: taskData.startDateTime?.toISOString() || null,
     endDateTime: taskData.endDateTime?.toISOString() || null,
     type: taskData.type,
-    courseId: typeof taskData.courseId === "number" ? taskData.courseId : null,
-    timelineEventId: taskData.eventId || null,
+    phaseId: taskData.eventId || null,
   }),
 };
 
 export const timelineEventApiMapper = {
   toRequestTimelineEventDto: (
     eventData: TimelineEventFormValues,
-  ): RequestTimelineEventDto => ({
+  ): RequestPhaseDto => ({
     courseId: eventData.courseId,
     title: eventData.title,
     notes: eventData.notes || "",

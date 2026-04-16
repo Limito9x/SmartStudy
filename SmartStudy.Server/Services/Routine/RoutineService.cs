@@ -11,13 +11,17 @@ using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Services
 {
-    public record Occurence(DateTime Date, Schedule Schedule);
+    public class Occurence
+    {
+        public DateTime Date { get; set; }
+        public Schedule Schedule { get; set; }
+    };
 
     public interface IRoutineService
     {
         Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto);
         Task<ResponseRoutineDto?> GetRoutineByIdAsync(int RoutineId);
-        Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, int? CourseId, TaskType? Type);
+        Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, int? PhaseId, TaskType? Type);
         Task<ResponseRoutineDto?> UpdateRoutineAsync(int RoutineId, RequestRoutineDto RoutineDto);
         Task GenerateTasksAsync(int RoutineId, DateTime Until);
         Task<List<ResponseTaskDto>> GetUpcomingTasksAsync(int RoutineId, int? daysAhead);
@@ -41,11 +45,17 @@ namespace SmartStudy.Server.Services
         public async Task<ResponseRoutineDto> CreateRoutineAsync(RequestRoutineDto RoutineDto)
         {
             var userId = _currentUserService.UserId;
-            var course = _context.Courses.Include(c=>c.StudyPlan).FirstOrDefault(c => c.Id == RoutineDto.CourseId);
+            Phase? phase = null;
+            if (RoutineDto.PhaseId.HasValue)
+            {
+                phase = await _context.Phases.Include(p => p.Course).ThenInclude(c => c.StudyPlan)
+                    .FirstOrDefaultAsync(p => p.Id == RoutineDto.PhaseId.Value);
+            }
 
             // 1. Mapster tự động map luôn cả Routine VÀ danh sách Schedules bên trong
             var routine = _mapper.Map<Routine>(RoutineDto);
             routine.UserId = userId;
+            routine.PhaseId = routine.PhaseId ?? phase?.Id;
             var now = DateTime.UtcNow;
             // 1. LOGIC TÍNH START DATE: 
         // Nếu UI có gửi lên -> Dùng của UI. 
@@ -57,7 +67,7 @@ namespace SmartStudy.Server.Services
             }
             else
             {
-                routine.StartDate = course.StudyPlan.StartDate > now ? course.StudyPlan.StartDate : now;
+                routine.StartDate = phase?.Course?.StudyPlan?.StartDate > now ? phase.Course.StudyPlan.StartDate : now;
             }
 
             // 2. LOGIC TÍNH END DATE:
@@ -69,7 +79,7 @@ namespace SmartStudy.Server.Services
             }
             else
             {
-                routine.EndDate = course.StudyPlan.EndDate;
+                routine.EndDate = phase?.Course?.StudyPlan?.EndDate;
             }
 
             // 3. (Tùy chọn nhưng RẤT NÊN CÓ) Validate: 
@@ -105,7 +115,7 @@ namespace SmartStudy.Server.Services
             return _mapper.Map<ResponseRoutineDto>(Routine);
         }
 
-        public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, int? CourseId, TaskType? Type)
+        public async Task<List<SimpleResponseRoutineDto>> GetRoutinesByUserIdAsync(int? StudyPlanId, int? PhaseId, TaskType? Type)
         {
             var userId = _currentUserService.UserId;
             var query = _context.Routines.Include(r=>r.Schedules)
@@ -115,8 +125,8 @@ namespace SmartStudy.Server.Services
             if (StudyPlanId.HasValue)
                 query = query.Where(r => r.StudyPlanId == StudyPlanId);
             
-            if(CourseId.HasValue)
-                query = query.Where(r => r.CourseId == CourseId);
+            if (PhaseId.HasValue)
+                query = query.Where(r => r.PhaseId == PhaseId);
 
             if (Type.HasValue)
                 query = query.Where(r => r.Type == Type);
@@ -273,9 +283,8 @@ namespace SmartStudy.Server.Services
                         ScheduleId = occurence.Schedule.Id,
                         Status = Entities.Enums.TaskStatus.Pending,
                         Type = Routine.Type,
-                        TimelineEventId = Routine.TimelineEventId,
-                        StudyPlanId = Routine.StudyPlanId,
-                        CourseId = Routine.CourseId
+                        PhaseId = Routine.PhaseId,
+                        StudyPlanId = Routine.StudyPlanId
                     };
                     tasksToInsert.Add(task);
                 }
@@ -324,7 +333,7 @@ namespace SmartStudy.Server.Services
                     if (count >= maxCount) yield break;
                     if (date.DayOfWeek==schedule.DayOfWeek)
                     {
-                        yield return new Occurence(date, schedule);
+                        yield return new Occurence { Date = date, Schedule = schedule };
                         count++;
                     }
                 }

@@ -36,9 +36,10 @@ public class DatabaseSeeder : IDatabaseSeeder
         var users = await SeedUsersAsync(TargetUserCount);
         var plans = await SeedStudyPlansAsync(users);
         var courses = await SeedCoursesAsync(plans);
-        await SeedRoutinesAsync(users, plans, courses);
-        await SeedTasksAndLogsAsync(plans, courses, TargetTaskCount);
-        await SeedTimelineEventsAsync(courses);
+        var courseGeneralPhases = await SeedGeneralPhasesAsync(courses);
+        await SeedRoutinesAsync(users, plans, courses, courseGeneralPhases);
+        await SeedTasksAndLogsAsync(plans, courses, courseGeneralPhases, TargetTaskCount);
+        await SeedPhasesAsync(courses);
     }
 
     private async Task<List<User>> SeedUsersAsync(int targetCount)
@@ -207,7 +208,7 @@ public class DatabaseSeeder : IDatabaseSeeder
         return courses;
     }
 
-    private async Task SeedRoutinesAsync(List<User> users, List<StudyPlan> plans, List<Course> courses)
+    private async Task SeedRoutinesAsync(List<User> users, List<StudyPlan> plans, List<Course> courses, Dictionary<int, int> courseGeneralPhases)
     {
         var activePlanById = plans
             .Where(p => p.Status == StudyPlanStatus.Active)
@@ -245,7 +246,7 @@ public class DatabaseSeeder : IDatabaseSeeder
                 routine.UserId = user.Id;
                 routine.User = user;
                 routine.StudyPlanId = plan.Id;
-                routine.CourseId = course.Id;
+                routine.PhaseId = courseGeneralPhases[course.Id];
                 routine.StartDate = plan.StartDate;
                 routine.EndDate = plan.EndDate;
 
@@ -263,7 +264,7 @@ public class DatabaseSeeder : IDatabaseSeeder
         await _context.SaveChangesAsync();
     }
 
-    private async Task SeedTasksAndLogsAsync(List<StudyPlan> plans, List<Course> courses, int taskCount)
+    private async Task SeedTasksAndLogsAsync(List<StudyPlan> plans, List<Course> courses, Dictionary<int, int> courseGeneralPhases, int taskCount)
     {
         var activePlanById = plans
             .Where(p => p.Status == StudyPlanStatus.Active)
@@ -301,7 +302,7 @@ public class DatabaseSeeder : IDatabaseSeeder
             var task = taskFaker.Generate();
             task.UserId = plan.UserId;
             task.StudyPlanId = plan.Id;
-            task.CourseId = course.Id;
+            task.PhaseId = courseGeneralPhases[course.Id];
             task.StartDateTime = startDateTime;
             task.EndDateTime = endDateTime;
             task.CreatedAt = Utc(startDateTime);
@@ -340,37 +341,55 @@ public class DatabaseSeeder : IDatabaseSeeder
         await _context.SaveChangesAsync();
     }
 
-    private async Task SeedTimelineEventsAsync(List<Course> courses)
+    private async Task<Dictionary<int, int>> SeedGeneralPhasesAsync(List<Course> courses)
+    {
+        var phases = courses.Select(c => new Phase
+        {
+            CourseId = c.Id,
+            Title = "Công việc chung",
+            Type = PhaseType.General,
+            Priority = PriorityLevel.Medium,
+            CreatedAt = DateTime.UtcNow
+        }).ToList();
+
+        await _context.Phases.AddRangeAsync(phases);
+        await _context.SaveChangesAsync();
+
+        return phases.ToDictionary(p => p.CourseId, p => p.Id);
+    }
+
+    private async Task SeedPhasesAsync(List<Course> courses)
     {
         if (courses.Count == 0)
         {
             return;
         }
 
-        var faker = new Faker<TimelineEvent>("vi")
+        var faker = new Faker<Phase>("vi")
             .RuleFor(e => e.Title, f => f.Lorem.Sentence(5))
-            .RuleFor(e => e.Type, f => f.PickRandom<EventType>())
+            .RuleFor(e => e.Type, f => f.PickRandom<PhaseType>())
             .RuleFor(e => e.Priority, f => f.PickRandom<PriorityLevel>())
             .RuleFor(e => e.StartDateTime, f => Utc(f.Date.Soon(35, DateTime.UtcNow)))
             .RuleFor(e => e.EndDateTime, f => Utc(f.Date.Soon(25, DateTime.UtcNow)))
             .RuleFor(e => e.Location, f => f.Address.City())
             .RuleFor(e => e.Notes, f => f.Lorem.Sentence(12));
 
-        var events = new List<TimelineEvent>();
+        var phases = new List<Phase>();
 
         foreach (var course in courses.Take(30))
         {
             var count = Random.Shared.Next(1, 3);
             for (var i = 0; i < count; i++)
             {
-                var timelineEvent = faker.Generate();
-                timelineEvent.CourseId = course.Id;
-                timelineEvent.CreatedAt = Utc(new Faker().Date.Recent(20, DateTime.UtcNow));
-                events.Add(timelineEvent);
+                var phase = faker.Generate();
+                phase.Type = phase.Type == PhaseType.General ? PhaseType.Custom : phase.Type;
+                phase.CourseId = course.Id;
+                phase.CreatedAt = Utc(new Faker().Date.Recent(20, DateTime.UtcNow));
+                phases.Add(phase);
             }
         }
 
-        await _context.TimelineEvents.AddRangeAsync(events);
+        await _context.Phases.AddRangeAsync(phases);
         await _context.SaveChangesAsync();
     }
 

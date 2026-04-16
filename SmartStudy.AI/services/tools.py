@@ -64,7 +64,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         Dùng khi user hỏi việc cần làm, deadline, hoặc lịch học sắp tới.
         """
         query = """
-        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)-[:HAS_TASK]->(t:Task)
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
         WHERE coalesce(t.status, '') <> 'Completed'
         RETURN t.pg_id AS task_id,
                t.name AS task_name,
@@ -101,7 +101,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
 
         task_progress_query = """
         MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id})
-        OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
+        OPTIONAL MATCH (c)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
         RETURN c.pg_id AS course_id,
                c.name AS course_name,
                count(t) AS total_tasks,
@@ -110,7 +110,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
 
         duration_query = """
         MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id})
-        OPTIONAL MATCH (c)-[:HAS_TASK]->(:Task)-[:HAS_LOG]->(l:Log)
+        OPTIONAL MATCH (c)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(:Task)-[:HAS_LOG]->(l:Log)
         RETURN round(coalesce(sum(toFloat(l.actual_duration)), 0.0), 2) AS total_logged_duration
         """
 
@@ -154,7 +154,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         """
         query = """
         MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)
-        OPTIONAL MATCH (c)-[:HAS_TASK]->(t:Task)
+        OPTIONAL MATCH (c)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
         WITH collect(DISTINCT t) AS tasks
         WITH tasks,
              size(tasks) AS total_tasks,

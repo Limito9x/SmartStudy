@@ -1,4 +1,4 @@
-﻿using SmartStudy.Server.Entities.Enums;
+using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Jobs;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -24,13 +24,23 @@ namespace SmartStudy.Server.Entities
         public Routine? Routine { get; set; }
         public int? ScheduleId { get; set; }
         public Schedule? Schedule { get; set; }
-        public int? CourseId { get; set; }
-        public Course? Course { get; set; }
         public int? StudyPlanId { get; set; }
         public StudyPlan? StudyPlan { get; set; }
         // Task thuộc về 1 yêu cầu
-        public int? TimelineEventId { get; set; }
-        public TimelineEvent? TimelineEvent { get; set; }
+        public int? PhaseId { get; set; }
+        public Phase? Phase { get; set; }
+        [NotMapped]
+        public int? CourseId
+        {
+            get => Phase?.CourseId;
+            set { }
+        }
+        [NotMapped]
+        public Course? Course
+        {
+            get => Phase?.Course;
+            set { }
+        }
         public ICollection<LogItem>? Logs { get; set; } = new List<LogItem>();
         [NotMapped] // Không tạo cột này trong DB
         public bool IsOverdue

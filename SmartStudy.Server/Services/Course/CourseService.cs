@@ -25,7 +25,6 @@ namespace SmartStudy.Server.Services
         Task UpdateCourseGoalAsync(int courseId, string goal);
         Task UpdateCourseTargetScoreAsync(int courseId, double targetScore);
         Task UpdateCourseFinalScoreAsync(int courseId, double finalScore);
-        Task<List<CourseEventDto>> GetCourseEventsAsync(int courseId);
     }
     public class CourseService : ICourseService
     {
@@ -50,9 +49,11 @@ namespace SmartStudy.Server.Services
             var query = _context.Courses
                 .AsNoTracking()
                 .Include(c => c.StudyPlan)
-                .Include(c => c.Tasks)
-                .Include(c=>c.Routines)
-                .ThenInclude(r=>r.Schedules)
+                .Include(c => c.Phases)
+                .ThenInclude(p => p.Tasks)
+                .Include(c => c.Phases)
+                .ThenInclude(p => p.Routines)
+                .ThenInclude(r => r.Schedules)
                 .Where(c => c.StudyPlan!.UserId == userId);
             
             if (studyPlanId.HasValue)
@@ -84,10 +85,11 @@ namespace SmartStudy.Server.Services
 
             var course = await _context.Courses
                 .Include(c => c.StudyPlan)
-                .Include(c=>c.TimelineEvents)
-                .Include(c => c.Tasks)
-                .Include(c=>c.Routines)
-                .ThenInclude(r=>r.Schedules)
+                .Include(c => c.Phases)
+                .ThenInclude(p => p.Tasks)
+                .Include(c => c.Phases)
+                .ThenInclude(p => p.Routines)
+                .ThenInclude(r => r.Schedules)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == courseId);
 
@@ -115,6 +117,14 @@ namespace SmartStudy.Server.Services
                 _context.Courses.Add(course);
                 await _context.SaveChangesAsync();
 
+                var generalPhase = new Phase
+                {
+                    CourseId = course.Id,
+                    Title = "Giai đoạn chung",
+                    Type = PhaseType.General,
+                    Priority = PriorityLevel.Low
+                };
+                _context.Phases.Add(generalPhase);
                 await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
@@ -157,7 +167,8 @@ namespace SmartStudy.Server.Services
             if (existingCourse == null) return false;
             if (existingCourse.StudyPlan == null || existingCourse.StudyPlan.UserId != userId) return false;
             
-            var taskIds = await _context.Tasks.Where(t => t.CourseId == courseId).Select(t => t.Id).ToListAsync();
+            var phaseIds = await _context.Phases.Where(p => p.CourseId == courseId).Select(p => p.Id).ToListAsync();
+            var taskIds = await _context.Tasks.Where(t => t.PhaseId.HasValue && phaseIds.Contains(t.PhaseId.Value)).Select(t => t.Id).ToListAsync();
             var logIds = await _context.Logs.Where(l => taskIds.Contains(l.TaskId)).Select(l => l.Id).ToListAsync();
             
             await _context.CascadeSoftDeleteLinkAsync(logIds, AssetLinkType.Log);
@@ -172,7 +183,7 @@ namespace SmartStudy.Server.Services
                 await _context.Tasks.Where(t => taskIds.Contains(t.Id)).SoftDeleteBulkAsync();
             }
 
-            var routineIds = await _context.Routines.Where(r => r.CourseId == courseId).Select(r => r.Id).ToListAsync();
+            var routineIds = await _context.Routines.Where(r => r.PhaseId.HasValue && phaseIds.Contains(r.PhaseId.Value)).Select(r => r.Id).ToListAsync();
             if (routineIds.Any()){
                 await _context.Routines.Where(r => routineIds.Contains(r.Id)).SoftDeleteBulkAsync();
                 foreach (var routineId in routineIds)
@@ -204,12 +215,14 @@ namespace SmartStudy.Server.Services
             {
                 var today = DateTime.UtcNow.AddHours(7);
                 var futureTasks = await _context.Tasks
-                    .Where(t => t.CourseId == courseId && t.StartDateTime.HasValue && t.StartDateTime.Value.Date >= today.Date)
+                    .Where(t => t.PhaseId.HasValue && t.StartDateTime.HasValue && t.StartDateTime.Value.Date >= today.Date)
+                    .Where(t => _context.Phases.Any(p => p.Id == t.PhaseId && p.CourseId == courseId))
                     .ToListAsync();
                 _context.Tasks.RemoveRange(futureTasks);
 
                 var futureRoutines = await _context.Routines
-                    .Where(r => r.CourseId == courseId && r.StartDate.Date >= today.Date)
+                    .Where(r => r.PhaseId.HasValue && r.StartDate.Date >= today.Date)
+                    .Where(r => _context.Phases.Any(p => p.Id == r.PhaseId && p.CourseId == courseId))
                     .Select(r => r.Id)
                     .ToListAsync();
 
@@ -227,6 +240,7 @@ namespace SmartStudy.Server.Services
         public async Task<CourseWorkloadDto> GetCourseWorkloadAsync(int courseId, string? keyword)
         {
             keyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
+            var keywordPattern = keyword is null ? null : $"%{keyword}%";
 
             var course = await _context.Courses
                 .AsNoTracking()
@@ -234,16 +248,32 @@ namespace SmartStudy.Server.Services
 
             if (course == null) throw new KeyNotFoundException("Không tìm thấy khóa học");
 
+            var phases = await _context.Phases
+                .AsNoTracking()
+                .Where(p => p.CourseId == courseId)
+                .ToListAsync();
+
+            if (phases.Count == 0)
+            {
+                return new CourseWorkloadDto();
+            }
+
+            var phaseIds = phases.Select(p => p.Id).ToList();
+
             var singleTasks = await _context.Tasks
                 .AsNoTracking()
-                .Where(t => t.CourseId == courseId
+                .Where(t => t.PhaseId.HasValue
+                    && phaseIds.Contains(t.PhaseId.Value)
                     && t.RoutineId == null
-                    && (keyword == null || t.Name.Contains(keyword)))
+                    && (keywordPattern == null
+                        || EF.Functions.ILike(t.Name, keywordPattern)
+                        || (t.Description != null && EF.Functions.ILike(t.Description, keywordPattern))))
                 .ToListAsync();
 
             var routines = await _context.Routines
                 .AsNoTracking()
-                .Where(r => r.CourseId == courseId)
+                .Include(r => r.Schedules)
+                .Where(r => r.PhaseId.HasValue && phaseIds.Contains(r.PhaseId.Value))
                 .ToListAsync();
 
             var routineIds = routines.Select(r => r.Id).ToList();
@@ -252,107 +282,143 @@ namespace SmartStudy.Server.Services
                 : await _context.Tasks
                     .AsNoTracking()
                     .Where(t => t.RoutineId.HasValue
-                        && routineIds.Contains(t.RoutineId.Value)
-                        && (keyword == null || t.Name.Contains(keyword)))
+                        && routineIds.Contains(t.RoutineId.Value))
                     .ToListAsync();
 
-            return new CourseWorkloadDto
+            var routineTasksByRoutineId = routineTasks
+                .GroupBy(t => t.RoutineId!.Value)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var phaseWorkloads = phases.Select(phase =>
             {
-                SingleTasks = singleTasks
+                var phaseTitleMatched = keyword != null
+                                        && phase.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase);
+
+                var phaseSingleTasks = singleTasks
+                    .Where(t => t.PhaseId == phase.Id)
                     .Select(t => _mapper.Map<ResponseTaskDto>(t))
-                    .ToList(),
-                Routines = routines.Select(r => new CourseRoutineDto
-                {
-                    Routine = _mapper.Map<SimpleResponseRoutineDto>(r),
-                    Tasks = routineTasks
-                        .Where(t => t.RoutineId == r.Id)
-                        .Select(t => _mapper.Map<ResponseTaskDto>(t))
-                        .ToList()
-                }).ToList()
-            };
-        }
-        
-        public async Task<List<CourseEventDto>> GetCourseEventsAsync(int courseId)
-        {
-            var events = await _context.TimelineEvents
-                .AsNoTracking()
-                .AsSplitQuery()
-                .Include(e => e.Tasks)
-                .Include(e => e.Routines)
-                .ThenInclude(r => r.Schedules)
-                .Where(e => e.CourseId == courseId)
-                .ToListAsync();
+                    .ToList();
 
-            var courseEvents = events.Select(e =>
-            {
-                var singleTasks = e.Tasks
-                    .Where(t => t.RoutineId == null)
-                    .Select(t => _mapper.Map<EventTaskDto>(t));
+                var phaseRoutines = routines
+                    .Where(r => r.PhaseId == phase.Id)
+                    .Where(r =>
+                    {
+                        if (keyword == null) return true;
+                        if (phaseTitleMatched) return true;
 
-                var routines = e.Routines.Select(r =>
-                {
-                    DateTime endDate;
+                        if (r.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
 
-                    if (r.EndDate.HasValue)
+                        return routineTasksByRoutineId.TryGetValue(r.Id, out var tasks)
+                               && tasks.Any(t => t.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                    })
+                    .Select(routine =>
                     {
-                        // Nếu có cả 2, lấy ngày nào đến trước!
-                        endDate = r.EndDate.Value < e.EndDateTime ? r.EndDate.Value : e.EndDateTime;
-                    }
-                    else
-                    {
-                        // Nếu 1 trong 2 bị null, ưu tiên lấy cái có giá trị. Khúc chót mới lấy UtcNow làm fallback
-                        endDate = r.EndDate ?? e.EndDateTime;
-                    }
-                    
-                    var totalCompletions = r.Tasks.Count(t => t.Status == TaskStatus.Completed);
-                    var totalOccurrences = RoutineHelper.GetOccurences(r.StartDate, endDate, r).Count();
-                    
-                    return new EventRoutineDto
-                    {
-                        Id = r.Id,
-                        Name = r.Name,
-                        Type = r.Type,
-                        TotalCompletion = totalCompletions,
-                        TotalOccurrences = totalOccurrences
-                    };
-                });
-                
-                var completedTasks = singleTasks.Count(t=>t.Status==TaskStatus.Completed) + routines.Sum(r => r.TotalCompletion);
-                var totalPlanned = singleTasks.Count() + routines.Sum(r => r.TotalOccurrences);
-                
-                return new CourseEventDto
+                        routineTasksByRoutineId.TryGetValue(routine.Id, out var thisRoutineTasks);
+                        thisRoutineTasks ??= [];
+
+                        var endDate = CalculateRoutineEndDate(phase.EndDateTime, routine.EndDate);
+                        var occurrences = RoutineHelper.GetOccurences(routine.StartDate, endDate, routine)
+                            .Select((occurrence, index) =>
+                            {
+                                var matchedTask = thisRoutineTasks.FirstOrDefault(t =>
+                                    t.StartDateTime.HasValue
+                                    && t.StartDateTime.Value.Date == occurrence.Date.Date
+                                    && (!t.ScheduleId.HasValue || t.ScheduleId == occurrence.Schedule.Id));
+
+                                return new CourseOccurenceDto
+                                {
+                                    Number = index + 1,
+                                    Date = occurrence.Date,
+                                    Schedule = new CourseOccurenceScheduleDto
+                                    {
+                                        Id = occurrence.Schedule.Id,
+                                        DayOfWeek = occurrence.Schedule.DayOfWeek,
+                                        StartTime = occurrence.Schedule.StartTime,
+                                        Duration = occurrence.Schedule.Duration,
+                                        Location = occurrence.Schedule.Location
+                                    },
+                                    TaskId = matchedTask?.Id ?? 0,
+                                    TaskName = matchedTask?.Name ?? $"{routine.Name} #{index + 1}",
+                                    Status = (matchedTask?.Status ?? TaskStatus.Pending).ToString(),
+                                    IsCompleted = matchedTask?.Status == TaskStatus.Completed
+                                };
+                            })
+                            .ToList();
+
+                        return new CourseRoutineDto
+                        {
+                            Routine = _mapper.Map<SimpleResponseRoutineDto>(routine),
+                            Occurences = occurrences
+                        };
+                    })
+                    .ToList();
+
+                return new CoursePhaseWorkloadDto
                 {
-                    Id = e.Id,
-                    Title = e.Title,
-                    StartDateTime = e.StartDateTime,
-                    EndDateTime = e.EndDateTime,
-                    Priority = e.Priority,
-                    EventType = e.Type,
-                    Location = e.Location,
-                    Notes = e.Notes,
-                    Tasks = singleTasks.ToList(),
-                    Routines = routines.ToList(),
-                    CompletedTasks = completedTasks,
-                    TotalTasks = totalPlanned
+                    Id = phase.Id,
+                    Title = phase.Title,
+                    StartDateTime = phase.StartDateTime,
+                    EndDateTime = phase.EndDateTime,
+                    PhaseType = phase.Type,
+                    Priority = phase.Priority,
+                    Location = phase.Location,
+                    Notes = phase.Notes,
+                    Tasks = phaseSingleTasks,
+                    Routines = phaseRoutines
                 };
             }).ToList();
 
-            return courseEvents;
+            if (keyword != null)
+            {
+                phaseWorkloads = phaseWorkloads
+                    .Where(p => p.Tasks.Count > 0 || p.Routines.Count > 0)
+                    .ToList();
+            }
+
+            return new CourseWorkloadDto
+            {
+                Phases = phaseWorkloads
+            };
+        }
+
+        private static DateTime CalculateRoutineEndDate(DateTime? phaseEndDate, DateTime? routineEndDate)
+        {
+            if (phaseEndDate.HasValue && routineEndDate.HasValue)
+            {
+                return phaseEndDate.Value < routineEndDate.Value ? phaseEndDate.Value : routineEndDate.Value;
+            }
+
+            if (routineEndDate.HasValue)
+            {
+                return routineEndDate.Value;
+            }
+
+            if (phaseEndDate.HasValue)
+            {
+                return phaseEndDate.Value;
+            }
+
+            return DateTime.UtcNow.AddHours(7);
         }
 
         private CourseProgressDto CalculateProgress(Course course)
         {
-            var totalCompletedTasks = course.Tasks?.Where(t => t.Status == TaskStatus.Completed);
+            var allTasks = course.Phases.SelectMany(p => p.Tasks);
+            var allRoutines = course.Phases.SelectMany(p => p.Routines);
+            var totalCompletedTasks = allTasks.Where(t => t.Status == TaskStatus.Completed);
 
             // --- 1. XỬ LÝ TASK ĐƠN LẺ (SINGLE TASKS) ---
             // Những task này không lặp lại, nên thực tế bao nhiêu thì dự kiến bấy nhiêu
-            int totalSingleExpectations = course.Tasks?.Count(t => t.RoutineId == null
-            && (t.Status==TaskStatus.Pending || t.Status == TaskStatus.InProgress)) ?? 0;
+            int totalSingleExpectations = allTasks.Count(t => t.RoutineId == null
+                && (t.Status == TaskStatus.Pending || t.Status == TaskStatus.InProgress));
 
             // --- 2. XỬ LÝ ROUTINE (PROJECTION) ---
             int totalRoutineExpectations = 0;
             
-            foreach (var routine in course.Routines ?? [])
+            foreach (var routine in allRoutines)
             {
                 var endAnchor = routine.EndDate ?? DateTime.UtcNow.AddHours(7);
                 
@@ -360,14 +426,14 @@ namespace SmartStudy.Server.Services
                 
                 // Mỗi Occurrence (lần lặp) là 1 đơn vị công việc dự kiến
                 var thisRoutineOccurences = occurrences.Count();
-                var thisRoutineExpectations = thisRoutineOccurences - (course.Tasks?.Count(t => t.RoutineId == routine.Id && t.Status == TaskStatus.Completed) ?? 0);
+                var thisRoutineExpectations = thisRoutineOccurences - allTasks.Count(t => t.RoutineId == routine.Id && t.Status == TaskStatus.Completed);
                 if(thisRoutineExpectations < 0) thisRoutineExpectations = 0;
                 if(routine.IsActive) // Chỉ tính định mức từ những routine đang active, routine đã tắt thì thôi không tính nữa
                     totalRoutineExpectations += thisRoutineExpectations;
             }
 
             // --- 3. TÍNH TOÁN TỔNG THỂ ---
-            int totalCompletions = course.Tasks?.Count(t => t.Status == TaskStatus.Completed) ?? 0;
+            int totalCompletions = allTasks.Count(t => t.Status == TaskStatus.Completed);
 
             int totalExpectations = totalSingleExpectations + totalRoutineExpectations + (totalCompletedTasks?.Count() ?? 0);
 
@@ -386,16 +452,17 @@ namespace SmartStudy.Server.Services
         
         private double CalculateEfficiency(Course course)
         {
-            if (course.Tasks == null || course.Tasks.Count == 0) return 0;
+            var allTasks = course.Phases.SelectMany(p => p.Tasks).ToList();
+            if (allTasks.Count == 0) return 0;
 
-            var totalTasks = course.Tasks.Count;
-            var completedTasks = course.Tasks.Count(t => t.Status == TaskStatus.Completed);
+            var totalTasks = allTasks.Count;
+            var completedTasks = allTasks.Count(t => t.Status == TaskStatus.Completed);
 
-            var totalPlanned = course.Tasks
+            var totalPlanned = allTasks
                 .Where(t => t.StartDateTime.HasValue && t.EndDateTime.HasValue)
                 .Sum(t => (t.EndDateTime!.Value - t.StartDateTime!.Value).TotalMinutes);
 
-            var totalActual = course.Tasks
+            var totalActual = allTasks
                 .SelectMany(t => t.Logs ?? [])
                 .Sum(l => l.ActualDuration);
 

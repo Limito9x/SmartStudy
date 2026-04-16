@@ -1,4 +1,3 @@
-using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
 using SmartStudy.Server.Dtos;
@@ -20,16 +19,14 @@ public class CalendarService: ICalendarService
 {
     private readonly ApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
     
-    public CalendarService(ApplicationDbContext context,  ICurrentUserService currentUserService,  IMapper mapper)
+    public CalendarService(ApplicationDbContext context,  ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
     
-            public async Task<List<CalendarEventDto>> GetCalendarAsync(
+    public async Task<List<CalendarEventDto>> GetCalendarAsync(
     DateOnly fromDate, DateOnly toDate)
 {
     if (fromDate > toDate)
@@ -42,7 +39,8 @@ public class CalendarService: ICalendarService
 
     // 1. Tasks thật có TaskDate trong khoảng
     var tasks = await _context.Tasks
-        .Include(t => t.Course)
+        .Include(t => t.Phase)
+        .ThenInclude(p => p!.Course)
         .Include(t => t.Routine)
         .Where(t => t.UserId == userId
                  && t.StartDateTime.HasValue
@@ -59,33 +57,38 @@ public class CalendarService: ICalendarService
 
     foreach (var task in tasks)
     {
+        var startAt = task.StartDateTime ?? DateTime.UtcNow;
+        var course = task.Phase?.Course;
         result.Add(new CalendarEventDto
         {
             CalendarId = $"task-{task.Id}",
             EntityId = task.Id,
             EntityType = CalendarEntityType.Task,
             Title = task.Name,
-            StartAt = task.StartDateTime.Value,
-            EndAt = task.EndDateTime.Value,
-            CourseName = task.Course?.Name,
+            StartAt = startAt,
+            EndAt = task.EndDateTime ?? startAt,
+            CourseName = course?.Name,
             Location = task.Location,
             RoutineId = task.RoutineId,
-            CourseId = task.CourseId,
+            CourseId = task.Phase?.CourseId,
             TaskType = task.Type,
             Status = task.Status.ToString(),
             IsOverdue = task.IsOverdue,
             IsVirtual = false,
-            Color = task.Course?.Color ?? "#7F77DD"
+            Color = course?.Color ?? "#7F77DD"
         });
     }
 
     // 2. Routine occurrences — render ảo, bỏ qua cái đã có task thật
     var routines = await _context.Routines
         .Include(r => r.Schedules)
-        .Include(r => r.Course)
+        .Include(r => r.Phase)
+        .ThenInclude(p => p!.Course)
         .Where(r => r.UserId == userId 
                     && r.IsActive
-                    && r.Course.Status == CourseStatus.Enrolled
+                    && r.Phase != null
+                    && r.Phase.Course != null
+                    && r.Phase.Course.Status == CourseStatus.Enrolled
                     && r.StartDate <= toDateTime
                     && (r.EndDate == null || r.EndDate >= fromDateTime))
         .ToListAsync();
@@ -97,6 +100,7 @@ public class CalendarService: ICalendarService
             foreach (var schedule in routine.Schedules)
             {
                 if (schedule.DayOfWeek != date.DayOfWeek) continue;
+                if (!schedule.StartTime.HasValue || !schedule.Duration.HasValue) continue;
 
                 // Đã có task thật cho occurrence này → bỏ qua
                 if (materializedRoutineOccurrences
@@ -115,45 +119,14 @@ public class CalendarService: ICalendarService
                     StartAt = start,
                     EndAt = end,
                     Location = schedule.Location,
-                    CourseName = routine.Course?.Name,
-                    CourseId = routine.CourseId,
+                    CourseName = routine.Phase?.Course?.Name,
+                    CourseId = routine.Phase?.CourseId,
                     IsVirtual = true,  // chưa có task thật
                     Status = "Pending",
-                    Color = routine.Course?.Color ?? "#7F77DD"
+                    Color = routine.Phase?.Course?.Color ?? "#7F77DD"
                 });
             }
         }
-    }
-
-    // 3. Timeline events
-    var events = await _context.TimelineEvents
-        .Include(e => e.Course)
-        .Where(e => e.Course.StudyPlan.UserId == userId
-                 && e.StartDateTime.Date <= toDate.ToDateTime(TimeOnly.MaxValue)
-                 && e.EndDateTime.Date >= fromDate.ToDateTime(TimeOnly.MinValue))
-        .ToListAsync();
-
-    foreach (var ev in events)
-    {
-        var status = ev.Status.ToString();
-        var isOverdue = ev.EndDateTime < DateTime.UtcNow && ev.Status == EventStatus.Pending;
-            
-        result.Add(new CalendarEventDto
-        {
-            CalendarId = $"event-{ev.Id}",
-            EntityId = ev.Id,
-            EntityType = CalendarEntityType.TimelineEvent,
-            Title = ev.Title,
-            StartAt = ev.StartDateTime,
-            EndAt = ev.EndDateTime,
-            IsAllDay = ev.IsAllDay,
-            CourseName = ev.Course?.Name,
-            CourseId = ev.CourseId,
-            IsVirtual = false,
-            Status = status,
-            IsOverdue = isOverdue,
-            Color = ev.Course?.Color ?? "#7F77DD"
-        });
     }
 
     return result.OrderBy(e => e.StartAt)
@@ -165,7 +138,8 @@ public async Task<InboxResponseDto> GetInboxItemsAsync()
 {
     var userId = _currentUserService.UserId;
     var floatingTasks = await _context.Tasks
-        .Include(t=>t.Course)
+        .Include(t => t.Phase)
+        .ThenInclude(p => p!.Course)
         .AsNoTracking()
         .Where(t => t.UserId == userId
                     && t.RoutineId == null
@@ -175,15 +149,48 @@ public async Task<InboxResponseDto> GetInboxItemsAsync()
         .ToListAsync();
 
     var fixedRoutines = await _context.Routines
-        .Include(r => r.Course)
+        .Include(r => r.Phase)
+        .ThenInclude(p => p!.Course)
         .AsNoTracking()
         .Where(r => r.UserId == userId)
         .ToListAsync();
 
+    var floatingItems = floatingTasks.Select(t => new UnscheduledItemDto
+    {
+        Id = t.Id,
+        EntityType = CalendarEntityType.Task,
+        Name = t.Name,
+        Description = t.Description,
+        Type = t.Type,
+        CourseId = t.Phase?.CourseId,
+        CourseName = t.Phase?.Course?.Name,
+        CourseColor = t.Phase?.Course?.Color,
+        StudyPlanId = t.StudyPlanId ?? 0,
+        PlannedDuration = t.StartDateTime.HasValue && t.EndDateTime.HasValue
+            ? Math.Max(0, (int)(t.EndDateTime.Value - t.StartDateTime.Value).TotalMinutes)
+            : 0,
+    }).ToList();
+
+    var routineItems = fixedRoutines.Select(r => new UnscheduledItemDto
+    {
+        Id = r.Id,
+        EntityType = CalendarEntityType.Routine,
+        Name = r.Name,
+        Description = r.Description,
+        Type = r.Type,
+        CourseId = r.Phase?.CourseId,
+        CourseName = r.Phase?.Course?.Name,
+        CourseColor = r.Phase?.Course?.Color,
+        StudyPlanId = r.StudyPlanId ?? 0,
+        PlannedDuration = r.Schedules
+            .Where(s => s.Duration.HasValue)
+            .Sum(s => s.Duration ?? 0),
+    }).ToList();
+
     return new InboxResponseDto
     {
-        FloatingTasks = _mapper.Map<List<UnscheduledItemDto>>(floatingTasks),
-        FixedRoutines = _mapper.Map<List<UnscheduledItemDto>>(fixedRoutines)
+        FloatingTasks = floatingItems,
+        FixedRoutines = routineItems,
     };
 }
 

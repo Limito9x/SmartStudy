@@ -16,7 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import InlineEditableInput from "@/components/shared/InlineEditableInput";
@@ -24,9 +23,10 @@ import CourseCompletionForm from "@/components/features/course-tabs/CourseComple
 import { useCourse } from "@/hooks/entities/useCourse";
 import { useDialogStore } from "@/stores/useDialogStore";
 import type {
+  CoursePhaseWorkloadDto,
   CourseStatus,
   ResponseCourseDto,
-  ResponseTimelineEventDto,
+  ResponseTaskDto,
   SimpleResponseRoutineDto,
   StudyPlanType,
 } from "@/services/api";
@@ -38,11 +38,9 @@ import {
   getCountdownClassName,
   getCountdownText,
   getDaysLeft,
-  getEventTypeLabel,
   getRoutineTaskTypeLabel,
   hexToRgba,
   normalizeHexColor,
-  sortTimelineEventsByPriority,
   stringifyNullable,
   toNumber,
 } from "@/utils/courseOverviewUtils";
@@ -62,8 +60,8 @@ interface OverviewTabProps {
   courseId: number;
   studyPlanId: number;
   studyPlanType: StudyPlanType;
-  routines: SimpleResponseRoutineDto[];
-  isRoutinesLoading: boolean;
+  workloadPhases: CoursePhaseWorkloadDto[];
+  isWorkloadLoading: boolean;
 }
 
 export default function OverviewTab({
@@ -71,8 +69,8 @@ export default function OverviewTab({
   courseId,
   studyPlanId,
   studyPlanType,
-  routines,
-  isRoutinesLoading,
+  workloadPhases,
+  isWorkloadLoading,
 }: OverviewTabProps) {
   const { openDialog } = useDialogStore();
   const {
@@ -95,9 +93,53 @@ export default function OverviewTab({
   const completionPending =
     updateCourseFinalScore.isPending || updateCourseStatus.isPending;
 
-  const upcomingEvents = useMemo(() => {
-    return sortTimelineEventsByPriority(course?.timelineEvents ?? []);
-  }, [course?.timelineEvents]);
+  const upcomingMilestones = useMemo(() => {
+    const mapped = (workloadPhases ?? []).flatMap((phase) =>
+      (phase.tasks ?? [])
+        .filter((task) => task.type === "Milestone")
+        .map((task) => ({
+          task,
+          phaseTitle: phase.title,
+        })),
+    );
+
+    return mapped.sort((a, b) => {
+      const dueA = parseDateValue(a.task.endDateTime ?? a.task.startDateTime);
+      const dueB = parseDateValue(b.task.endDateTime ?? b.task.startDateTime);
+
+      if (dueA && dueB) {
+        return dueA.getTime() - dueB.getTime();
+      }
+      if (dueA) {
+        return -1;
+      }
+      if (dueB) {
+        return 1;
+      }
+      return 0;
+    });
+  }, [workloadPhases]);
+
+  const routines = useMemo(() => {
+    const flattened = (workloadPhases ?? []).flatMap((phase) =>
+      (phase.routines ?? [])
+        .map((courseRoutine) => courseRoutine.routine)
+        .filter((routine): routine is SimpleResponseRoutineDto =>
+          Boolean(routine),
+        ),
+    );
+
+    const routineMap = new Map<number, SimpleResponseRoutineDto>();
+    for (const routine of flattened) {
+      const id = toNumber(routine.id);
+      if (id <= 0 || routineMap.has(id)) {
+        continue;
+      }
+      routineMap.set(id, routine);
+    }
+
+    return Array.from(routineMap.values());
+  }, [workloadPhases]);
 
   const handleSaveTargetScore = async (nextValue: string) => {
     const trimmed = nextValue.trim();
@@ -335,14 +377,21 @@ export default function OverviewTab({
         <h2 className="mb-4 text-lg font-semibold text-left">
           Sự kiện sắp tới
         </h2>
-        {upcomingEvents.length === 0 ? (
+        {isWorkloadLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, idx) => (
+              <Skeleton key={idx} className="h-16 rounded-md" />
+            ))}
+          </div>
+        ) : upcomingMilestones.length === 0 ? (
           <EmptyState text="Chưa có sự kiện sắp tới." />
         ) : (
           <div className="flex flex-col gap-3">
-            {upcomingEvents.map((event, index) => (
-              <UpcomingEventRow
-                key={`${String(event.id ?? "event")}-${index}`}
-                event={event}
+            {upcomingMilestones.map((milestone, index) => (
+              <UpcomingMilestoneRow
+                key={`${String(milestone.task.id ?? "milestone")}-${index}`}
+                milestone={milestone.task}
+                phaseTitle={milestone.phaseTitle}
               />
             ))}
           </div>
@@ -353,7 +402,7 @@ export default function OverviewTab({
         <h2 className="mb-4 text-lg font-semibold text-left">
           Lịch trình học tập
         </h2>
-        {isRoutinesLoading ? (
+        {isWorkloadLoading ? (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(3)].map((_, idx) => (
               <Skeleton key={idx} className="h-32 rounded-xl" />
@@ -473,9 +522,16 @@ function StatTile({
   );
 }
 
-function UpcomingEventRow({ event }: { event: ResponseTimelineEventDto }) {
-  const { day, month } = formatDayMonth(event.endDateTime);
-  const daysLeft = getDaysLeft(event.endDateTime);
+function UpcomingMilestoneRow({
+  milestone,
+  phaseTitle,
+}: {
+  milestone: ResponseTaskDto;
+  phaseTitle?: string;
+}) {
+  const dueDate = milestone.endDateTime ?? milestone.startDateTime;
+  const { day, month } = formatDayMonth(dueDate);
+  const daysLeft = getDaysLeft(dueDate);
   const badgeClass = getCountdownClassName(daysLeft);
   const countdownText = getCountdownText(daysLeft);
 
@@ -490,15 +546,28 @@ function UpcomingEventRow({ event }: { event: ResponseTimelineEventDto }) {
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-left">
-          {event.title || "Sự kiện"}
+          {milestone.name || "Milestone"}
         </p>
         <div className="mt-1 flex items-center gap-2">
-          <Badge variant="secondary">{getEventTypeLabel(event.type)}</Badge>
+          {phaseTitle ? (
+            <Badge variant="outline" className="max-w-48 truncate">
+              {phaseTitle}
+            </Badge>
+          ) : null}
           <span className={badgeClass}>{countdownText}</span>
         </div>
       </div>
     </div>
   );
+}
+
+function parseDateValue(value?: string | null): Date | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function EmptyState({ text }: { text: string }) {

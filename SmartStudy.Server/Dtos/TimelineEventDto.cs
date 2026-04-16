@@ -3,28 +3,28 @@ using SmartStudy.Server.Entities.Enums;
 
 namespace SmartStudy.Server.Dtos
 {
-    public record RequestTimelineEventDto
+    public record RequestPhaseDto
     (
         int CourseId,
         string Title,
-        DateTime StartDateTime,
-        DateTime EndDateTime,
+        DateTime? StartDateTime,
+        DateTime? EndDateTime,
         bool IsAllDay,
-        EventType Type,
+        PhaseType Type,
         PriorityLevel Priority,
         string? Location,
         string? Notes
     );
 
-    public record ResponseTimelineEventDto
+    public record ResponsePhaseDto
     (
         int Id,
         int CourseId,
         string Title,
-        DateTime StartDateTime,
-        DateTime EndDateTime,
+        DateTime? StartDateTime,
+        DateTime? EndDateTime,
         bool IsAllDay,
-        EventType Type,
+        PhaseType Type,
         PriorityLevel Priority,
         string? Location,
         string? Notes
@@ -36,7 +36,7 @@ namespace SmartStudy.Server.Dtos
         float ExpectedValue,
         string Unit,
         RequirementStrategy Strategy,
-        int TimelineEventId
+        int PhaseId
     );
 
     public record EventRequirementResDto
@@ -46,7 +46,7 @@ namespace SmartStudy.Server.Dtos
         float ExpectedValue,
         string Unit,
         RequirementStrategy Strategy,
-        int TimelineEventId
+        int PhaseId
     );
 }
 

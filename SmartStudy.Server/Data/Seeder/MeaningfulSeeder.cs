@@ -418,7 +418,7 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
         await _context.Schedules.Where(x => x.RoutineId.HasValue && routineIds.Contains(x.RoutineId.Value)).ExecuteDeleteAsync();
         await _context.Tasks.Where(x => taskIds.Contains(x.Id)).ExecuteDeleteAsync();
         await _context.Routines.Where(x => routineIds.Contains(x.Id)).ExecuteDeleteAsync();
-        await _context.TimelineEvents.Where(x => courseIds.Contains(x.CourseId)).ExecuteDeleteAsync();
+        await _context.Phases.Where(x => courseIds.Contains(x.CourseId)).ExecuteDeleteAsync();
         await _context.Courses.Where(x => courseIds.Contains(x.Id)).ExecuteDeleteAsync();
         await _context.StudyPlans.Where(x => planIds.Contains(x.Id)).ExecuteDeleteAsync();
     }

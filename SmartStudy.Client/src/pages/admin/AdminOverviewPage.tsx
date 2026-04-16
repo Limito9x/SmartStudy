@@ -69,6 +69,7 @@ const TASK_TYPE_TRANSLATIONS: Record<string, string> = {
   SelfStudy: "Tự học",
   AssignmentWork: "Bài tập",
   Meeting: "Cuộc họp",
+  Milestone: "Deadline Phase",
 };
 
 const getTaskTypeLabel = (taskType: string): string => {

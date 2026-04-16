@@ -1,7 +1,11 @@
 import type { EventContentArg } from "@fullcalendar/core/index.js";
 import { MapPin, Pencil, PlayCircle, StopCircle, Trash2 } from "lucide-react";
 import { formatTaskDateTime } from "@/utils/dateUtils";
-import { renderTaskIcon, getStatusStyle } from "../task/FormatTask";
+import {
+  renderTaskIcon,
+  getStatusStyle,
+  resolveTaskDisplayStatus,
+} from "../task/FormatTask";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,13 +20,17 @@ import { useDialogStore } from "@/stores/useDialogStore";
 import { Button } from "@/components/ui/button";
 import { useTask } from "@/hooks/entities/useTask";
 import { useRoutine } from "@/hooks/entities/useRoutine";
-import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 import { toast } from "sonner";
+import type { TaskStatus } from "@/services/api";
 
 export const renderEventContent = (info: EventContentArg) => {
   const dto = info.event.extendedProps;
-  const isCompleted = dto.status === "Completed";
-  const isOverdue = dto.isOverdue;
+  const displayStatus = resolveTaskDisplayStatus({
+    status: normalizeTaskStatus(dto.status),
+    isOverdue: Boolean(dto.isOverdue),
+  });
+  const isCompleted = displayStatus === "Completed";
+  const isOverdue = displayStatus === "Overdue";
 
   const isRoutine = dto.routineId != null || dto.isVirtual;
 
@@ -78,14 +86,17 @@ export function EventPopoverContent({
   const openDialog = useDialogStore.getState().openDialog;
   const { deleteTaskById } = useTask();
   const { deleteRoutine, toggleRoutineStatus, getRoutineById } = useRoutine();
-  const { deleteEvent } = useTimelineEvent({});
 
   const { data: routine } = getRoutineById(eventData.routineId);
 
-  const statusStyle = getStatusStyle(eventData.status);
+  const statusStyle = getStatusStyle(
+    resolveTaskDisplayStatus({
+      status: normalizeTaskStatus(eventData.status),
+      isOverdue: Boolean(eventData.isOverdue),
+    }),
+  );
   const isRoutine = eventData.routineId != null || eventData.isVirtual;
   const isTask = eventData.entityType === "Task";
-  const isEvent = eventData.entityType === "TimelineEvent";
 
   const eventLabel = eventData.entityType === "Task" ? "Công việc" : "Sự kiện";
 
@@ -93,11 +104,6 @@ export function EventPopoverContent({
     if (isTask) {
       openDialog("TASK_FORM", {
         taskId: eventData.entityId,
-        courseId: eventData.courseId,
-      });
-    } else if (isEvent) {
-      openDialog("EVENT_FORM", {
-        eventId: eventData.entityId,
         courseId: eventData.courseId,
       });
     }
@@ -118,20 +124,6 @@ export function EventPopoverContent({
             {
               onSuccess: () => {
                 toast.success("Đã xóa công việc");
-                hidePopover();
-              },
-            },
-          );
-        } else if (isEvent) {
-          deleteEvent.mutate(
-            {
-              path: {
-                timelineEventId: Number(eventData.entityId),
-              },
-            },
-            {
-              onSuccess: () => {
-                toast.success("Đã xóa sự kiện");
                 hidePopover();
               },
             },
@@ -305,4 +297,17 @@ export function EventPopoverContent({
       </div>
     </div>
   );
+}
+
+function normalizeTaskStatus(rawStatus: unknown): TaskStatus {
+  switch (rawStatus) {
+    case "Pending":
+    case "InProgress":
+    case "Completed":
+    case "Cancelled":
+    case "Archived":
+      return rawStatus;
+    default:
+      return "Pending";
+  }
 }

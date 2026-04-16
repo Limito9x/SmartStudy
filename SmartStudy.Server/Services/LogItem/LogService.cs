@@ -1,4 +1,4 @@
-﻿using Mapster;
+using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using SmartStudy.Server.Data;
@@ -87,7 +87,7 @@ namespace SmartStudy.Server.Services
                 .Where(l => l.Task.UserId == userId);
 
             if (courseId.HasValue)
-                query = query.Where(l => l.Task.CourseId == courseId.Value);
+                query = query.Where(l => l.Task.Phase != null && l.Task.Phase.CourseId == courseId.Value);
 
             return await query
                 .OrderByDescending(l => l.CompletedAt ?? l.CreatedAt)

@@ -16,7 +16,7 @@ public static class RoutineHelper
                 if (count >= maxCount) yield break;
                 if (date.DayOfWeek==schedule.DayOfWeek)
                 {
-                    yield return new Occurence(date, schedule);
+                    yield return new Occurence { Date = date, Schedule = schedule };
                     count++;
                 }
             }

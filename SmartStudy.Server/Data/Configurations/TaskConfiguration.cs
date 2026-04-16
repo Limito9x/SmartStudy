@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SmartStudy.Server.Entities;
 
@@ -19,6 +19,11 @@ namespace SmartStudy.Server.Data.Configurations
                 t.ScheduleId,
                 t.StartDateTime
             }).IsUnique();
+
+            builder.HasOne(t => t.Phase)
+                .WithMany(p => p.Tasks)
+                .HasForeignKey(t => t.PhaseId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

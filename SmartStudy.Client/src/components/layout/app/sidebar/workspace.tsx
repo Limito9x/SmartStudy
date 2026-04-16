@@ -23,12 +23,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { Plus, CheckSquare, PlusCircle, Repeat, Flag } from "lucide-react";
+import { Plus, CheckSquare, PlusCircle, Repeat } from "lucide-react";
 import { useDialogStore } from "@/stores/useDialogStore";
 import { useState } from "react";
 import PlanNav from "./plan-nav";
 import { Separator } from "@/components/ui/separator";
-import { addMonths } from "date-fns";
+import { addMonths, addMinutes } from "date-fns";
 
 export default function Workspace() {
   const { openDialog } = useDialogStore();
@@ -174,7 +174,14 @@ export default function Workspace() {
             {/* Lựa chọn 1: Gọi Global Dialog mở Form Task */}
             <DropdownMenuItem
               className="cursor-pointer py-3"
-              onClick={() => openDialog("TASK_FORM", {})}
+              onClick={() => openDialog("TASK_FORM", {
+                defaultValues: {
+                  name: "",
+                  startDateTime: new Date(),
+                  endDateTime: addMinutes(new Date(), 60),
+                  type: "SelfStudy"
+                }
+              })}
             >
               <CheckSquare className="w-4 h-4 mr-3 text-green-600" />
               <div className="flex flex-col">
@@ -188,7 +195,12 @@ export default function Workspace() {
             {/* Lựa chọn 2: Gọi Global Dialog mở Form Routine */}
             <DropdownMenuItem
               className="cursor-pointer py-3"
-              onClick={() => openDialog("ROUTINE_FORM", {})}
+              onClick={() => openDialog("ROUTINE_FORM", {
+                defaultValues: {
+                  name: "",
+                  type: "SelfStudy"
+                }
+              })}
             >
               <Repeat className="w-4 h-4 mr-3 text-purple-600" />
               <div className="flex flex-col">
@@ -197,19 +209,6 @@ export default function Workspace() {
                 </span>
                 <span className="text-xs text-gray-500">
                   Lý thuyết, thực hành hàng tuần...
-                </span>
-              </div>
-            </DropdownMenuItem>
-
-            <DropdownMenuItem
-              className="cursor-pointer py-3"
-              onClick={() => openDialog("EVENT_FORM", {})}
-            >
-              <Flag className="w-4 h-4 mr-3 text-red-600" />
-              <div className="flex flex-col">
-                <span className="font-semibold">Sự kiện</span>
-                <span className="text-xs text-gray-500">
-                  Deadline, ngày thi, ngày nộp bài...
                 </span>
               </div>
             </DropdownMenuItem>

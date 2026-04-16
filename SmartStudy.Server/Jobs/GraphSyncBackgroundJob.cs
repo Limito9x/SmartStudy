@@ -8,12 +8,13 @@ namespace SmartStudy.Server.Jobs
         User = 0,
         StudyPlan = 1,
         Course = 2,
-        Routine = 3,
-        Task = 4,
-        Log = 5,
-        Schedule = 6,
-        Asset = 7,
-        AssetLink = 8
+        Phase = 3,
+        Routine = 4,
+        Task = 5,
+        Log = 6,
+        Schedule = 7,
+        Asset = 8,
+        AssetLink = 9
     }
 
     public enum GraphSyncChangeType
@@ -53,6 +54,9 @@ namespace SmartStudy.Server.Jobs
                     case GraphSyncEntityType.Course:
                         await _graphSyncService.DeleteCourseAsync(entityId);
                         break;
+                    case GraphSyncEntityType.Phase:
+                        await _graphSyncService.DeletePhaseAsync(entityId);
+                        break;
                     case GraphSyncEntityType.Routine:
                         await _graphSyncService.DeleteRoutineAsync(entityId);
                         break;
@@ -88,6 +92,9 @@ namespace SmartStudy.Server.Jobs
                     break;
                 case GraphSyncEntityType.Course:
                     await _graphSyncService.SyncCourseAsync(entityId);
+                    break;
+                case GraphSyncEntityType.Phase:
+                    await _graphSyncService.SyncPhaseAsync(entityId);
                     break;
                 case GraphSyncEntityType.Routine:
                     await _graphSyncService.SyncRoutineAsync(entityId);

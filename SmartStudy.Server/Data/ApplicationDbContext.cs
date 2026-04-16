@@ -32,7 +32,7 @@ namespace SmartStudy.Server.Data
         public DbSet<LogItem> Logs { get; set; } = null!;
         public DbSet<ChatSession> ChatSessions { get; set; } = null!;
         public DbSet<ChatMessage> ChatMessages { get; set; } = null!;
-        public DbSet<TimelineEvent> TimelineEvents { get; set; } = null!;
+        public DbSet<Phase> Phases { get; set; } = null!;
         public DbSet<StudentInfo> StudentInfos { get; set; } = null!;
         public DbSet<PlanTemplate> PlanTemplates { get; set; } = null!;
         public DbSet<AcademicTerm> AcademicTerms { get; set; } = null!;

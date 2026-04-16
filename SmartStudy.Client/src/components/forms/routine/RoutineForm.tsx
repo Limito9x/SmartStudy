@@ -9,12 +9,13 @@ import { FormDatePicker } from "@/components/form-controls";
 import { useCourse } from "@/hooks/entities/useCourse";
 import type {
   ResponseCourseDto,
-  ResponseTimelineEventDto,
+  ResponsePhaseDto,
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
+import { useEffect } from "react";
 
 interface RoutineFormProps {
   showCourseField?: boolean;
@@ -50,6 +51,12 @@ export default function RoutineForm({
         const { data: events } = useTimelineEvent({
           courseId: Number(selectedCourseId),
         }).getEventsByCourse;
+
+        useEffect(() => {
+          if (selectedCourseId) {
+            methods.setValue("eventId", Number(events?.[0]?.id));
+          }
+        }, [selectedCourseId]);
 
         return (
           <>
@@ -90,11 +97,11 @@ export default function RoutineForm({
               />
             )}
             {showEventField && selectedCourseId && (
-              <FormCombobox<RoutineFormValues, ResponseTimelineEventDto>
+              <FormCombobox<RoutineFormValues, ResponsePhaseDto>
                 name="eventId"
                 control={control}
-                label="Thuộc sự kiện"
-                placeholder="Chọn sự kiện (nếu có)"
+                label="Thuộc giai đoạn"
+                placeholder="Chọn giai đoạn"
                 options={events || []}
                 getOptionLabel={(option) => `${option.title}`}
                 getOptionValue={(option) => option.id!.toString()}

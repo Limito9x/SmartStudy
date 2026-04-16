@@ -28,7 +28,7 @@ namespace SmartStudy.Server.Dtos
         public int TotalExpectations { get; set; }
         public int TotalCompletions { get; set; }
         public int? SubjectId { get; set; }
-        public List<ResponseTimelineEventDto>? TimelineEvents { get; set; }
+        public List<ResponsePhaseDto>? Phases { get; set; }
     }
 
     public class SimpleResponseCourseDto
@@ -52,49 +52,49 @@ namespace SmartStudy.Server.Dtos
     }
 
     public record UpdateCourseStatusDto(CourseStatus Status);
+
+    public class CourseOccurenceScheduleDto
+    {
+        public int Id { get; set; }
+        public DayOfWeek DayOfWeek { get; set; }
+        public TimeOnly? StartTime { get; set; }
+        public int? Duration { get; set; }
+        public string? Location { get; set; }
+    }
     
+    public class CourseOccurenceDto
+    {
+        public int Number { get; set; }
+        public DateTime Date { get; set; }
+        public CourseOccurenceScheduleDto Schedule { get; set; } = null!;
+        public int TaskId { get; set; }
+        public string TaskName { get; set; } = null!;
+        public string Status { get; set; } = null!;
+        public bool IsCompleted { get; set; }
+    }
+
     public class CourseRoutineDto
     {
-        public SimpleResponseRoutineDto Routine { get; set; }
-        public List<ResponseTaskDto> Tasks { get; set; }
+        public SimpleResponseRoutineDto Routine { get; set; } = null!;
+        public List<CourseOccurenceDto> Occurences { get; set; } = [];
     }
 
     public class CourseWorkloadDto
     {
-        public List<CourseRoutineDto> Routines { get; set; }
-        public List<ResponseTaskDto> SingleTasks { get; set; }
+        public List<CoursePhaseWorkloadDto> Phases { get; set; } = [];
     }
 
-    public class EventRoutineDto
+    public class CoursePhaseWorkloadDto
     {
         public int Id { get; set; }
-        public string Name { get; set; }
-        public TaskType Type { get; set; }
-        public int TotalCompletion { get; set; }
-        public int TotalOccurrences { get; set; }
-    }
-    
-    public class EventTaskDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public TaskType Type { get; set; }
-        public Entities.Enums.TaskStatus Status { get; set; }
-    }
-
-    public class CourseEventDto
-    {
-        public int Id { get; set; }
-        public string Title { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime EndDateTime { get; set; }
-        public EventType EventType { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public DateTime? StartDateTime { get; set; }
+        public DateTime? EndDateTime { get; set; }
+        public PhaseType PhaseType { get; set; }
         public PriorityLevel Priority { get; set; }
         public string? Location { get; set; }
         public string? Notes { get; set; }
-        public int CompletedTasks { get; set; }
-        public int TotalTasks { get; set; }
-        public List<EventTaskDto> Tasks { get; set; } = new List<EventTaskDto>();
-        public List<EventRoutineDto> Routines{ get; set; } = new List<EventRoutineDto>();
+        public List<CourseRoutineDto> Routines { get; set; } = [];
+        public List<ResponseTaskDto> Tasks { get; set; } = [];
     }
 }

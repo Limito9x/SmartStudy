@@ -4,8 +4,7 @@ import WorkloadsTab from "@/components/features/course-workloads/WorkloadsTab";
 import OverviewTab from "@/components/features/course-tabs/OverviewTab";
 import AssetsVaultTab from "@/components/features/course-tabs/AssetsVaultTab";
 import { useQuery } from "@tanstack/react-query";
-import { getRoutinesOptions } from "@/services/api/@tanstack/react-query.gen";
-import EventsTab from "../course-events/EventsTab";
+import { getCourseWorkloadOptions } from "@/services/api/@tanstack/react-query.gen";
 
 interface CourseDetailTabsProps {
   course: ResponseCourseDto | null | undefined;
@@ -20,11 +19,9 @@ export default function CourseDetailTabs({
   studyPlanId,
   studyPlanType,
 }: CourseDetailTabsProps) {
-  const routinesQuery = useQuery({
-    ...getRoutinesOptions({
-      query: {
-        CourseId: courseId,
-      },
+  const workloadQuery = useQuery({
+    ...getCourseWorkloadOptions({
+      path: { courseId },
     }),
     enabled: !!courseId,
   });
@@ -49,12 +46,6 @@ export default function CourseDetailTabs({
             Công việc
           </TabsTrigger>
           <TabsTrigger
-            value="events"
-            className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-          >
-            Sự kiện
-          </TabsTrigger>
-          <TabsTrigger
             value="assets"
             className=" border-transparent px-4 pb-2.5 pt-2 text-sm data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
           >
@@ -70,17 +61,13 @@ export default function CourseDetailTabs({
             courseId={courseId}
             studyPlanId={studyPlanId}
             studyPlanType={studyPlanType}
-            routines={routinesQuery.data ?? []}
-            isRoutinesLoading={routinesQuery.isLoading}
+            workloadPhases={workloadQuery.data?.phases ?? []}
+            isWorkloadLoading={workloadQuery.isLoading}
           />
         </TabsContent>
 
         <TabsContent value="workloads" className="mt-6">
           <WorkloadsTab courseId={courseId} />
-        </TabsContent>
-
-        <TabsContent value="events" className="mt-6">
-          <EventsTab courseId={courseId} />
         </TabsContent>
 
         <TabsContent value="assets" className="mt-6">

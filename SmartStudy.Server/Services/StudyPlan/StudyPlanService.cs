@@ -130,7 +130,7 @@ namespace SmartStudy.Server.Services
                     return credits.Value * c.FinalScore.Value;
                 });
 
-                sp.GPA = sp.TotalCredits > 0 ? (totalGradePoints / sp.TotalCredits) : 0;
+                sp.GPA = sp.TotalCredits > 0 ? (totalGradePoints / sp.TotalCredits/10*4) : 0;
             }
             return dto;
         }
@@ -163,8 +163,10 @@ namespace SmartStudy.Server.Services
             if (studyPlan == null) return false;
 
             var futureRoutines = await _context.Routines
-                .Where(r => r.Course.StudyPlanId == studyPlanId 
-                            && r.IsActive)
+                .Where(r => r.IsActive
+                            && r.Phase != null
+                            && r.Phase.Course != null
+                            && r.Phase.Course.StudyPlanId == studyPlanId)
                 .Select(r => r.Id)
                 .ToListAsync();
 
@@ -213,8 +215,10 @@ namespace SmartStudy.Server.Services
                 await DisableAllTasksAsync(planId);
 
                 var routinesToDisable = await _context.Routines
-                    .Where(r => 
-                    r.Course.StudyPlanId == planId && r.IsActive)
+                    .Where(r => r.IsActive
+                                && r.Phase != null
+                                && r.Phase.Course != null
+                                && r.Phase.Course.StudyPlanId == planId)
                     .Select(r => r.Id)
                     .ToListAsync();
 
@@ -234,8 +238,13 @@ namespace SmartStudy.Server.Services
         public async Task<StudyPlanStatsDto> GetStudyPlanStatsAsync(int planId)
         {
             var plan = await _context.StudyPlans
-                .Include(p => p.Courses).ThenInclude(c => c.Routines).ThenInclude(r => r.Schedules)
-                .Include(p => p.Courses).ThenInclude(c => c.Tasks)
+                .Include(p => p.Courses)
+                    .ThenInclude(c => c.Phases)
+                        .ThenInclude(ph => ph.Routines)
+                            .ThenInclude(r => r.Schedules)
+                .Include(p => p.Courses)
+                    .ThenInclude(c => c.Phases)
+                        .ThenInclude(ph => ph.Tasks)
                 .FirstOrDefaultAsync(p => p.Id == planId && p.UserId == _currentUserService.UserId);
 
             if (plan == null) throw new KeyNotFoundException("Không tìm thấy KHHT");
@@ -251,16 +260,17 @@ namespace SmartStudy.Server.Services
             foreach (var course in plan.Courses)
             {
                 var courseStats = StudyProgressHelper.CalculateCourseProgress(course);
-                
+
                 planTotalExpectations += courseStats.TotalExpectations;
                 planTotalCompletions += courseStats.TotalCompletions;
 
-                // Đếm thêm các trạng thái thực tế để vẽ biểu đồ
-                planInProgress += course.Tasks?.Count(t => t.Status == TaskStatus.InProgress) ?? 0;
-                planOverdue += course.Tasks?.Count(t => t.StartDateTime.HasValue
+                // Aggregate tasks qua Phases (Course.Tasks là [NotMapped])
+                var allCourseTasks = course.Phases.SelectMany(ph => ph.Tasks).ToList();
+                planInProgress += allCourseTasks.Count(t => t.Status == TaskStatus.InProgress);
+                planOverdue += allCourseTasks.Count(t => t.StartDateTime.HasValue
                                     && t.StartDateTime.Value.Date < now.Date
                                     && t.Status != TaskStatus.Completed
-                                    && t.Status != TaskStatus.Cancelled) ?? 0;
+                                    && t.Status != TaskStatus.Cancelled);
             }
 
             return new StudyPlanStatsDto
@@ -270,11 +280,11 @@ namespace SmartStudy.Server.Services
                 InProgressTasks = planInProgress,
                 OverdueTasks = planOverdue,
                 PendingTasks = Math.Max(0, planTotalExpectations - (planTotalCompletions + planInProgress + planOverdue)),
-                DaysLeft = plan.EndDate.HasValue 
+                DaysLeft = plan.EndDate.HasValue
                 ? Math.Max(0, (plan.EndDate.Value - now).Days)
                 : 0,
                 TotalStudyHours = await _context.Logs
-                .Where(l => l.Task.Course.StudyPlanId == planId)
+                .Where(l => l.Task.Phase != null && l.Task.Phase.Course != null && l.Task.Phase.Course.StudyPlanId == planId)
                 .SumAsync(l => (double?)l.ActualDuration ?? 0) / 60.0
             };
         }
@@ -316,8 +326,8 @@ namespace SmartStudy.Server.Services
 
             // 2. Quét TẤT CẢ các Task thuộc các môn này mà CHƯA đóng
             var tasksToArchive = _context.Tasks
-                .Where(t => t.CourseId != null 
-                            && courseIds.Contains(t.CourseId.Value) // Lọc qua mảng ID (cực kỳ an toàn)
+                .Where(t => t.Phase != null && t.Phase.CourseId != 0 
+                            && courseIds.Contains(t.Phase.CourseId) // Lọc qua mảng ID (cực kỳ an toàn)
                             && t.Status != TaskStatus.Completed 
                             && t.Status != TaskStatus.Cancelled
                             && t.Status != TaskStatus.Archived);
@@ -373,7 +383,7 @@ namespace SmartStudy.Server.Services
                 TotalCredits = totalCredits,
                 // Chỗ này nên để double, nếu DTO của bạn là int thì hãy làm tròn, 
                 // nhưng GPA thường là decimal/double (VD: 3.2)
-                GPA = totalCredits > 0 ? Math.Round(totalGradePoints / totalCredits, 2) : 0
+                GPA = totalCredits > 0 ? Math.Round(totalGradePoints / totalCredits/10*4, 2) : 0
             };
         }
     }

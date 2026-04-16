@@ -34,6 +34,9 @@ const EventFormContainer = lazy(
 const SubjectFormContainer = lazy(
   () => import("../form-containers/SubjectFormContainer"),
 );
+const PhaseFormContainer = lazy(
+  () => import("../form-containers/PhaseFormContainer"),
+);
 
 import { Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -65,6 +68,7 @@ const DIALOG_TITLES: {
   PLAN_TEMPLATE_EDIT: () => "Chỉnh sửa template",
   PLAN_TEMPLATE_SELECT_PLAN: () => "Tạo template từ kế hoạch",
   EVENT_FORM: (data) => (data.eventId ? "Cập nhật sự kiện" : "Tạo sự kiện mới"),
+  PHASE_FORM: (data) => (data.phaseId ? "Cập nhật giai đoạn" : "Thêm giai đoạn mới"),
 };
 
 const DIALOG_COMPONENTS: {
@@ -76,6 +80,7 @@ const DIALOG_COMPONENTS: {
   ROUTINE_FORM: RoutineFormContainer,
   COURSE_FORM: CourseFormContainer,
   EVENT_FORM: EventFormContainer,
+  PHASE_FORM: PhaseFormContainer,
   SCHEDULE_FORM: ScheduleFormContainer,
   LOG_WORK_FORM: LogFormContainer,
   PLAN_TEMPLATE_EDIT: PlanTemplateEditDialog,
@@ -108,6 +113,7 @@ const DIALOG_SIZES: { [K in DialogType]: string } = {
   PLAN_TEMPLATE_EDIT: "sm:max-w-lg",
   PLAN_TEMPLATE_SELECT_PLAN: "sm:max-w-lg",
   EVENT_FORM: "sm:max-w-lg", // Form tạo sự kiện (512px)
+  PHASE_FORM: "sm:max-w-lg", // Form tạo giai đoạn (512px)
   SUBJECT_FORM: "sm:max-w-md", // Form tạo môn học (448px)
   ROUTINE_FORM: "sm:max-w-3xl lg:max-w-4xl",
 };

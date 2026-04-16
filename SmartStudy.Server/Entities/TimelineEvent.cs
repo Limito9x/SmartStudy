@@ -1,16 +1,17 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using SmartStudy.Server.Jobs;
 
 namespace SmartStudy.Server.Entities
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum EventType
+    public enum PhaseType
     {
-        Exam, // Thi cử
+        General, // Công việc chung
+        ExamPrep, // Ôn thi
+        Project, // Dự án
         Assignment, // Nộp bài
-        Presentation, // Thuyết trình
-        ProjectDeadline, // Hạn chót dự án
-        Other // Khác
+        Custom // Tùy chỉnh
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
@@ -27,7 +28,7 @@ namespace SmartStudy.Server.Entities
         Medium = 2,
         High = 3
     }
-    public class TimelineEvent : BaseEntity
+    public class Phase : BaseEntity, IGraphSyncTrigger
     {
         [Required]
         public int CourseId { get; set; }
@@ -35,16 +36,20 @@ namespace SmartStudy.Server.Entities
         public EventStatus Status { get; set; } = EventStatus.Pending;
         [Required]
         public required string Title { get; set; }
-        public DateTime StartDateTime { get; set; }
-        public DateTime EndDateTime { get; set; }
-        public bool IsAllDay { get; set; } = false;
-        public EventType Type { get; set; }
+        public DateTime? StartDateTime { get; set; }
+        public DateTime? EndDateTime { get; set; }
+        public PhaseType Type { get; set; }
         public PriorityLevel Priority { get; set; }
         public string? Location { get; set; }
         public string? Notes { get; set; }
         // Breakdown thành các yêu cầu
         public ICollection<TaskItem> Tasks { get; set; } = new List<TaskItem>();
         public ICollection<Routine> Routines { get; set; } = new List<Routine>();
+
+        public GraphSyncEntityType GetGraphSyncEntityType()
+        {
+            return GraphSyncEntityType.Phase;
         }
+    }
 }
 

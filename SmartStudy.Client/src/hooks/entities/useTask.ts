@@ -9,36 +9,17 @@ import {
   updateTaskInfoMutation,
   updateTaskStatusMutation,
   deleteTaskByIdMutation,
-  getCourseWorkloadQueryKey,
   getTaskDetailByIdQueryKey,
-  getCourseByIdQueryKey,
   getTaskByIdQueryKey,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskStatus } from "@/services/api";
 import {
-  invalidateCourseContext,
   invalidateCalendarContext,
 } from "@/utils/query-invalidate";
+import { invalidateCourseWorkloadContext } from "@/utils/query-invalidate";
 
 export const useTask = () => {
   const queryClient = useQueryClient();
-
-  const invalidateCourseRelatedQueries = (courseId: string | number | null) => {
-    queryClient.invalidateQueries({
-      queryKey: getCourseByIdQueryKey({
-        path: {
-          courseId: courseId ?? 0,
-        },
-      }),
-    });
-    queryClient.invalidateQueries({
-      queryKey: getCourseWorkloadQueryKey({
-        path: {
-          courseId: courseId ?? 0,
-        },
-      }),
-    });
-  };
 
   const invalidateTaskRelatedQueries = (taskId: string | number) => {
     queryClient.invalidateQueries({
@@ -58,16 +39,16 @@ export const useTask = () => {
   };
 
   const getTasks = ({
-    courseId,
+    phaseId,
     status,
   }: {
-    courseId?: number;
+    phaseId?: number;
     status?: TaskStatus;
   }) =>
     useQuery({
       ...getTasksOptions({
         query: {
-          courseId,
+          phaseId,
           status,
         },
       }),
@@ -98,14 +79,10 @@ export const useTask = () => {
 
   const createTask = useMutation({
     ...createTaskMutation(),
-    onSuccess: (data) => {
-      const courseId = data.courseId;
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getTasksQueryKey(),
       });
-      if (courseId) {
-        invalidateCourseContext(queryClient, Number(courseId));
-      }
       invalidateCalendarContext(queryClient);
     },
   });
@@ -116,6 +93,7 @@ export const useTask = () => {
       const taskId = data.taskId;
       invalidateTaskRelatedQueries(taskId);
       invalidateCalendarContext(queryClient);
+      invalidateCourseWorkloadContext(queryClient);
     },
   });
 
@@ -124,9 +102,6 @@ export const useTask = () => {
     onSuccess: (data) => {
       const taskId = data.id;
       invalidateTaskRelatedQueries(taskId);
-      if (data.courseId) {
-        invalidateCourseRelatedQueries(data.courseId);
-      }
       invalidateCalendarContext(queryClient);
     },
   });
@@ -135,12 +110,9 @@ export const useTask = () => {
     ...updateTaskStatusMutation(),
     onSuccess: (data) => {
       const taskId = data.id;
-      const courseId = data.courseId;
       invalidateTaskRelatedQueries(taskId);
-      if (courseId) {
-        invalidateCourseContext(queryClient, Number(courseId));
-      }
       invalidateCalendarContext(queryClient);
+      invalidateCourseWorkloadContext(queryClient);
     },
   });
 

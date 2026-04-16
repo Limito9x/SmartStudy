@@ -16,6 +16,7 @@ const taskTypeLabel: Record<TaskType, string> = {
   SelfStudy: "Tự học",
   AssignmentWork: "Bài tập",
   Meeting: "Họp",
+  Milestone: "Deadline Phase",
 };
 
 interface TodayTasksSectionProps {

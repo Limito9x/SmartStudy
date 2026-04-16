@@ -11,7 +11,6 @@ import {
 } from "@/services/api/@tanstack/react-query.gen";
 import type { TaskType } from "@/services/api";
 import {
-  invalidateCourseContext,
   invalidateCalendarContext,
 } from "@/utils/query-invalidate";
 
@@ -27,18 +26,18 @@ export const useRoutine = () => {
 
   const getAllRoutines = ({
     studyPlanId,
-    courseId,
+    phaseId,
     type,
   }: {
     studyPlanId?: number;
-    courseId?: number;
+    phaseId?: number;
     type?: TaskType;
   }) =>
     useQuery({
       ...getRoutinesOptions({
         query: {
           StudyPlanId: studyPlanId,
-          CourseId: courseId,
+          phaseId,
           Type: type,
         },
       }),
@@ -56,29 +55,22 @@ export const useRoutine = () => {
 
   const createRoutine = useMutation({
     ...createRoutineMutation(),
-    onSuccess: (data) => {
-      const courseId = data.courseId;
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
-
-      if (courseId) {
-        invalidateCourseContext(queryClient, Number(courseId));
-      }
+      invalidateCalendarContext(queryClient);
     },
   });
 
   const updateRoutine = useMutation({
     ...updateRoutineMutation(),
     onSuccess: (data) => {
-      const courseId = data.courseId;
       const routineId = data.id;
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
-      if (courseId) {
-        invalidateCourseContext(queryClient, Number(courseId));
-      }
+      invalidateCalendarContext(queryClient);
       queryClient.invalidateQueries({
         queryKey: getRoutineByIdQueryKey({
           path: {
@@ -92,13 +84,10 @@ export const useRoutine = () => {
   const toggleRoutineStatus = useMutation({
     ...toggleRoutineStatusMutation(),
     onSuccess: (data) => {
-      const courseId = data.courseId;
       queryClient.invalidateQueries({
         queryKey: getRoutinesQueryKey(),
       });
-      if (courseId) {
-        invalidateCourseContext(queryClient, Number(courseId));
-      }
+      invalidateCalendarContext(queryClient);
       queryClient.invalidateQueries({
         queryKey: getRoutineByIdQueryKey({
           path: {

@@ -6,52 +6,52 @@ using SmartStudy.Server.Services;
 namespace SmartStudy.Server.Controllers
 {
     [ApiController]
-    [Route("api/events")]
+    [Route("api/phases")]
     [Authorize]
-    public class TimelineEventController : ControllerBase
+    public class PhaseController : ControllerBase
     {
-        private readonly ITimelineEventService _timelineEventService;
+        private readonly IPhaseService _timelineEventService;
 
-        public TimelineEventController(ITimelineEventService timelineEventService)
+        public PhaseController(IPhaseService timelineEventService)
         {
             _timelineEventService = timelineEventService;
         }
 
-        [HttpPost(Name = "CreateEvent")]
-        public async Task<ActionResult<ResponseTimelineEventDto>> Create([FromBody] RequestTimelineEventDto dto)
+        [HttpPost(Name = "CreatePhase")]
+        public async Task<ActionResult<ResponsePhaseDto>> Create([FromBody] RequestPhaseDto dto)
         {
             var created = await _timelineEventService.CreateAsync(dto);
             return Ok(created);
         }
 
-        [HttpGet(Name = "GetEvents")]
-        public async Task<ActionResult<List<ResponseTimelineEventDto>>> GetByCourse(
+        [HttpGet(Name = "GetPhases")]
+        public async Task<ActionResult<List<ResponsePhaseDto>>> GetByCourse(
             [FromQuery] int? studyPlanId, int? courseId)
         {
             var events = await _timelineEventService.GetEventsAsync(studyPlanId, courseId);
             return Ok(events);
         }
         
-        [HttpGet("{eventId:int}", Name = "GetEventById")]
-        public async Task<ActionResult<ResponseTimelineEventDto>> GetById(int eventId)
+        [HttpGet("{phaseId:int}", Name = "GetPhaseById")]
+        public async Task<ActionResult<ResponsePhaseDto>> GetById(int phaseId)
         {
-            var timelineEvent = await _timelineEventService.GetByIdAsync(eventId);
+            var timelineEvent = await _timelineEventService.GetByIdAsync(phaseId);
             if (timelineEvent == null) return NotFound();
             return Ok(timelineEvent);
         }
 
-        [HttpPatch("{timelineEventId:int}", Name = "UpdateEvent")]
-        public async Task<ActionResult<ResponseTimelineEventDto>> Update(int timelineEventId, [FromBody] RequestTimelineEventDto dto)
+        [HttpPatch("{phaseId:int}", Name = "UpdatePhase")]
+        public async Task<ActionResult<ResponsePhaseDto>> Update(int phaseId, [FromBody] RequestPhaseDto dto)
         {
-            var updated = await _timelineEventService.UpdateAsync(timelineEventId, dto);
+            var updated = await _timelineEventService.UpdateAsync(phaseId, dto);
             if (updated == null) return NotFound();
             return Ok(updated);
         }
 
-        [HttpDelete("{timelineEventId:int}", Name = "DeleteEvent")]
-        public async Task<IActionResult> Delete(int timelineEventId)
+        [HttpDelete("{phaseId:int}", Name = "DeletePhase")]
+        public async Task<IActionResult> Delete(int phaseId)
         {
-            var deleted = await _timelineEventService.DeleteAsync(timelineEventId);
+            var deleted = await _timelineEventService.DeleteAsync(phaseId);
             if (!deleted) return NotFound();
             return NoContent();
         }

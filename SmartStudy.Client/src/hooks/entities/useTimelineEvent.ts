@@ -1,40 +1,42 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getEventsOptions,
-  getEventsQueryKey,
-  getEventByIdOptions,
-  createEventMutation,
-  updateEventMutation,
-  deleteEventMutation,
+  getPhasesOptions,
+  getPhasesQueryKey,
+  getPhaseByIdOptions,
+  createPhaseMutation,
+  updatePhaseMutation,
+  deletePhaseMutation,
 } from "@/services/api/@tanstack/react-query.gen";
+import { invalidateCourseWorkloadContext } from "@/utils/query-invalidate";
 
 export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
   const queryClient = useQueryClient();
 
   const getEventsByCourse = useQuery({
-    ...getEventsOptions({
+    ...getPhasesOptions({
       query: {
         courseId: courseId,
-      }
+      },
     }),
     enabled: !!courseId,
   });
 
   const getEventById = (eventId: number) =>
     useQuery({
-      ...getEventByIdOptions({
+      ...getPhaseByIdOptions({
         path: {
-          eventId: eventId,
+          phaseId: eventId,
         },
       }),
       enabled: !!eventId,
     });
 
   const createEvent = useMutation({
-    ...createEventMutation(),
+    ...createPhaseMutation(),
     onSuccess: () => {
+      invalidateCourseWorkloadContext(queryClient, Number(courseId));
       queryClient.invalidateQueries({
-        queryKey: getEventsQueryKey({
+        queryKey: getPhasesQueryKey({
           query: {
             courseId: courseId,
           },
@@ -43,33 +45,32 @@ export const useTimelineEvent = ({ courseId }: { courseId?: number }) => {
     },
   });
 
-  const updateEvent =
-    useMutation({
-      ...updateEventMutation(),
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: getEventsQueryKey({
-            query: {
-              courseId: courseId,
-            },
-          }),
-        });
-      },
-    });
+  const updateEvent = useMutation({
+    ...updatePhaseMutation(),
+    onSuccess: () => {
+      invalidateCourseWorkloadContext(queryClient, Number(courseId));
+      queryClient.invalidateQueries({
+        queryKey: getPhasesQueryKey({
+          query: {
+            courseId: courseId,
+          },
+        }),
+      });
+    },
+  });
 
-  const deleteEvent =
-    useMutation({
-      ...deleteEventMutation(),
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: getEventsQueryKey({
-            query: {
-              courseId: courseId,
-            },
-          }),
-        });
-      },
-    });
+  const deleteEvent = useMutation({
+    ...deletePhaseMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: getPhasesQueryKey({
+          query: {
+            courseId: courseId,
+          },
+        }),
+      });
+    },
+  });
 
   return {
     getEventsByCourse,

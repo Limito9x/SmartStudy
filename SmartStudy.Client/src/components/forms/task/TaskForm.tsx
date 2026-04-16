@@ -10,7 +10,7 @@ import { useCourse } from "@/hooks/entities/useCourse";
 import { useTimelineEvent } from "@/hooks/entities/useTimelineEvent";
 import type {
   ResponseCourseDto,
-  ResponseTimelineEventDto,
+  ResponsePhaseDto
 } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
@@ -78,6 +78,7 @@ export default function TaskForm({
                 { label: "Tự học", value: "SelfStudy" },
                 { label: "Bài tập", value: "AssignmentWork" },
                 { label: "Họp nhóm", value: "Meeting" },
+                { label: "Cột mốc", value: "Milestone" },
               ]}
             />
             <FormDateTimePicker
@@ -105,7 +106,7 @@ export default function TaskForm({
             )}
 
             {showEventField && selectedCourseId && (
-              <FormCombobox<TaskFormValues, ResponseTimelineEventDto>
+              <FormCombobox<TaskFormValues, ResponsePhaseDto>
                 name="eventId"
                 control={control}
                 label="Thuộc sự kiện"
