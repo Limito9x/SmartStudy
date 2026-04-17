@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +11,21 @@ export default function PlanTemplateEditDialog() {
   const { updateTemplate, updatePlanTemplate } = usePlanTemplate();
 
   const payload = data as {
-    templateId: number;
+    templateId?: number;
     defaultValues: {
       name: string;
       description: string | null;
       isPublic: boolean;
     };
+    mode?: "edit" | "publish";
+    lockPublic?: boolean;
+    nameHint?: string;
+    submitLabel?: string;
+    onSubmit?: (values: {
+      name: string;
+      description: string | null;
+      isPublic: boolean;
+    }) => Promise<void> | void;
   };
 
   const [name, setName] = useState(payload?.defaultValues?.name || "");
@@ -24,17 +33,44 @@ export default function PlanTemplateEditDialog() {
     payload?.defaultValues?.description || "",
   );
   const [isPublic, setIsPublic] = useState(!!payload?.defaultValues?.isPublic);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const effectivePublic = payload?.lockPublic ? true : isPublic;
+  const submitLabel = payload?.submitLabel || "Lưu";
+  const canSubmit =
+    !!name.trim() && !updatePlanTemplate.isPending && !isSubmitting;
+  const helperText = useMemo(() => {
+    if (payload?.nameHint && payload.nameHint.trim()) {
+      return `Gợi ý: ${payload.nameHint}`;
+    }
+
+    return null;
+  }, [payload?.nameHint]);
 
   const handleSubmit = async () => {
+    const normalizedValues = {
+      name: name.trim(),
+      description: description.trim() ? description.trim() : null,
+      isPublic: effectivePublic,
+    };
+
+    if (payload?.onSubmit) {
+      try {
+        setIsSubmitting(true);
+        await payload.onSubmit(normalizedValues);
+        closeDialog();
+      } finally {
+        setIsSubmitting(false);
+      }
+
+      return;
+    }
+
     if (!payload?.templateId) {
       return;
     }
 
-    await updateTemplate(payload.templateId, {
-      name: name.trim(),
-      description: description.trim() ? description.trim() : null,
-      isPublic,
-    });
+    await updateTemplate(payload.templateId, normalizedValues);
 
     closeDialog();
   };
@@ -49,6 +85,9 @@ export default function PlanTemplateEditDialog() {
           onChange={(event) => setName(event.target.value)}
           placeholder="Nhập tên template"
         />
+        {helperText ? (
+          <p className="text-xs text-muted-foreground">{helperText}</p>
+        ) : null}
       </div>
 
       <div className="space-y-2">
@@ -65,8 +104,9 @@ export default function PlanTemplateEditDialog() {
         <Label htmlFor="template-is-public">Công khai template</Label>
         <Switch
           id="template-is-public"
-          checked={isPublic}
+          checked={effectivePublic}
           onCheckedChange={setIsPublic}
+          disabled={!!payload?.lockPublic}
         />
       </div>
 
@@ -74,11 +114,10 @@ export default function PlanTemplateEditDialog() {
         <Button variant="outline" onClick={closeDialog}>
           Hủy
         </Button>
-        <Button
-          onClick={handleSubmit}
-          disabled={!name.trim() || updatePlanTemplate.isPending}
-        >
-          {updatePlanTemplate.isPending ? "Đang lưu..." : "Lưu"}
+        <Button onClick={handleSubmit} disabled={!canSubmit}>
+          {updatePlanTemplate.isPending || isSubmitting
+            ? "Đang lưu..."
+            : submitLabel}
         </Button>
       </div>
     </div>

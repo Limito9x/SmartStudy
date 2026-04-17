@@ -8,7 +8,8 @@ namespace SmartStudy.Server.Entities.Enums
         StudyPlan,
         Course,
         Task,
-        Log
+        Log,
+        ExternalLink
     }
 
     public enum AssetLinkCategory

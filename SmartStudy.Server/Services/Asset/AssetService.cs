@@ -13,8 +13,9 @@ namespace SmartStudy.Server.Services
 {
     public interface IAssetService
     {
-        public Task DeleteAssetAsync(string assetId);
+        public Task DeleteAssetAsync(string assetId, int linkedId, AssetLinkType linkedType);
         public Task<AssetResponseDto> UploadAssetAsync(IFormFile file, int linkedId, AssetLinkType assetLinkType);
+        public Task<AssetResponseDto> UploadAssetLinkAsync(UploadAssetLinkDto dto);
         public Task<List<AssetResponseDto>> UploadAssetsAsync(UploadAssetDto uploadAssetDto);
         public Task<List<AssetResponseDto>?> GetAssetsAsync(RequestQueryAssetDto queryDto);
         public Task<List<CourseAssetResponseDto>> GetCourseAssetsAsync(int courseId);
@@ -43,26 +44,32 @@ namespace SmartStudy.Server.Services
             _logger = logger;
         }
 
-        public async Task DeleteAssetAsync(string assetId)
+        public async Task DeleteAssetAsync(string assetId, int linkedId, AssetLinkType linkedType)
         {
-            var asset = await _context.Assets.FindAsync(int.Parse(assetId)) ??
+            if (!int.TryParse(assetId, out var parsedAssetId))
+            {
+                throw new Exception("Asset not found");
+            }
+
+            var asset = await _context.Assets
+                .Include(a => a.AssetLinks)
+                .FirstOrDefaultAsync(a => a.Id == parsedAssetId) ??
                 throw new Exception("Asset not found");
 
-            await _cloudinaryService.DeleteFileAsync(asset.PublicId, asset.Type);
-
-            _context.Assets.Remove(asset);
+            await _assetLinkService.RemoveAssetLinkAsync(asset.Id, linkedId, linkedType);
+            // Unlink-only behavior: physical asset cleanup is handled separately by cleanup jobs.
             await _context.SaveChangesAsync();
 
         }
         public async Task<AssetResponseDto> UploadAssetAsync(IFormFile file, int LinkedId, AssetLinkType assetLinkType)
         {
-            var cloudResult =  _cloudinaryService.UploadFileAsync(file);
+            var cloudResult = await _cloudinaryService.UploadFileAsync(file);
             var userId = _currentUserService.UserId;
             var asset = new Asset
             {
                 FileName = file.FileName,
-                PublicId = cloudResult.Result.PublicId,
-                Url = cloudResult.Result.Url,
+                PublicId = cloudResult.PublicId ?? string.Empty,
+                Url = cloudResult.Url ?? string.Empty,
                 Extension = Path.GetExtension(file.FileName),
                 FileSize = file.Length,
                 Type = FileHelper.GetFileType(file.FileName),
@@ -73,7 +80,41 @@ namespace SmartStudy.Server.Services
             _context.Assets.Add(asset);
             await _context.SaveChangesAsync();
             await _assetLinkService.AddAssetLinkAsync(asset.Id, LinkedId, assetLinkType);
-            return _mapper.Map<AssetResponseDto>(asset);
+            return MapAssetResponse(asset, assetLinkType);
+        }
+
+        public async Task<AssetResponseDto> UploadAssetLinkAsync(UploadAssetLinkDto dto)
+        {
+            if (!Uri.TryCreate(dto.Url, UriKind.Absolute, out var uri)
+                || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new Exception("URL không hợp lệ");
+            }
+
+            var userId = _currentUserService.UserId;
+            var fileName = !string.IsNullOrWhiteSpace(dto.DisplayName)
+                ? dto.DisplayName.Trim()
+                : uri.Host;
+
+            var extension = Path.GetExtension(uri.AbsolutePath)?.TrimStart('.').ToLowerInvariant() ?? string.Empty;
+
+            var asset = new Asset
+            {
+                FileName = fileName,
+                PublicId = string.Empty,
+                Url = dto.Url.Trim(),
+                Extension = extension,
+                FileSize = 0,
+                Type = FileType.Other,
+                CreatedAt = DateTime.UtcNow,
+                UserId = userId,
+            };
+
+            _context.Assets.Add(asset);
+            await _context.SaveChangesAsync();
+            await _assetLinkService.AddAssetLinkAsync(asset.Id, dto.LinkedId, dto.LinkedType);
+
+            return MapAssetResponse(asset, dto.LinkedType);
         }
         public async Task<List<AssetResponseDto>> UploadAssetsAsync(UploadAssetDto assetDto)
         {
@@ -118,7 +159,7 @@ namespace SmartStudy.Server.Services
                 uploadedAssets.Add(new Asset
                 {
                     FileName = item.File.FileName,
-                    PublicId = item.CloudResult.PublicId,
+                    PublicId = item.CloudResult.PublicId ?? string.Empty,
                     Url = item.CloudResult.Url,
                     Extension = Path.GetExtension(item.File.FileName),
                     FileSize = item.File.Length,
@@ -163,7 +204,9 @@ namespace SmartStudy.Server.Services
             // ==========================================
             // PHASE 3: TRẢ VỀ DTO CHO UI HIỂN THỊ
             // ==========================================
-            return _mapper.Map<List<AssetResponseDto>>(uploadedAssets);
+            return uploadedAssets
+                .Select(asset => MapAssetResponse(asset, assetDto.LinkedType))
+                .ToList();
         }
         public async Task<List<AssetResponseDto>?> GetAssetsAsync(RequestQueryAssetDto queryDto)
         {
@@ -174,7 +217,14 @@ namespace SmartStudy.Server.Services
                 .Where(a => a.AssetLinks.Any(al => al.LinkedId == linkedId && al.LinkedType == assetLinkType))
                 .ToListAsync();
 
-            return _mapper.Map<List<AssetResponseDto>>(result);
+            return result.Select(asset =>
+            {
+                var linkType = asset.AssetLinks
+                    .FirstOrDefault(al => al.LinkedId == linkedId && al.LinkedType == assetLinkType)
+                    ?.LinkedType ?? assetLinkType;
+
+                return MapAssetResponse(asset, linkType);
+            }).ToList();
         }
         
         // Phác thảo Logic GET Course Assets cho AssetService.cs
@@ -192,7 +242,10 @@ namespace SmartStudy.Server.Services
                 .ToListAsync();
 
             var taskIds = relatedTasks.Select(t => t.Id).ToList();
-            var logIds = relatedTasks.SelectMany(t => t.Logs).Select(l => l.Id).ToList();
+            var logIds = relatedTasks
+                .SelectMany(t => t.Logs ?? [])
+                .Select(l => l.Id)
+                .ToList();
 
             // 2. Query AssetLink (Bao trọn 2 nguồn)
             var assetLinks = await _context.AssetLinks
@@ -212,8 +265,13 @@ namespace SmartStudy.Server.Services
                 string sourceName = "Tài liệu chung";
                 var task = relatedTasks.FirstOrDefault(t =>
                     (link.LinkedType == AssetLinkType.Task && t.Id == link.LinkedId) ||
-                    (link.LinkedType == AssetLinkType.Log && t.Logs.Any(l => l.Id == link.LinkedId))
+                    (link.LinkedType == AssetLinkType.Log && (t.Logs ?? []).Any(l => l.Id == link.LinkedId))
                 );
+
+                if (link.Asset == null)
+                {
+                    continue;
+                }
 
                 if (task?.Routine != null)
                 {
@@ -232,12 +290,29 @@ namespace SmartStudy.Server.Services
                     Type = link.Asset.Type,
                     CreatedAt = link.Asset.CreatedAt,
                     LinkedType = link.LinkedType,
+                    LinkedId = link.LinkedId,
                     SourceName = sourceName, // Cực kỳ quan trọng cho UI
                     Status = link.Asset.Status
                 });
             }
 
             return result;
+        }
+
+        private static AssetResponseDto MapAssetResponse(Asset asset, AssetLinkType linkedType)
+        {
+            return new AssetResponseDto(
+                asset.Id,
+                asset.FileName,
+                asset.PublicId,
+                asset.Url,
+                asset.Extension,
+                asset.FileSize,
+                asset.Type,
+                asset.CreatedAt,
+                linkedType,
+                asset.Status
+            );
         }
         
     }

@@ -20,6 +20,7 @@ public interface IPlanTemplateService
     Task<PlanTemplateDto> CreateFromPlanAsync(CreatePlanTemplateDto dto);
     Task<PagedResult<PlanTemplateDto>> GetTemplatesAsync(TemplateQueryParams queryParams);
     Task<PlanTemplateDetailDto> GetByIdAsync(int templateId);
+    Task<PlanTemplateDetailDto> PreviewBySourcePlanAsync(int sourcePlanId);
     Task<PlanTemplateDto> UpdateAsync(int templateId, UpdatePlanTemplateDto dto);
     Task<bool> DeleteAsync(int templateId);
 
@@ -61,6 +62,9 @@ public class PlanTemplateService: IPlanTemplateService
                 .ThenInclude(ph => ph.Tasks)
             .ToListAsync();
 
+        var courseIds = courses.Select(c => c.Id).ToList();
+        var courseAssetLookup = await BatchLoadCourseAssetsAsync(plan.UserId, courseIds);
+
         var studentInfo = await _context.Users
             .AsNoTracking()
             .Where(u => u.Id == plan.UserId)
@@ -95,6 +99,7 @@ public class PlanTemplateService: IPlanTemplateService
                     Name = c.Name,
                     Goal = c.Goal,
                     TargetScore = c.TargetScore,
+                    Assets = courseAssetLookup.GetValueOrDefault(c.Id, []),
                     Subject = c.Subject != null ? new TemplateSubject
                     {
                         Name = c.Subject.Name,
@@ -241,16 +246,45 @@ public class PlanTemplateService: IPlanTemplateService
         
         
 
-        var compatiblePayload = EnsurePayloadCompatibility(template.Payload);
-        var payloadCourses = compatiblePayload.Courses ?? [];
-        var cloneCount = await _context.StudyPlans
-            .AsNoTracking()
-            .CountAsync(sp => sp.TemplateId == template.Id);
+        var dto = await BuildTemplateDetailDtoAsync(template);
+        
+        if (template.IsPublic) return dto;
+        
+        return template.CreatedById != _currentUserService.UserId 
+            ? throw new UnauthorizedAccessException("Bạn không có quyền xem template này") 
+            : dto;
+    }
 
-        var tags = compatiblePayload.Tags ?? [];
+    public async Task<PlanTemplateDetailDto> PreviewBySourcePlanAsync(int sourcePlanId)
+    {
+        var userId = _currentUserService.UserId;
+
+        var sourcePlan = await _context.StudyPlans
+            .AsNoTracking()
+            .Where(p => p.Id == sourcePlanId && p.UserId == userId)
+            .Select(p => new
+            {
+                p.Id,
+                p.Name,
+                p.Type,
+            })
+            .FirstOrDefaultAsync()
+            ?? throw new KeyNotFoundException("Không tìm thấy kế hoạch học tập nguồn");
+
+        var existing = await _context.PlanTemplates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(t => t.SourcePlanId == sourcePlanId && t.CreatedById == userId);
+
+        if (existing != null)
+        {
+            return await BuildTemplateDetailDtoAsync(existing);
+        }
+
+        var payload = await BuildPayloadAsync(sourcePlanId);
+        var tags = payload.Tags ?? [];
         var majorTag = ExtractTagValue(tags, "major");
-        var phaseCount = payloadCourses
-            .Sum(c => c.Phases?.Count ?? 0);
+        var payloadCourses = payload.Courses ?? [];
+        var phaseCount = payloadCourses.Sum(c => c.Phases?.Count ?? 0);
         var milestoneCount = payloadCourses
             .Sum(c => c.Phases?.Sum(ph => ph.Tasks?.Count(t => t.Type == TaskType.Milestone) ?? 0) ?? 0);
         var phasePreviewNames = payloadCourses
@@ -261,23 +295,29 @@ public class PlanTemplateService: IPlanTemplateService
             .Take(3)
             .ToList();
 
-        var dto = new PlanTemplateDetailDto()
+        var creatorName = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.FullName)
+            .FirstOrDefaultAsync();
+
+        return new PlanTemplateDetailDto
         {
-            Id = templateId,
-            Name = template.Name,
-            Description = template.Description,
-            IsPublic = template.IsPublic,
-            CreatedAt = template.CreatedAt,
-            CreatedByName = (await _context.Users.FindAsync(template.CreatedById))?.FullName,
-            SourcePlanId = template.SourcePlanId,
+            Id = 0,
+            Name = sourcePlan.Name,
+            Description = null,
+            IsPublic = false,
+            CreatedAt = DateTime.UtcNow,
+            CreatedByName = creatorName,
+            SourcePlanId = sourcePlan.Id,
             CourseCount = payloadCourses.Count,
             RoutineCount = payloadCourses
                 .Sum(c => c.Phases.Sum(ph => ph.Routines.Count) + (c.Routines?.Count ?? 0)),
             PhaseCount = phaseCount,
             MilestoneCount = milestoneCount,
-            CloneCount = cloneCount,
-            DurationDays = compatiblePayload.DurationDays,
-            Type = template.Type,
+            CloneCount = 0,
+            DurationDays = payload.DurationDays,
+            Type = sourcePlan.Type,
             Tags = tags,
             CoursePreviewNames = payloadCourses
                 .Select(c => c.Name)
@@ -289,14 +329,8 @@ public class PlanTemplateService: IPlanTemplateService
             UniversityTag = ExtractTagValue(tags, "university"),
             MajorTag = majorTag,
             ContextTag = majorTag,
-            Courses = BuildDetailCourses(compatiblePayload)
+            Courses = BuildDetailCourses(payload),
         };
-        
-        if (template.IsPublic) return dto;
-        
-        return template.CreatedById != _currentUserService.UserId 
-            ? throw new UnauthorizedAccessException("Bạn không có quyền xem template này") 
-            : dto;
     }
 
     public async Task<PagedResult<PlanTemplateDto>> GetTemplatesAsync(TemplateQueryParams queryParams)
@@ -521,6 +555,9 @@ public class PlanTemplateService: IPlanTemplateService
     {
         var templateCourse = payload.Courses[i];
         var course = plan.Courses[i];
+
+        await SyncCourseAssetLinksAsync(userId, course.Id, templateCourse.Assets);
+
         var phasesToCreate = templateCourse.Phases ?? [];
 
         if (phasesToCreate.Count == 0 && templateCourse.Routines.Count > 0)
@@ -785,6 +822,8 @@ public async Task<ImportSelectedCoursesResultDto> ImportSelectedCoursesAsync(Imp
                 }
             }
 
+            await SyncCourseAssetLinksAsync(userId, targetCourse.Id, templateCourse.Assets);
+
             var phasesToImport = templateCourse.Phases ?? [];
             if (phasesToImport.Count == 0 && templateCourse.Routines.Count > 0)
             {
@@ -1002,6 +1041,7 @@ private static TemplatePayload EnsurePayloadCompatibility(TemplatePayload payloa
 
         course.Phases ??= [];
         course.Routines ??= [];
+        course.Assets ??= [];
 
         if (course.Phases.Count == 0 && course.Routines.Count > 0)
         {
@@ -1090,6 +1130,60 @@ private static string? ExtractTagValue(IEnumerable<string> tags, string key)
     }
 
     return null;
+}
+
+private async Task<PlanTemplateDetailDto> BuildTemplateDetailDtoAsync(PlanTemplate template)
+{
+    var compatiblePayload = EnsurePayloadCompatibility(template.Payload);
+    var payloadCourses = compatiblePayload.Courses ?? [];
+    var cloneCount = await _context.StudyPlans
+        .AsNoTracking()
+        .CountAsync(sp => sp.TemplateId == template.Id);
+
+    var tags = compatiblePayload.Tags ?? [];
+    var majorTag = ExtractTagValue(tags, "major");
+    var phaseCount = payloadCourses
+        .Sum(c => c.Phases?.Count ?? 0);
+    var milestoneCount = payloadCourses
+        .Sum(c => c.Phases?.Sum(ph => ph.Tasks?.Count(t => t.Type == TaskType.Milestone) ?? 0) ?? 0);
+    var phasePreviewNames = payloadCourses
+        .SelectMany(c => c.Phases ?? [])
+        .Select(ph => ph.Title)
+        .Where(v => !string.IsNullOrWhiteSpace(v))
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Take(3)
+        .ToList();
+
+    return new PlanTemplateDetailDto
+    {
+        Id = template.Id,
+        Name = template.Name,
+        Description = template.Description,
+        IsPublic = template.IsPublic,
+        CreatedAt = template.CreatedAt,
+        CreatedByName = (await _context.Users.FindAsync(template.CreatedById))?.FullName,
+        SourcePlanId = template.SourcePlanId,
+        CourseCount = payloadCourses.Count,
+        RoutineCount = payloadCourses
+            .Sum(c => c.Phases.Sum(ph => ph.Routines.Count) + (c.Routines?.Count ?? 0)),
+        PhaseCount = phaseCount,
+        MilestoneCount = milestoneCount,
+        CloneCount = cloneCount,
+        DurationDays = compatiblePayload.DurationDays,
+        Type = template.Type,
+        Tags = tags,
+        CoursePreviewNames = payloadCourses
+            .Select(c => c.Name)
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Take(3)
+            .ToList(),
+        PhasePreviewNames = phasePreviewNames,
+        UniversityTag = ExtractTagValue(tags, "university"),
+        MajorTag = majorTag,
+        ContextTag = majorTag,
+        Courses = BuildDetailCourses(compatiblePayload)
+    };
 }
 
 private static PlanTemplateDto MapToTemplateDto(PlanTemplate template, int cloneCount = 0)
@@ -1217,9 +1311,119 @@ private static List<PlanTemplateDetailCourseDto> BuildDetailCourses(TemplatePayl
             Description = string.IsNullOrWhiteSpace(course.Goal)
                 ? $"Lộ trình học tập môn {course.Name} được tối ưu hóa theo giai đoạn."
                 : course.Goal,
+            Goal = course.Goal,
+            TargetScore = course.TargetScore,
+            Assets = (course.Assets ?? [])
+                .Where(asset => asset.AssetId > 0)
+                .GroupBy(asset => asset.AssetId)
+                .Select(group => group.First())
+                .Select(asset => new PlanTemplateDetailCourseAssetDto
+                {
+                    Id = asset.AssetId,
+                    FileName = asset.FileName,
+                    Url = asset.Url,
+                    Type = asset.Type,
+                    FileSize = asset.FileSize,
+                })
+                .ToList(),
             Phases = mappedPhases,
         };
     }).ToList();
+}
+
+private async Task<Dictionary<int, List<TemplateCourseAsset>>> BatchLoadCourseAssetsAsync(
+    int userId,
+    List<int> courseIds)
+{
+    if (courseIds.Count == 0)
+    {
+        return [];
+    }
+
+    var links = await _context.AssetLinks
+        .AsNoTracking()
+        .Include(link => link.Asset)
+        .Where(link => link.UserId == userId
+                       && link.LinkedType == AssetLinkType.Course
+                       && courseIds.Contains(link.LinkedId)
+                       && link.Asset != null)
+        .ToListAsync();
+
+    return links
+        .GroupBy(link => link.LinkedId)
+        .ToDictionary(
+            group => group.Key,
+            group => group
+                .Where(link => link.Asset != null)
+                .GroupBy(link => link.AssetId)
+                .Select(assetGroup => assetGroup.First().Asset!)
+                .Select(asset => new TemplateCourseAsset
+                {
+                    AssetId = asset.Id,
+                    FileName = asset.FileName,
+                    Url = asset.Url,
+                    Type = asset.Type,
+                    FileSize = asset.FileSize,
+                })
+                .ToList()
+        );
+}
+
+private async Task SyncCourseAssetLinksAsync(
+    int userId,
+    int targetCourseId,
+    List<TemplateCourseAsset>? templateAssets)
+{
+    var payloadAssetIds = (templateAssets ?? [])
+        .Select(asset => asset.AssetId)
+        .Where(assetId => assetId > 0)
+        .Distinct()
+        .ToList();
+
+    if (payloadAssetIds.Count == 0)
+    {
+        return;
+    }
+
+    var existingAssetIds = await _context.Assets
+        .AsNoTracking()
+        .Where(asset => payloadAssetIds.Contains(asset.Id))
+        .Select(asset => asset.Id)
+        .ToListAsync();
+
+    if (existingAssetIds.Count == 0)
+    {
+        return;
+    }
+
+    var linkedAssetIds = await _context.AssetLinks
+        .AsNoTracking()
+        .Where(link => link.UserId == userId
+                       && link.LinkedType == AssetLinkType.Course
+                       && link.LinkedId == targetCourseId
+                       && existingAssetIds.Contains(link.AssetId))
+        .Select(link => link.AssetId)
+        .ToListAsync();
+
+    var linkedAssetSet = linkedAssetIds.ToHashSet();
+    var linksToAdd = existingAssetIds
+        .Where(assetId => !linkedAssetSet.Contains(assetId))
+        .Select(assetId => new AssetLink
+        {
+            AssetId = assetId,
+            LinkedId = targetCourseId,
+            LinkedType = AssetLinkType.Course,
+            UserId = userId,
+        })
+        .ToList();
+
+    if (linksToAdd.Count == 0)
+    {
+        return;
+    }
+
+    _context.AssetLinks.AddRange(linksToAdd);
+    await _context.SaveChangesAsync();
 }
 
 private static string NormalizeTag(string value)

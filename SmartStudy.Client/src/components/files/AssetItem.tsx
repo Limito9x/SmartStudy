@@ -33,6 +33,7 @@ export interface AssetItemData {
   createdAt?: string;
   extension?: string;
   type?: number | string;
+  linkedType?: string;
   sourceName?: string;
   status?: string;
 }
@@ -54,7 +55,12 @@ export default function AssetItem({
 }: AssetItemProps) {
   const fileName = asset.fileName || "Tệp đính kèm";
   const fileUrl = asset.url;
-  const config = getAssetIcon(asset.extension, asset.url, asset.type);
+  const config = getAssetIcon(
+    asset.extension,
+    asset.url,
+    asset.type,
+    asset.linkedType,
+  );
   const statusConfig = getAssetStatusConfig(asset.status);
 
   const handlePreview = () => {
@@ -212,12 +218,16 @@ function getAssetIcon(
   extension?: string,
   url?: string,
   type?: number | string,
+  linkedType?: string,
 ) {
   const normalizedExt = (
     extension ??
     url?.split(".").pop() ??
     ""
   ).toLowerCase();
+
+  const normalizedLinkedType = String(linkedType ?? "").toLowerCase();
+  const isExternalLink = normalizedLinkedType === "externallink";
 
   if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(normalizedExt)) {
     return {
@@ -238,7 +248,10 @@ function getAssetIcon(
   }
 
   if (
+    isExternalLink ||
     ["http", "https"].includes(normalizedExt) ||
+    url?.startsWith("http://") ||
+    url?.startsWith("https://") ||
     String(type).toLowerCase().includes("link")
   ) {
     return {

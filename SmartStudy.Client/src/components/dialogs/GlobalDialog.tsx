@@ -69,7 +69,8 @@ const DIALOG_TITLES: {
     data.logId ? "Cập nhật nhật ký làm việc" : "Tạo nhật ký làm việc mới",
   CONFIRM_DELETE: (data) => `Xác nhận xóa ${data.itemType}`,
   CONFIRM_ACTION: (data) => data.title,
-  PLAN_TEMPLATE_EDIT: () => "Chỉnh sửa template",
+  PLAN_TEMPLATE_EDIT: (data) =>
+    data.mode === "publish" ? "Public template" : "Chỉnh sửa template",
   PLAN_TEMPLATE_SELECT_PLAN: () => "Tạo template từ kế hoạch",
   EVENT_FORM: (data) => (data.eventId ? "Cập nhật sự kiện" : "Tạo sự kiện mới"),
   PHASE_FORM: (data) =>

@@ -60,6 +60,13 @@ public class PlanTemplateController: ControllerBase
         var templates = await _planTemplateService.GetMyTemplatesAsync();
         return Ok(templates);
     }
+
+    [HttpGet("preview", Name = "PreviewTemplateBySourcePlan")]
+    public async Task<ActionResult<PlanTemplateDetailDto>> PreviewTemplateBySourcePlan([FromQuery] int sourcePlanId)
+    {
+        var preview = await _planTemplateService.PreviewBySourcePlanAsync(sourcePlanId);
+        return Ok(preview);
+    }
     
     [HttpPost("clone", Name = "ClonePlanTemplate")]
     public async Task<ActionResult> ClonePlanTemplate([FromBody] CloneTemplateDto cloneDto)

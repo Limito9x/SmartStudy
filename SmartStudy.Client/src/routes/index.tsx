@@ -82,6 +82,10 @@ export default function AppRoutes() {
                   element: <TemplateDetailPage />,
                 },
                 {
+                  path: "templates/preview/:sourcePlanId",
+                  element: <TemplateDetailPage />,
+                },
+                {
                   path: "archive",
                   element: <ArchivePage />,
                 },

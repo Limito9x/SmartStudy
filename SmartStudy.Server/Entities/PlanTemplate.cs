@@ -25,10 +25,20 @@ public class TemplateCourse
     public string? Goal { get; set; }
     public double? TargetScore { get; set; }
     public TemplateSubject? Subject { get; set; }
+    public List<TemplateCourseAsset> Assets { get; set; } = [];
     public List<TemplatePhase> Phases { get; set; } = [];
 
     // Legacy payload compatibility (v1).
     public List<TemplateRoutine> Routines { get; set; } = [];
+}
+
+public class TemplateCourseAsset
+{
+    public int AssetId { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public FileType Type { get; set; } = FileType.Other;
+    public long FileSize { get; set; }
 }
 
 public class TemplatePhase

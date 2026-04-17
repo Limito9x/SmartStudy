@@ -37,6 +37,8 @@ export default function TaskInput({ docs, taskId }: TaskInputProps) {
                 key={String(doc.id)}
                 asset={doc}
                 onPreview={openPreview}
+                linkedType="Task"
+                linkedId={taskId}
               />
             ))}
           </div>

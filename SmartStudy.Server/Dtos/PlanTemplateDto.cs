@@ -106,7 +106,19 @@ public class PlanTemplateDetailCourseDto
     public string Name { get; set; } = string.Empty;
     public string? SubjectCode { get; set; }
     public string? Description { get; set; }
+    public string? Goal { get; set; }
+    public double? TargetScore { get; set; }
+    public List<PlanTemplateDetailCourseAssetDto> Assets { get; set; } = [];
     public List<PlanTemplateDetailPhaseDto> Phases { get; set; } = [];
+}
+
+public class PlanTemplateDetailCourseAssetDto
+{
+    public int Id { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string Url { get; set; } = string.Empty;
+    public FileType Type { get; set; } = FileType.Other;
+    public long FileSize { get; set; }
 }
 
 // Detail view — có payload đầy đủ để preview

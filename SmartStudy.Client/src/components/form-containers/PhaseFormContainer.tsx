@@ -147,77 +147,84 @@ export default function PhaseFormContainer() {
       defaultValues={defaultValues}
       onSubmit={handleSubmit}
     >
-      {(methods) => (
-        <>
-          <FormInput
-            name="title"
-            control={methods.control}
-            label="Tên giai đoạn"
-            placeholder="VD: Ôn thi cuối kỳ, Đồ án nhóm..."
-          />
-          <FormSelect
-            name="type"
-            control={methods.control}
-            label="Loại giai đoạn"
-            placeholder="Chọn loại"
-            options={PHASE_TYPE_OPTIONS}
-          />
-          <FormField
-            control={methods.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Mức độ ưu tiên</FormLabel>
-                <FormControl>
-                  <div className="grid grid-cols-3 gap-2">
-                    {PRIORITY_OPTIONS.map((option) => {
-                      const isActive = Number(field.value) === option.value;
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => field.onChange(option.value)}
-                          className={cn(
-                            "rounded-md border px-3 py-2 text-sm font-medium transition-colors",
-                            isActive
-                              ? option.activeClassName
-                              : "border-border bg-background text-muted-foreground hover:bg-muted",
-                          )}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+      {(methods) => {
+        const { watch } = methods;
+        const selectedType = watch("type");
+
+        return (
+          <>
+            <FormInput
+              name="title"
+              control={methods.control}
+              label="Tên giai đoạn"
+              placeholder="VD: Ôn thi cuối kỳ, Đồ án nhóm..."
+            />
+            {selectedType != "General" && (
+              <FormSelect
+                name="type"
+                control={methods.control}
+                label="Loại giai đoạn"
+                placeholder="Chọn loại"
+                options={PHASE_TYPE_OPTIONS}
+              />
             )}
-          />
-          <FormDatePicker
-            control={methods.control}
-            name="startDateTime"
-            label="Ngày bắt đầu"
-          />
-          <FormDatePicker
-            control={methods.control}
-            name="endDateTime"
-            label="Ngày kết thúc"
-          />
-          <FormInput
-            name="notes"
-            control={methods.control}
-            label="Ghi chú (tùy chọn)"
-            placeholder="Mô tả thêm về giai đoạn này..."
-          />
-          <Button
-            type="submit"
-            disabled={createEvent.isPending || updateEvent.isPending}
-          >
-            {isEditMode ? "Cập nhật" : "Tạo giai đoạn"}
-          </Button>
-        </>
-      )}
+            <FormField
+              control={methods.control}
+              name="priority"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mức độ ưu tiên</FormLabel>
+                  <FormControl>
+                    <div className="grid grid-cols-3 gap-2">
+                      {PRIORITY_OPTIONS.map((option) => {
+                        const isActive = Number(field.value) === option.value;
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => field.onChange(option.value)}
+                            className={cn(
+                              "rounded-md border px-3 py-2 text-sm font-medium transition-colors",
+                              isActive
+                                ? option.activeClassName
+                                : "border-border bg-background text-muted-foreground hover:bg-muted",
+                            )}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormDatePicker
+              control={methods.control}
+              name="startDateTime"
+              label="Ngày bắt đầu"
+            />
+            <FormDatePicker
+              control={methods.control}
+              name="endDateTime"
+              label="Ngày kết thúc"
+            />
+            <FormInput
+              name="notes"
+              control={methods.control}
+              label="Ghi chú (tùy chọn)"
+              placeholder="Mô tả thêm về giai đoạn này..."
+            />
+            <Button
+              type="submit"
+              disabled={createEvent.isPending || updateEvent.isPending}
+            >
+              {isEditMode ? "Cập nhật" : "Tạo giai đoạn"}
+            </Button>
+          </>
+        );
+      }}
     </BaseForm>
   );
 }

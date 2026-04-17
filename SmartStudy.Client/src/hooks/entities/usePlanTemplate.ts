@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions } from "@tanstack/react-query";
 import {
   clonePlanTemplateMutation,
   createPlanTemplateMutation,
@@ -11,10 +12,12 @@ import {
   getPlanTemplatesQueryKey,
   updatePlanTemplateMutation,
 } from "@/services/api/@tanstack/react-query.gen";
+import { client } from "@/services/api/client.gen";
 import type {
   CloneTemplateDto,
   CreatePlanTemplateDto,
   ImportSelectedCoursesDto,
+  PlanTemplateDetailDto,
   UpdatePlanTemplateDto,
 } from "@/services/api";
 import { toast } from "sonner";
@@ -90,6 +93,33 @@ export const useGetPlanTemplateById = (templateId: number) => {
       },
     }),
     enabled: !!templateId,
+  });
+};
+
+const getPlanTemplatePreviewOptions = (sourcePlanId: number) =>
+  queryOptions({
+    queryKey: ["plan-template-preview", sourcePlanId],
+    queryFn: async () => {
+      const { data } = await client.get<
+        { 200: PlanTemplateDetailDto },
+        unknown,
+        true
+      >({
+        url: "/api/templates/preview",
+        query: {
+          sourcePlanId,
+        },
+        throwOnError: true,
+      });
+
+      return data;
+    },
+    enabled: !!sourcePlanId,
+  });
+
+export const useGetPlanTemplatePreviewBySourcePlan = (sourcePlanId: number) => {
+  return useQuery({
+    ...getPlanTemplatePreviewOptions(sourcePlanId),
   });
 };
 

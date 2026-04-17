@@ -71,8 +71,13 @@ export interface DialogDataMap {
     destructive?: boolean;
   };
   PLAN_TEMPLATE_EDIT: {
-    templateId: number;
+    templateId?: number;
     defaultValues: UpdatePlanTemplateDto;
+    mode?: "edit" | "publish";
+    lockPublic?: boolean;
+    nameHint?: string;
+    submitLabel?: string;
+    onSubmit?: (values: UpdatePlanTemplateDto) => Promise<void> | void;
   };
   PLAN_TEMPLATE_SELECT_PLAN: Record<string, never>;
 }

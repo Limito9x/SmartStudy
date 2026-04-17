@@ -39,24 +39,12 @@ export default function TemplateCard({
   const phaseCount = Number(templateData.phaseCount ?? 0);
   const milestoneCount = Number(templateData.milestoneCount ?? 0);
   const cloneCount = Number(templateData.cloneCount ?? 0);
-  const typeLabel =
-    templateData.type === "Personal"
-      ? "Cá nhân"
-      : templateData.type === "Academic"
-        ? "Đại học"
-        : template.isPublic
-          ? "Công khai"
-          : "Riêng tư";
 
   const topCourseChips = (templateData.coursePreviewNames ?? [])
     .filter((item) => item.trim() !== "")
-    .slice(0, 2)
+    .slice(0, 3)
     .map((item) => item);
-  const topPhaseChips = (templateData.phasePreviewNames ?? [])
-    .filter((item) => item.trim() !== "")
-    .slice(0, 2)
-    .map((item) => item);
-  const topChips = [...topCourseChips, ...topPhaseChips].slice(0, 3);
+  const topChips = [...topCourseChips].slice(0, 3);
 
   const generatedDescription = `${courseCount} môn học • ${phaseCount} giai đoạn • ${milestoneCount} cột mốc, phù hợp để bắt đầu nhanh trong ${durationWeeks} tuần.`;
 
@@ -73,13 +61,10 @@ export default function TemplateCard({
         <div className="absolute right-3 top-3">{actionSlot}</div>
       ) : null}
 
-      <CardHeader className="pb-2 pr-10">
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle className="line-clamp-1 text-lg font-bold">
-            {template.name || "Template chưa đặt tên"}
-          </CardTitle>
-          <Badge variant="outline">{typeLabel}</Badge>
-        </div>
+      <CardHeader className={cn("pb-2", actionSlot ? "pr-10" : "")}>
+        <CardTitle className="line-clamp-1 text-lg font-bold">
+          {template.name || "Template chưa đặt tên"}
+        </CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-3">
@@ -89,7 +74,8 @@ export default function TemplateCard({
         </p>
 
         {topChips.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm">
+            <span className="font-medium text-slate-700">Môn học:</span>
             {topChips.map((chip) => (
               <Badge key={chip} variant="secondary" className="max-w-full">
                 <span className="truncate">{chip}</span>
@@ -103,21 +89,14 @@ export default function TemplateCard({
         </p>
       </CardContent>
 
-      <CardFooter className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-0 text-xs">
-        <div className="flex flex-wrap gap-2">
+      <CardFooter className="mt-auto flex flex-wrap items-center gap-2 pt-0 text-xs">
+        <div className="flex flex-wrap gap-1.5">
           <Badge variant="secondary">{cloneCount} lượt dùng</Badge>
-          {templateData.contextTag ? (
-            <Badge variant="secondary">{templateData.contextTag}</Badge>
-          ) : null}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">
             {template.routineCount ?? 0} routine
           </Badge>
+          <Badge variant="secondary">{durationWeeks} tuần</Badge>
         </div>
-
-        <Badge variant="secondary">{durationWeeks} tuần</Badge>
       </CardFooter>
     </Card>
   );

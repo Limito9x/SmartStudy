@@ -10,15 +10,17 @@ import {
 import { useStudyPlan } from "@/hooks/entities/useStudyPlan";
 import {
   getCoursesQueryKey,
+  getProfileOptions,
   getStudyPlansQueryKey,
   updateCourseFinalScoreMutation,
 } from "@/services/api/@tanstack/react-query.gen";
 import type { ResponseStudyPlanDto } from "@/services/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Archive, BarChart3, GraduationCap, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useDialogStore } from "@/stores/useDialogStore";
 import ArchiveYearGroup from "../../../components/features/plan/ArchiveYearGroup";
 
 type ArchiveTypeFilter = "all" | "Academic" | "Personal";
@@ -55,12 +57,16 @@ const getSortKey = (yearLabel: string) => {
 export default function ArchivePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { openDialog } = useDialogStore();
   const {
     getAllStudyPlans,
     updateStudyPlanStatus,
     getAcademicContext,
     getSummaryPlanProgress,
   } = useStudyPlan();
+  const profileQuery = useQuery({
+    ...getProfileOptions(),
+  });
   const createPlanTemplate = useCreatePlanTemplate();
   const updatePlanTemplate = useUpdatePlanTemplate();
 
@@ -81,6 +87,9 @@ export default function ArchivePage() {
   const { data: allPlans, isLoading, error } = getAllStudyPlans();
   const summaryProgress = getSummaryPlanProgress.data;
   const academicContext = getAcademicContext.data;
+  const profile = profileQuery.data as
+    | { studentInfo?: { major?: string | null } }
+    | undefined;
 
   const archivePlans = useMemo(() => {
     return (allPlans || []).filter(
@@ -230,6 +239,7 @@ export default function ArchivePage() {
   const upsertTemplateFromPlan = async (
     plan: ResponseStudyPlanDto,
     publish: boolean,
+    overrideName?: string,
   ) => {
     const sourcePlanId = Number(plan.id);
     if (!sourcePlanId) {
@@ -239,7 +249,7 @@ export default function ArchivePage() {
     const createdOrUpdated = await createPlanTemplate.mutateAsync({
       body: {
         sourcePlanId,
-        name: plan.name || null,
+        name: overrideName?.trim() || plan.name || null,
         description: null,
         isPublic: publish,
       },
@@ -255,6 +265,7 @@ export default function ArchivePage() {
         path: { templateId },
         body: {
           name:
+            overrideName?.trim() ||
             createdOrUpdated.name ||
             plan.name ||
             `Template từ plan ${sourcePlanId}`,
@@ -275,8 +286,7 @@ export default function ArchivePage() {
 
     try {
       setPreviewingPlanId(planId);
-      const templateId = await upsertTemplateFromPlan(plan, false);
-      navigate(`/app/templates/${templateId}?mode=preview`);
+      navigate(`/app/templates/preview/${planId}?mode=preview`);
     } catch {
       toast.error("Không thể mở preview template cho kế hoạch này.");
     } finally {
@@ -290,15 +300,49 @@ export default function ArchivePage() {
       return;
     }
 
-    try {
-      setPublishingPlanId(planId);
-      await upsertTemplateFromPlan(plan, true);
-      toast.success("Đã public template từ kế hoạch hoàn tất.");
-    } catch {
-      toast.error("Không thể public template cho kế hoạch này.");
-    } finally {
-      setPublishingPlanId(null);
-    }
+    const isAcademicPlan = String(plan.type ?? "") === "Academic";
+
+    const term = (academicContext?.terms || []).find(
+      (item) => String(item.id ?? "") === String(plan.termId ?? ""),
+    );
+    const year = (academicContext?.years || []).find(
+      (item) => String(item.id ?? "") === String(plan.yearId ?? ""),
+    );
+
+    const major = profile?.studentInfo?.major?.trim() || "Ngành";
+    const termName = term?.name?.trim() || "HK";
+    const yearName = year?.name?.trim() || getYearLabel(plan);
+    const academicSuggestedName = `${major} ${termName} ${yearName}`
+      .replace(/\s+/g, " ")
+      .trim();
+    const personalDefaultName =
+      plan.name?.trim() || `Template từ plan ${planId}`;
+    const defaultPublishName = isAcademicPlan
+      ? academicSuggestedName
+      : personalDefaultName;
+
+    openDialog("PLAN_TEMPLATE_EDIT", {
+      mode: "publish",
+      lockPublic: true,
+      submitLabel: "Public template",
+      nameHint: isAcademicPlan ? academicSuggestedName : undefined,
+      defaultValues: {
+        name: defaultPublishName,
+        description: null,
+        isPublic: true,
+      },
+      onSubmit: async (values) => {
+        try {
+          setPublishingPlanId(planId);
+          await upsertTemplateFromPlan(plan, true, values.name);
+          toast.success("Đã public template từ kế hoạch hoàn tất.");
+        } catch {
+          toast.error("Không thể public template cho kế hoạch này.");
+        } finally {
+          setPublishingPlanId(null);
+        }
+      },
+    });
   };
 
   return (

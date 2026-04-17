@@ -93,6 +93,8 @@ export default function TaskOutput({ logs, taskId }: TaskOutputProps) {
                             key={String(asset.id)}
                             asset={asset}
                             onPreview={openPreview}
+                            linkedType="Log"
+                            linkedId={Number(log.id)}
                           />
                         ))}
                       </div>

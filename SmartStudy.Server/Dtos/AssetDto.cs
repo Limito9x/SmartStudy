@@ -13,6 +13,15 @@ namespace SmartStudy.Server.Dtos
         string? FormFieldKey = null
     );
 
+    public record UploadAssetLinkDto
+    (
+        string Url,
+        int LinkedId,
+        AssetLinkType LinkedType,
+        string? DisplayName = null,
+        AssetLinkCategory Category = AssetLinkCategory.Reference
+    );
+
     public record AssetResponseDto
     (
         int Id,
@@ -35,6 +44,7 @@ namespace SmartStudy.Server.Dtos
     public FileType Type { get; set; }
     public DateTime CreatedAt { get; set; }
     public AssetLinkType LinkedType { get; set; }
+    public int LinkedId { get; set; }
     public string SourceName { get; set; }
     public AssetStatus Status { get; set; }
     }

@@ -49,10 +49,21 @@ namespace SmartStudy.Server.Controllers
             return Ok(uploadedAssets);
         }
 
-        [HttpDelete("{assetId}",Name ="DeleteAsset")]
-        public async Task<ActionResult> DeleteAsset(string assetId)
+        [HttpPost("link", Name = "UploadAssetLink")]
+        public async Task<ActionResult<AssetResponseDto>> UploadAssetLink(
+            [FromBody] UploadAssetLinkDto dto)
         {
-            await _assetService.DeleteAssetAsync(assetId);
+            var uploadedAsset = await _assetService.UploadAssetLinkAsync(dto);
+            return Ok(uploadedAsset);
+        }
+
+        [HttpDelete("{assetId}",Name ="DeleteAsset")]
+        public async Task<ActionResult> DeleteAsset(
+            string assetId,
+            [FromQuery] int linkedId,
+            [FromQuery] AssetLinkType linkedType)
+        {
+            await _assetService.DeleteAssetAsync(assetId, linkedId, linkedType);
             return NoContent();
         }
     }

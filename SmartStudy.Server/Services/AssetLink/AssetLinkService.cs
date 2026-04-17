@@ -8,6 +8,7 @@ namespace SmartStudy.Server.Services
     {
         Task AddAssetLinkAsync(int assetId ,int linkedId, AssetLinkType linkType);
         Task RemoveAssetLinkByAsync(int linkedId, AssetLinkType linkType);
+        Task RemoveAssetLinkAsync(int assetId, int linkedId, AssetLinkType linkType);
     }
     public class AssetLinkService: IAssetLinkService
     {
@@ -38,6 +39,25 @@ namespace SmartStudy.Server.Services
             var assetLinks = _context.AssetLinks
                 .Where(al => al.LinkedId == linkedId && al.LinkedType == linkType).Include(al=>al.Asset);
             _context.AssetLinks.RemoveRange(assetLinks);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task RemoveAssetLinkAsync(int assetId, int linkedId, AssetLinkType linkType)
+        {
+            var userId = _currentUserService.UserId;
+            var links = await _context.AssetLinks
+                .Where(al => al.AssetId == assetId
+                             && al.LinkedId == linkedId
+                             && al.LinkedType == linkType
+                             && al.UserId == userId)
+                .ToListAsync();
+
+            if (links.Count == 0)
+            {
+                return;
+            }
+
+            _context.AssetLinks.RemoveRange(links);
             await _context.SaveChangesAsync();
         }
     }

@@ -24,7 +24,7 @@ export type AcademicYear = {
 
 export type AssetLinkCategory = number;
 
-export type AssetLinkType = 'StudyPlan' | 'Course' | 'Task' | 'Log';
+export type AssetLinkType = 'StudyPlan' | 'Course' | 'Task' | 'Log' | 'ExternalLink';
 
 export type AssetResponseDto = {
     id: number | string;
@@ -94,6 +94,7 @@ export type CourseAssetResponseDto = {
     type?: FileType;
     createdAt?: string;
     linkedType?: AssetLinkType;
+    linkedId?: number | string;
     sourceName?: string;
     status?: AssetStatus;
 };
@@ -148,7 +149,6 @@ export type CreatePlanTemplateDto = {
     name: null | string;
     description: null | string;
     isPublic?: boolean;
-    scope?: null | TemplateScope;
 };
 
 export type DashboardSummaryDto = {
@@ -271,8 +271,25 @@ export type PagedResultOfUserAdminDto = {
 
 export type PhaseType = 'General' | 'ExamPrep' | 'Project' | 'Assignment' | 'Custom';
 
+export type PlanTemplateDetailCourseAssetDto = {
+    id?: number | string;
+    fileName?: string;
+    url?: string;
+    type?: FileType;
+    fileSize?: number | string;
+};
+
+export type PlanTemplateDetailCourseDto = {
+    ref?: string;
+    name?: string;
+    subjectCode?: null | string;
+    description?: null | string;
+    assets?: Array<PlanTemplateDetailCourseAssetDto>;
+    phases?: Array<PlanTemplateDetailPhaseDto>;
+};
+
 export type PlanTemplateDetailDto = {
-    payload?: TemplatePayload;
+    courses?: Array<PlanTemplateDetailCourseDto>;
     id?: number | string;
     name?: string;
     description?: null | string;
@@ -286,11 +303,32 @@ export type PlanTemplateDetailDto = {
     milestoneCount?: number | string;
     cloneCount?: number | string;
     durationDays?: null | number | string;
-    scope?: TemplateScope;
+    type?: StudyPlanType;
     tags?: Array<string>;
     coursePreviewNames?: Array<string>;
     phasePreviewNames?: Array<string>;
+    universityTag?: null | string;
+    majorTag?: null | string;
     contextTag?: null | string;
+};
+
+export type PlanTemplateDetailItemDto = {
+    itemType?: TemplateDetailItemType;
+    name?: string;
+    description?: null | string;
+    startDayOffset?: number | string;
+    durationDays?: number | string;
+    totalSessions?: null | number | string;
+};
+
+export type PlanTemplateDetailPhaseDto = {
+    ref?: string;
+    title?: string;
+    type?: PhaseType;
+    startDayOffset?: number | string;
+    endDayOffset?: null | number | string;
+    durationDays?: number | string;
+    items?: Array<PlanTemplateDetailItemDto>;
 };
 
 export type PlanTemplateDto = {
@@ -307,10 +345,12 @@ export type PlanTemplateDto = {
     milestoneCount?: number | string;
     cloneCount?: number | string;
     durationDays?: null | number | string;
-    scope?: TemplateScope;
+    type?: StudyPlanType;
     tags?: Array<string>;
     coursePreviewNames?: Array<string>;
     phasePreviewNames?: Array<string>;
+    universityTag?: null | string;
+    majorTag?: null | string;
     contextTag?: null | string;
 };
 
@@ -578,64 +618,7 @@ export type TaskStatusDto = {
 
 export type TaskType = 'ClassSession' | 'SelfStudy' | 'AssignmentWork' | 'Meeting' | 'Milestone';
 
-export type TemplateCourse = {
-    ref?: string;
-    name?: string;
-    goal?: null | string;
-    targetScore?: null | number | string;
-    subject?: null | TemplateSubject;
-    phases?: Array<TemplatePhase>;
-    routines?: Array<TemplateRoutine>;
-};
-
-export type TemplatePayload = {
-    payloadVersion?: number | string;
-    durationDays?: number | string;
-    tags?: Array<string>;
-    courses?: Array<TemplateCourse>;
-};
-
-export type TemplatePhase = {
-    ref?: string;
-    title?: string;
-    type?: PhaseType;
-    priority?: PriorityLevel;
-    startDayOffset?: number | string;
-    endDayOffset?: null | number | string;
-    notes?: null | string;
-    routines?: Array<TemplateRoutine>;
-    tasks?: Array<TemplateTask>;
-};
-
-export type TemplateRoutine = {
-    name?: string;
-    type?: TaskType;
-    startDayOffset?: number | string;
-    endDayOffset?: null | number | string;
-    schedules?: Array<TemplateSchedule>;
-};
-
-export type TemplateSchedule = {
-    dayOfWeek?: DayOfWeek;
-    startTime?: null | string;
-    duration?: null | number | string;
-};
-
-export type TemplateScope = number;
-
-export type TemplateSubject = {
-    name?: string;
-    code?: null | string;
-    credits?: null | number | string;
-};
-
-export type TemplateTask = {
-    name?: string;
-    type?: TaskType;
-    description?: null | string;
-    startDayOffset?: number | string;
-    endDayOffset?: null | number | string;
-};
+export type TemplateDetailItemType = number;
 
 export type TodayTaskDto = {
     id?: number | string;
@@ -678,7 +661,6 @@ export type UpdatePlanTemplateDto = {
     name: string;
     description: null | string;
     isPublic: boolean;
-    scope?: null | TemplateScope;
 };
 
 export type UpdateScheduleDto = {
@@ -690,6 +672,14 @@ export type UpdateScheduleDto = {
 
 export type UpdateStudyPlanStatusDto = {
     status: StudyPlanStatus;
+};
+
+export type UploadAssetLinkDto = {
+    url: string;
+    linkedId: number | string;
+    linkedType: AssetLinkType;
+    displayName?: null | string;
+    category?: AssetLinkCategory;
 };
 
 export type UserAdminDto = {
@@ -892,12 +882,31 @@ export type UploadAssetsResponses = {
 
 export type UploadAssetsResponse = UploadAssetsResponses[keyof UploadAssetsResponses];
 
+export type UploadAssetLinkData = {
+    body: UploadAssetLinkDto;
+    path?: never;
+    query?: never;
+    url: '/api/assets/link';
+};
+
+export type UploadAssetLinkResponses = {
+    /**
+     * OK
+     */
+    200: AssetResponseDto;
+};
+
+export type UploadAssetLinkResponse = UploadAssetLinkResponses[keyof UploadAssetLinkResponses];
+
 export type DeleteAssetData = {
     body?: never;
     path: {
         assetId: string;
     };
-    query?: never;
+    query?: {
+        linkedId?: number | string;
+        linkedType?: AssetLinkType;
+    };
     url: '/api/assets/{assetId}';
 };
 
@@ -1406,7 +1415,7 @@ export type GetPlanTemplatesData = {
     body?: never;
     path?: never;
     query?: {
-        Scope?: TemplateScope;
+        Type?: StudyPlanType;
         PageIndex?: number | string;
         PageSize?: number | string;
         SearchTerm?: string;
