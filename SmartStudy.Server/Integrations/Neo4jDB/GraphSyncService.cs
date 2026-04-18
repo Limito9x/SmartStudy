@@ -546,17 +546,24 @@ MERGE (u)-[:OWNS_ASSET]->(a)
                 return;
             }
 
+            // Ensure both ends exist in Neo4j before creating the LINKED_TO relation.
+            await SyncAssetAsync(assetLink.AssetId);
+            await EnsureAssetLinkTargetSyncedAsync(assetLink.LinkedType, assetLink.LinkedId);
+
             var targetLabel = GetAssetLinkTargetLabel(assetLink.LinkedType);
             var query = $@"
-MATCH (a:Asset {{pg_id: $asset_pg_id}})
-MATCH (target:{targetLabel} {{pg_id: $linked_pg_id}})
-OPTIONAL MATCH ()-[old:LINKED_TO {{asset_link_pg_id: $asset_link_pg_id}}]-()
+MATCH (a:Asset)
+WHERE toString(a.pg_id) = $asset_pg_id
+MATCH (target:{targetLabel})
+WHERE toString(target.pg_id) = $linked_pg_id
+OPTIONAL MATCH ()-[old:LINKED_TO]-()
+WHERE toString(old.asset_link_pg_id) = $asset_link_pg_id
 DELETE old
-MERGE (a)-[rel:LINKED_TO]->(target)
+MERGE (a)-[rel:LINKED_TO {{asset_link_pg_id: $asset_link_pg_id}}]->(target)
 SET rel.asset_link_pg_id = $asset_link_pg_id,
     rel.linked_type = $linked_type,
+    rel.created_at = coalesce(rel.created_at, datetime()),
     rel.updated_at = datetime()
-ON CREATE SET rel.created_at = datetime()
 ";
 
             await ExecuteAsync(query, new Dictionary<string, object?>
@@ -616,7 +623,8 @@ ON CREATE SET rel.created_at = datetime()
         public async Task DeleteAssetLinkAsync(int assetLinkId)
         {
             var query = @"
-MATCH ()-[rel:LINKED_TO {asset_link_pg_id: $asset_link_pg_id}]-()
+MATCH ()-[rel:LINKED_TO]-()
+WHERE toString(rel.asset_link_pg_id) = $asset_link_pg_id
 DELETE rel
 ";
 
@@ -624,6 +632,19 @@ DELETE rel
             {
                 ["asset_link_pg_id"] = assetLinkId.ToString()
             });
+        }
+
+        private Task EnsureAssetLinkTargetSyncedAsync(AssetLinkType linkedType, int linkedId)
+        {
+            return linkedType switch
+            {
+                AssetLinkType.StudyPlan => SyncStudyPlanAsync(linkedId),
+                AssetLinkType.Course => SyncCourseAsync(linkedId),
+                AssetLinkType.Task => SyncTaskAsync(linkedId),
+                AssetLinkType.Log => SyncLogAsync(linkedId),
+                AssetLinkType.ExternalLink => Task.CompletedTask,
+                _ => Task.CompletedTask
+            };
         }
 
         private async Task DeleteNodeAsync(string nodeLabel, int pgId)
@@ -656,6 +677,7 @@ DETACH DELETE n
                 AssetLinkType.Course => "Course",
                 AssetLinkType.Task => "Task",
                 AssetLinkType.Log => "Log",
+                AssetLinkType.ExternalLink => "ExternalLink",
                 _ => throw new ArgumentOutOfRangeException(nameof(linkedType), linkedType, "Unsupported AssetLinkType")
             };
         }

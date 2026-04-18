@@ -42,31 +42,5 @@ QUY TẮC PHẢI TUÂN THỦ:
 4. KHÔNG BỊA ĐẶT THÔNG TIN CÁ NHÂN: Chỉ mở rộng về kiến thức kỹ thuật/học thuật. Không được tự ý bịa ra các thông tin về lịch thi, điểm số hay quy định riêng của nhà trường nếu không có trong dữ liệu.
 ";
 }
-
-        public static string GetToolPolicyPrompt(bool hasCourseContext)
-        {
-            var ragRule = hasCourseContext
-                ? "- Cau hoi kien thuc mon hoc: phai uu tien CourseRagPlugin truoc khi tra loi."
-                : "- Khong co ngu canh mon hoc: khong duoc gia dinh co tai lieu noi bo.";
-
-            return $@"
-TOOL POLICY:
-- Cau hoi lich hoc, task, deadline, tao/cap nhat cong viec: uu tien goi StudyPlugin hoac TaskExecutionPlugin.
-- Cau hoi khoang thoi gian (hom nay den cuoi tuan, 7 ngay toi, thang nay): uu tien tool xem danh sach upcoming tasks.
-{ragRule}
-- Tool co tac dong ghi du lieu (tao/sua/trang thai task): chi thuc hien khi user da xac nhan ro rang.
-- Khi khong can tool thi tra loi truc tiep de tiet kiem token.
-";
-        }
-
-        public static string GetOutputContractPrompt()
-        {
-            return @"
-DINH DANG TRA LOI:
-1) Ket luan ngan (1-2 cau).
-2) Viec can lam ngay (toi da 3 y, cu the va kha thi).
-3) Neu do chinh xac phu thuoc du lieu, noi ro muc do chac chan.
-";
-        }
     }
 }

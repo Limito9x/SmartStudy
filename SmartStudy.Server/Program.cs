@@ -108,7 +108,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
-var modelId = "gemini-2.5-flash";
+var modelId = "gemini-2.5-flash-lite";
 
 builder.Services.AddScoped<Kernel>(sp =>
 {
@@ -116,7 +116,7 @@ builder.Services.AddScoped<Kernel>(sp =>
 
     // Thêm Gemini
     builder.AddGoogleAIGeminiChatCompletion(
-        modelId: "gemini-2.5-flash-lite",
+        modelId: modelId,
         apiKey: geminiApiKey);
     
     var kernel = builder.Build();

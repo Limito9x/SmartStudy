@@ -1,4 +1,42 @@
 services:
+  frontend:
+    environment:
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL}
+    volumes:
+      - ./SmartStudy.Client:/app
+      - /app/node_modules
+    build:
+      context: ./SmartStudy.Client
+      dockerfile: Dockerfile
+    container_name: smartstudy_frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - smartstudy-network
+    restart: unless-stopped
+  backend:
+    build:
+      context: ./SmartStudy.Server
+      dockerfile: Dockerfile
+    container_name: smartstudy_backend
+    env_file:
+      - .env.backend
+    ports:
+      - "5037:5037"
+    networks:
+      - smartstudy-network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./SmartStudy.Server:/app
+    working_dir: /app
+    depends_on:
+      - smartstudy_db
   smartstudy_db:
     image: pgvector/pgvector:pg17
     container_name: smartstudy_postgres
@@ -36,8 +74,8 @@ services:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - DATABASE_URL=${DATABASE_URL}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
-      # - DOTNET_INTERNAL_API_BASE_URL=${DOTNET_INTERNAL_API_BASE_URL}
-      # - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY}
+      - DOTNET_INTERNAL_API_BASE_URL=${DOTNET_INTERNAL_API_BASE_URL}
+      - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

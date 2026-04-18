@@ -24,6 +24,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
     logger.warning("CẢNH BÁO: Chưa cấu hình GEMINI_API_KEY!")
 
+DOTNET_INTERNAL_API_BASE_URL = os.getenv("DOTNET_INTERNAL_API_BASE_URL", "http://host.docker.internal:5037")
+INTERNAL_SERVICE_KEY = os.getenv("INTERNAL_SERVICE_KEY", "SmartStudy_Secret_123")
+
 primary_llm = ChatOpenAI(
     api_key=OPEN_ROUTER_API_KEY,
     model="z-ai/glm-4.5-air:free",

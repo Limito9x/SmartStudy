@@ -1,6 +1,6 @@
 from typing import Optional
 import httpx
-from core.config import logger
+from core.config import logger, DOTNET_INTERNAL_API_BASE_URL, INTERNAL_SERVICE_KEY
     
 
 
@@ -13,8 +13,9 @@ async def get_allowed_asset_ids(user_id:int,course_id:Optional[int]):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"http://host.docker.internal:5037/api/internal/allowed-assets",
+                f"{DOTNET_INTERNAL_API_BASE_URL}/api/internal/allowed-assets",
                 params={"courseId": course_id, "userId": user_id},
+                headers={"X-Internal-Service-Key": INTERNAL_SERVICE_KEY},
                 timeout=5.0
             )
             if response.status_code == 200:

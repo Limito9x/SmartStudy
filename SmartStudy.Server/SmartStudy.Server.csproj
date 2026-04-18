@@ -4,12 +4,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<BaseIntermediateOutputPath Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">obj\docker\</BaseIntermediateOutputPath>
+  	<BaseOutputPath Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">bin\docker\</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
-	  <Content Include="Data/Seeder/seed-data.json">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
 	  <PackageReference Include="Bogus" Version="35.6.5" />
 	  <PackageReference Include="CloudinaryDotNet" Version="1.28.0" />
 	  <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />

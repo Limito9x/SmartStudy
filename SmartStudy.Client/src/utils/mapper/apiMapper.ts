@@ -17,6 +17,21 @@ import type { LogFormValues } from "@/components/forms/log/schema";
 import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
 import type { SubjectFormValues } from "@/components/forms/subject/schema";
 
+const toLocalDateTimeString = (date?: Date | null): string | null => {
+  if (!date || Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+  const seconds = `${date.getSeconds()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+};
+
 export const studyPlanApiMapper = {
   toRequeststudyPlanDto: (
     studyPlanData: StudyPlanFormValues,
@@ -103,8 +118,8 @@ export const taskApiMapper = {
     studyPlanId: studyPlanId || null,
     name: taskData.name,
     description: taskData.description || null,
-    startDateTime: taskData.startDateTime?.toISOString() || null,
-    endDateTime: taskData.endDateTime?.toISOString() || null,
+    startDateTime: toLocalDateTimeString(taskData.startDateTime),
+    endDateTime: toLocalDateTimeString(taskData.endDateTime),
     type: taskData.type,
     phaseId: taskData.eventId || null,
   }),

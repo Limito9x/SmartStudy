@@ -1,0 +1,24 @@
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
+
+# Chặn kết quả build local
+dist/
+build/
+
+# Chặn các file config IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Chặn các file môi trường nhạy cảm
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+
+# Chặn Docker files
+Dockerfile
+.dockerignore

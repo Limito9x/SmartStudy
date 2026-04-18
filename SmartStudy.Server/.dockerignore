@@ -1,0 +1,23 @@
+# Chặn các thư mục build (Nguyên nhân chính gây lock file)
+**/bin/
+**/obj/
+**/out/
+
+# Chặn cấu hình IDE và User settings
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Chặn các file rác của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Chặn chính Docker files (không cần thiết trong image)
+Dockerfile
+docker-compose*
+.dockerignore
+
+# Chặn file cấu hình local (để dùng biến môi trường từ Docker)
+appsettings.Development.json

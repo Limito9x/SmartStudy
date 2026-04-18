@@ -8,6 +8,7 @@ using SmartStudy.Server.Dtos;
 using SmartStudy.Server.Entities;
 using SmartStudy.Server.Entities.Enums;
 using SmartStudy.Server.Helpers;
+using SmartStudy.Server.Jobs;
 using TaskStatus = SmartStudy.Server.Entities.Enums.TaskStatus;
 
 namespace SmartStudy.Server.Services
@@ -206,7 +207,27 @@ namespace SmartStudy.Server.Services
             _context.Remove(existingCourse);
             
             await _context.SaveChangesAsync();
+
+            EnqueueGraphDeletes(GraphSyncEntityType.Log, logIds);
+            EnqueueGraphDeletes(GraphSyncEntityType.Task, taskIds);
+            EnqueueGraphDeletes(GraphSyncEntityType.Routine, routineIds);
+            EnqueueGraphDeletes(GraphSyncEntityType.Phase, phaseIds);
+
             return true;
+        }
+
+        private static void EnqueueGraphDeletes(GraphSyncEntityType entityType, IEnumerable<int> entityIds)
+        {
+            foreach (var entityId in entityIds.Distinct())
+            {
+                if (entityId <= 0)
+                {
+                    continue;
+                }
+
+                BackgroundJob.Enqueue<IGraphSyncBackgroundJob>(job =>
+                    job.ExecuteSyncAsync(entityType, entityId, GraphSyncChangeType.Deleted));
+            }
         }
 
         public async Task UpdateCourseStatusAsync(int courseId, UpdateCourseStatusDto dto)

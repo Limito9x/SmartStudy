@@ -1,7 +1,10 @@
 import { client } from "./api/client.gen";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5037";
+
 // Bỏ trailing slash để tránh double-slash trong URL (e.g. //api/semesters)
-client.setConfig({ baseURL: "http://localhost:5037" });
+client.setConfig({ baseURL: API_BASE_URL.replace(/\/+$/, "") });
 
 // Tự động gắn Bearer token vào mỗi request
 client.instance.interceptors.request.use((config) => {

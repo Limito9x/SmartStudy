@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.Json;
 using SmartStudy.Server.Helpers;
 using System.Runtime.CompilerServices;
+using SmartStudy.Server.Entities;
+using CloudinaryDotNet.Actions;
 
 namespace SmartStudy.Server.Services
 {
@@ -160,6 +162,20 @@ namespace SmartStudy.Server.Services
             var systemMsg = courseId.HasValue
                     ? AiPersonaConfig.GetCourseTutorPrompt(session.Course?.Name ?? "khóa học", courseId.Value)
                     : AiPersonaConfig.GetGlobalButlerPrompt();
+
+            var info = await _context.StudentInfos
+                .Where(i => i.UserId == userId)
+                .FirstOrDefaultAsync();
+
+            var studentInfoStr = info != null
+                ? $@"Thông tin sinh viên: 
+                Trường: {info.University},
+                Ngành: {info.Major},
+                Khóa {info.Cohort}.
+                Năm nhập học: {info.AdmissionYear}."
+                : "Không có thông tin sinh viên.";
+
+            systemMsg += "\n\n" + studentInfoStr;
 
             // 3. Gói dữ liệu sang Python
             var requestBody = new ChatRequestDto

@@ -61,7 +61,18 @@ namespace SmartStudy.Server.Services
 
                 if (term == null || year == null)
                     throw new ArgumentException("Term hoặc Year không hợp lệ cho KHHT học thuật");
-                
+
+                var existingPlan = await _context.StudyPlans
+                    .FirstOrDefaultAsync(sp => sp.UserId == userId 
+                                               && sp.Type == StudyPlanType.Academic
+                                               && sp.TermId == studyPlanDto.TermId
+                                               && sp.YearId == studyPlanDto.YearId);
+
+                if (existingPlan != null)
+                {
+                    throw new InvalidOperationException($"Đã tồn tại KHHT học thuật cho Học kỳ {term.TermNumber} Năm {year.StartYear}-{year.EndYear}");
+                }
+
                 var name = $"HK {term.TermNumber} {year.StartYear} - {year.EndYear}";
                 studyPlan.Name = name;
             }

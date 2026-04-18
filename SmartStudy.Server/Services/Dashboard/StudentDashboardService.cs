@@ -114,12 +114,14 @@ public class StudentDashboardService: IStudentDashboardService
           / weekTasks.Count * 100
         : 0;
     
-    var upcomingEvents = await _context.Phases
-        .Include(e => e.Course)
-        .Where(e => e.Course.StudyPlan.UserId == userId
-                 && e.EndDateTime.HasValue
-                 && e.EndDateTime.Value.Date > today
-                 && e.EndDateTime.Value.Date <= today.AddDays(30))
+    var upcomingEvents = await _context.Tasks
+        .Include(t => t.Phase).ThenInclude(p => p.Course)
+        .Where(t => t.UserId == userId
+                && t.Type == TaskType.Milestone
+                && t.Phase.Course.Status == CourseStatus.Enrolled
+                 && t.StartDateTime.HasValue
+                 && t.StartDateTime.Value.Date > today
+                 && t.StartDateTime.Value.Date <= today.AddDays(14))
         .ToListAsync();
 
     return new DashboardSummaryDto
@@ -154,6 +156,8 @@ public class StudentDashboardService: IStudentDashboardService
         }).ToList(),
         UpcomingEvents = upcomingEvents.Select(e => {
             var dto = e.Adapt<UpcomingEventDto>();
+            dto.Title = e.Name;
+            dto.DueDate = e.StartDateTime;
             dto.DaysUntil = e.EndDateTime.HasValue
                 ? (int)(e.EndDateTime.Value.Date - today).TotalDays
                 : 0;

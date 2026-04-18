@@ -1,8 +1,10 @@
 import json
 from datetime import date, datetime, time, timedelta
+import httpx
 from langchain.tools import tool
 
 from core.database_services import get_vector_store
+from core.config import DOTNET_INTERNAL_API_BASE_URL, INTERNAL_SERVICE_KEY, logger
 from services.graph_service import run_cypher
 
 
@@ -54,18 +56,48 @@ def _format_tool_json(tool_name: str, summary: str, records: list[dict]) -> str:
     )
 
 
+async def _get_course_progress_from_internal_api(user_id: int, course_id: int, include_inactive: bool = False) -> dict | None:
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{DOTNET_INTERNAL_API_BASE_URL}/api/internal/progress/course",
+                params={
+                    "userId": user_id,
+                    "courseId": course_id,
+                    "includeInactive": str(include_inactive).lower(),
+                },
+                headers={"X-Internal-Service-Key": INTERNAL_SERVICE_KEY},
+                timeout=5.0,
+            )
+
+            if response.status_code == 200:
+                return response.json()
+
+            if response.status_code == 404:
+                return None
+
+            logger.warning("Internal progress API returned non-success status: %s", response.status_code)
+            return None
+    except Exception as exc:
+        logger.error("Failed to call internal progress API: %s", exc)
+        return None
+
+
 def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None) -> list:
     asset_ids = asset_ids or []
 
     @tool
-    async def get_upcoming_tasks(user_id: int = user_id) -> str:
+    async def get_upcoming_tasks(user_id: int = user_id, course_id: int | None = course_id) -> str:
         """
         Lấy danh sách task sắp tới của user theo đồ thị học tập.
         Dùng khi user hỏi việc cần làm, deadline, hoặc lịch học sắp tới.
         """
         query = """
-        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
-        WHERE coalesce(t.status, '') <> 'Completed'
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan)-[:HAS_COURSE]->(c:Course)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
+        WHERE sp.status = 'Active'
+          AND c.status = 'Enrolled'
+          AND ($course_pg_id IS NULL OR c.pg_id = $course_pg_id)
+          AND coalesce(t.status, '') <> 'Completed'
         RETURN t.pg_id AS task_id,
                t.name AS task_name,
                t.status AS status,
@@ -78,7 +110,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         LIMIT 20
         """
 
-        records = run_cypher(query, {"user_pg_id": str(user_id)})
+        records = run_cypher(query, {"user_pg_id": str(user_id), "course_pg_id": str(course_id) if course_id is not None else None})
         summary = (
             f"Tìm thấy {len(records)} task chưa hoàn thành gần nhất."
             if records
@@ -99,8 +131,31 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
                 [],
             )
 
+        internal_progress = await _get_course_progress_from_internal_api(user_id, course_id, include_inactive=False)
+        if internal_progress:
+            total_tasks = int(internal_progress.get("totalExpectations") or 0)
+            completed_tasks = int(internal_progress.get("totalCompletions") or 0)
+            progress_percent = float(internal_progress.get("progress") or 0.0)
+            total_logged_duration = float(internal_progress.get("totalLoggedDuration") or 0.0)
+
+            record = {
+                "course_id": internal_progress.get("courseId"),
+                "course_name": internal_progress.get("courseName"),
+                "total_tasks": total_tasks,
+                "completed_tasks": completed_tasks,
+                "progress_percent": progress_percent,
+                "total_logged_duration": total_logged_duration,
+                "source": "internal_api",
+            }
+
+            summary = (
+                f"Tiến độ hiện tại {progress_percent}% ({completed_tasks}/{total_tasks} task hoàn thành), "
+                f"tổng thời lượng log {total_logged_duration}."
+            )
+            return _format_tool_json("get_learning_progress", summary, [record])
+
         task_progress_query = """
-        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id})
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan {status: 'Active'})-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id, status: 'Enrolled'})
         OPTIONAL MATCH (c)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
         RETURN c.pg_id AS course_id,
                c.name AS course_name,
@@ -109,7 +164,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         """
 
         duration_query = """
-        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id})
+    MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan {status: 'Active'})-[:HAS_COURSE]->(c:Course {pg_id: $course_pg_id, status: 'Enrolled'})
         OPTIONAL MATCH (c)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(:Task)-[:HAS_LOG]->(l:Log)
         RETURN round(coalesce(sum(toFloat(l.actual_duration)), 0.0), 2) AS total_logged_duration
         """
@@ -138,6 +193,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
             "completed_tasks": completed_tasks,
             "progress_percent": progress_percent,
             "total_logged_duration": total_logged_duration,
+            "source": "neo4j_fallback",
         }
 
         summary = (
@@ -153,7 +209,8 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         Dùng khi user hỏi thói quen học, mức ổn định, hoặc xu hướng học tập.
         """
         query = """
-        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(:StudyPlan)-[:HAS_COURSE]->(c:Course)
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan {status: 'Active'})-[:HAS_COURSE]->(c:Course {status: 'Enrolled'})
+        WHERE ($course_pg_id IS NULL OR c.pg_id = $course_pg_id)
         OPTIONAL MATCH (c)-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
         WITH collect(DISTINCT t) AS tasks
         WITH tasks,
@@ -168,7 +225,7 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
                round(coalesce(avg(toFloat(l.actual_duration)), 0.0), 2) AS avg_session_duration
         """
 
-        rows = run_cypher(query, {"user_pg_id": str(user_id)})
+        rows = run_cypher(query, {"user_pg_id": str(user_id), "course_pg_id": str(course_id) if course_id is not None else None})
         if not rows:
             return _format_tool_json(
                 "analyze_study_behavior",

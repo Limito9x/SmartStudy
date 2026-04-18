@@ -2,7 +2,6 @@ import json
 from typing import AsyncGenerator
 from langchain_core.messages import HumanMessage, AIMessage
 
-# QUAN TRỌNG: Import "Vũ khí tối thượng" mới của LangChain
 from langchain.agents import create_agent
 
 from models.schemas import ChatRequest
