@@ -3,6 +3,8 @@ import { create } from "zustand";
 export interface PanelDataMap {
   CHAT: {
     courseId?: number | null;
+    selectedAssetIds?: number[];
+    selectedAssetNames?: string[];
   };
   TASK_DETAIL: {
     taskId: number;

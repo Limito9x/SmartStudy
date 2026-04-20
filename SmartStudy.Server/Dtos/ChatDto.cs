@@ -2,7 +2,8 @@
 {
     public record ChatDto
     (
-        string prompt
+        string prompt,
+        List<int>? selectedAssetIds = null
     );
 
     public record ChatHistoryDto

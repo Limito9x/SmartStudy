@@ -58,4 +58,30 @@ public class InternalController: ControllerBase
         if (progress == null) return NotFound();
         return Ok(progress);
     }
+
+    [HttpGet("calendar/context", Name = "GetLearningCalendarContext")]
+    [EndpointGroupName("Internal")]
+    public async Task<ActionResult<InternalLearningCalendarContextDto>> GetLearningCalendarContext(
+        [FromQuery] int userId,
+        [FromQuery] int? courseId,
+        [FromQuery] int horizonDays = 14)
+    {
+        if (!IsValidInternalRequest()) return Unauthorized();
+
+        var context = await _internalService.GetLearningCalendarContextAsync(userId, courseId, horizonDays);
+        if (context == null) return NotFound();
+        return Ok(context);
+    }
+
+    [HttpPost("phase/preview", Name = "SuggestPhasePreview")]
+    [EndpointGroupName("Internal")]
+    public async Task<ActionResult<InternalPhasePreviewDto>> SuggestPhasePreview(
+        [FromBody] InternalPhasePreviewRequestDto request)
+    {
+        if (!IsValidInternalRequest()) return Unauthorized();
+
+        var preview = await _internalService.SuggestPhasePreviewAsync(request);
+        if (preview == null) return NotFound();
+        return Ok(preview);
+    }
 }

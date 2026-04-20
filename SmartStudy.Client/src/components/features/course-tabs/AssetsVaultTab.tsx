@@ -35,11 +35,12 @@ import {
   Trash2,
   Upload,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import AssetItem from "@/components/files/AssetItem";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useDialogStore } from "@/stores/useDialogStore";
+import { usePanelStore } from "@/stores/usePanelStore";
 
 interface AssetsVaultTabProps {
   courseId: number;
@@ -65,7 +66,9 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkDisplayName, setLinkDisplayName] = useState("");
+  const [selectedAssetIds, setSelectedAssetIds] = useState<number[]>([]);
   const { previewAsset, openPreview, closePreview } = useAssetPreview();
+  const { openPanel, isOpen, type } = usePanelStore();
   const queryClient = useQueryClient();
 
   const deleteAssetMutator = useMutation({
@@ -149,7 +152,6 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
 
   const assets = assetsQuery.data ?? [];
   const isLoading = assetsQuery.isLoading;
-
   const filteredAssets = useMemo(() => {
     const normalizedKeyword = searchTerm.trim().toLowerCase();
 
@@ -179,6 +181,121 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
       return isMatchSearch && isMatchFilter;
     });
   }, [assets, searchTerm, activeFilter]);
+
+  const selectableAssetIdSet = useMemo(() => {
+    return new Set(
+      assets
+        .filter(isAssetSelectableForChat)
+        .map((asset) => getNumericAssetId(asset))
+        .filter((id): id is number => id !== null),
+    );
+  }, [assets]);
+
+  const selectableFilteredAssetIds = useMemo(() => {
+    return filteredAssets
+      .filter(isAssetSelectableForChat)
+      .map((asset) => getNumericAssetId(asset))
+      .filter((id): id is number => id !== null);
+  }, [filteredAssets]);
+
+  useEffect(() => {
+    setSelectedAssetIds((prev) =>
+      prev.filter((id) => selectableAssetIdSet.has(id)),
+    );
+  }, [selectableAssetIdSet]);
+
+  const scopedSelectedAssetIds = useMemo(
+    () => selectedAssetIds.filter((id) => selectableAssetIdSet.has(id)),
+    [selectedAssetIds, selectableAssetIdSet],
+  );
+
+  const selectedAssetNames = useMemo(() => {
+    const assetNameById = new Map<number, string>();
+
+    for (const asset of assets) {
+      const assetId = getNumericAssetId(asset);
+      if (assetId === null || assetNameById.has(assetId)) {
+        continue;
+      }
+
+      const fileName = String(asset.fileName ?? "").trim();
+      assetNameById.set(
+        assetId,
+        fileName.length > 0 ? fileName : `Tai lieu #${assetId}`,
+      );
+    }
+
+    return scopedSelectedAssetIds.map(
+      (assetId) => assetNameById.get(assetId) ?? `Tai lieu #${assetId}`,
+    );
+  }, [assets, scopedSelectedAssetIds]);
+
+  const selectedAssetIdSet = useMemo(
+    () => new Set(scopedSelectedAssetIds),
+    [scopedSelectedAssetIds],
+  );
+
+  const toggleAssetSelection = (asset: CourseAssetResponseDto) => {
+    const assetId = getNumericAssetId(asset);
+    if (assetId === null || !isAssetSelectableForChat(asset)) {
+      return;
+    }
+
+    setSelectedAssetIds((prev) =>
+      prev.includes(assetId)
+        ? prev.filter((id) => id !== assetId)
+        : [...prev, assetId],
+    );
+  };
+
+  const handleSelectAllFiltered = () => {
+    if (selectableFilteredAssetIds.length === 0) {
+      return;
+    }
+
+    setSelectedAssetIds((prev) => {
+      const merged = new Set(prev);
+      selectableFilteredAssetIds.forEach((id) => merged.add(id));
+      return Array.from(merged);
+    });
+  };
+
+  const handleClearSelection = () => {
+    setSelectedAssetIds([]);
+  };
+
+  const handleOpenChatWithSelectedAssets = () => {
+    if (scopedSelectedAssetIds.length === 0) {
+      toast.error("Hãy chọn ít nhất 1 tài liệu đã phân tích để hỏi AI");
+      return;
+    }
+
+    openPanel("CHAT", {
+      courseId,
+      selectedAssetIds: scopedSelectedAssetIds,
+      selectedAssetNames,
+    });
+  };
+
+  useEffect(() => {
+    const isChatOpen = isOpen && type === "CHAT";
+    if (!isChatOpen && scopedSelectedAssetIds.length === 0) {
+      return;
+    }
+
+    openPanel("CHAT", {
+      courseId,
+      selectedAssetIds: scopedSelectedAssetIds,
+      selectedAssetNames,
+    });
+  }, [
+    isOpen,
+    type,
+    courseId,
+    scopedSelectedAssetIds,
+    selectedAssetNames,
+    openPanel,
+  ]);
 
   const { courseCommonAssets, linkAssets, sessionGroupedEntries } =
     useMemo(() => {
@@ -346,6 +463,49 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
         </div>
       </div>
 
+      <div className="rounded-xl border bg-muted/30 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Đã chọn{" "}
+            <span className="font-semibold">
+              {scopedSelectedAssetIds.length}
+            </span>
+            /{selectableAssetIdSet.size} tài liệu có thể hỏi đáp AI.
+          </p>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={selectableFilteredAssetIds.length === 0}
+              onClick={handleSelectAllFiltered}
+            >
+              Chọn theo bộ lọc ({selectableFilteredAssetIds.length})
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={scopedSelectedAssetIds.length === 0}
+              onClick={handleClearSelection}
+            >
+              Bỏ chọn
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              disabled={scopedSelectedAssetIds.length === 0}
+              onClick={handleOpenChatWithSelectedAssets}
+            >
+              Hỏi AI với tài liệu đã chọn
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {isLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -374,6 +534,8 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
                 assets={courseCommonAssets}
                 onPreview={openPreview}
                 onDelete={(asset) => handleDeleteAsset(asset)}
+                selectedAssetIdSet={selectedAssetIdSet}
+                onToggleSelection={toggleAssetSelection}
                 boxed={false}
                 showTitle={false}
               />
@@ -398,6 +560,8 @@ export default function AssetsVaultTab({ courseId }: AssetsVaultTabProps) {
                     assets={groupAssets}
                     onPreview={openPreview}
                     onDelete={(asset) => handleDeleteAsset(asset)}
+                    selectedAssetIdSet={selectedAssetIdSet}
+                    onToggleSelection={toggleAssetSelection}
                     boxed
                     showTitle
                   />
@@ -418,6 +582,8 @@ function AssetGroup({
   assets,
   onPreview,
   onDelete,
+  selectedAssetIdSet,
+  onToggleSelection,
   boxed,
   showTitle,
 }: {
@@ -425,6 +591,8 @@ function AssetGroup({
   assets: CourseAssetResponseDto[];
   onPreview: (asset: PreviewAsset) => void;
   onDelete: (asset: CourseAssetResponseDto) => void;
+  selectedAssetIdSet: Set<number>;
+  onToggleSelection: (asset: CourseAssetResponseDto) => void;
   boxed?: boolean;
   showTitle?: boolean;
 }) {
@@ -463,15 +631,35 @@ function AssetGroup({
 
       {documentAssets.length > 0 ? (
         <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
-          {documentAssets.map((asset) => (
-            <AssetItem
-              key={String(asset.id)}
-              asset={asset}
-              showSourceName={false}
-              onPreview={onPreview}
-              onDelete={() => onDelete(asset)}
-            />
-          ))}
+          {documentAssets.map((asset) => {
+            const assetId = getNumericAssetId(asset);
+            const isSelectable =
+              assetId !== null && isAssetSelectableForChat(asset);
+            const isSelected =
+              assetId !== null && selectedAssetIdSet.has(assetId);
+
+            return (
+              <div key={String(asset.id)} className="relative">
+                {isSelectable ? (
+                  <input
+                    type="checkbox"
+                    className="absolute left-2 top-2 z-20 h-4 w-4 cursor-pointer accent-primary"
+                    checked={isSelected}
+                    onChange={() => onToggleSelection(asset)}
+                    onClick={(event) => event.stopPropagation()}
+                    aria-label={`Chọn tài liệu ${asset.fileName ?? ""} để chat`}
+                  />
+                ) : null}
+
+                <AssetItem
+                  asset={asset}
+                  showSourceName={false}
+                  onPreview={onPreview}
+                  onDelete={() => onDelete(asset)}
+                />
+              </div>
+            );
+          })}
         </div>
       ) : null}
 
@@ -481,58 +669,77 @@ function AssetGroup({
             Gallery ảnh
           </p>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-2 justify-items-start">
-            {imageAssets.map((asset) => (
-              <div
-                key={String(asset.id)}
-                className="group relative aspect-square w-full max-w-44 overflow-hidden rounded-lg border bg-muted"
-              >
-                <button
-                  type="button"
-                  className="h-full w-full"
-                  onClick={() => {
-                    if (asset.url && asset.fileName) {
-                      onPreview({
-                        url: asset.url,
-                        fileName: asset.fileName,
-                      });
-                    }
-                  }}
-                  aria-label={`Xem ảnh ${asset.fileName}`}
+            {imageAssets.map((asset) => {
+              const assetId = getNumericAssetId(asset);
+              const isSelectable =
+                assetId !== null && isAssetSelectableForChat(asset);
+              const isSelected =
+                assetId !== null && selectedAssetIdSet.has(assetId);
+
+              return (
+                <div
+                  key={String(asset.id)}
+                  className="group relative aspect-square w-full max-w-44 overflow-hidden rounded-lg border bg-muted"
                 >
-                  {asset.url ? (
-                    <img
-                      src={asset.url}
-                      alt={asset.fileName ?? "Ảnh tài liệu"}
-                      className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
-                      loading="lazy"
+                  {isSelectable ? (
+                    <input
+                      type="checkbox"
+                      className="absolute left-1.5 top-1.5 z-20 h-4 w-4 cursor-pointer accent-primary"
+                      checked={isSelected}
+                      onChange={() => onToggleSelection(asset)}
+                      onClick={(event) => event.stopPropagation()}
+                      aria-label={`Chọn ảnh ${asset.fileName ?? ""} để chat`}
                     />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-                      <ImageIcon size={18} />
-                    </div>
-                  )}
-                </button>
+                  ) : null}
 
-                <button
-                  type="button"
-                  className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/65 text-white hover:bg-black/80"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    onDelete(asset);
-                  }}
-                  aria-label={`Gỡ liên kết ảnh ${asset.fileName ?? ""}`}
-                >
-                  <Trash2 size={14} />
-                </button>
+                  <button
+                    type="button"
+                    className="h-full w-full"
+                    onClick={() => {
+                      if (asset.url && asset.fileName) {
+                        onPreview({
+                          url: asset.url,
+                          fileName: asset.fileName,
+                        });
+                      }
+                    }}
+                    aria-label={`Xem ảnh ${asset.fileName}`}
+                  >
+                    {asset.url ? (
+                      <img
+                        src={asset.url}
+                        alt={asset.fileName ?? "Ảnh tài liệu"}
+                        className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                        <ImageIcon size={18} />
+                      </div>
+                    )}
+                  </button>
 
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/65 to-transparent p-2">
-                  <p className="truncate text-[11px] text-white">
-                    {asset.fileName || "Ảnh"}
-                  </p>
+                  <button
+                    type="button"
+                    className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/65 text-white hover:bg-black/80"
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                      onDelete(asset);
+                    }}
+                    aria-label={`Gỡ liên kết ảnh ${asset.fileName ?? ""}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/65 to-transparent p-2">
+                    <p className="truncate text-[11px] text-white">
+                      {asset.fileName || "Ảnh"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ) : null}
@@ -588,6 +795,20 @@ function LinkSection({
       </div>
     </section>
   );
+}
+
+function getNumericAssetId(asset: CourseAssetResponseDto): number | null {
+  const assetId = Number(asset.id);
+  return Number.isFinite(assetId) && assetId > 0 ? assetId : null;
+}
+
+function isAssetSelectableForChat(asset: CourseAssetResponseDto): boolean {
+  if (asset.linkedType === "ExternalLink") {
+    return false;
+  }
+
+  const status = String(asset.status ?? "").toLowerCase();
+  return status === "analyzed";
 }
 
 function getFileExtension(fileName?: string, url?: string) {

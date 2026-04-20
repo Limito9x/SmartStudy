@@ -42,6 +42,28 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
     var plan = await _context.StudyPlans
         .FirstOrDefaultAsync(p => p.UserId == demoUser.Id);
 
+    var studentProfile = await _context.Users
+        .AsNoTracking()
+        .Where(u => u.Id == demoUser.Id)
+        .Select(u => new
+        {
+            University = u.StudentInfo != null ? u.StudentInfo.University : null,
+            Major = u.StudentInfo != null ? u.StudentInfo.Major : null,
+        })
+        .FirstOrDefaultAsync();
+
+    var termLabel = plan?.TermId.HasValue == true ? $"HK{plan.TermId.Value}" : "HK";
+    var yearLabel = plan?.YearId.HasValue == true
+        ? $"{plan.YearId.Value}-{plan.YearId.Value + 1}"
+        : "Năm học";
+    var majorLabel = string.IsNullOrWhiteSpace(studentProfile?.Major)
+        ? "Ngành"
+        : studentProfile!.Major!.Trim();
+    var universityLabel = string.IsNullOrWhiteSpace(studentProfile?.University)
+        ? "Trường"
+        : studentProfile!.University!.Trim();
+    var academicTemplateName = $"{termLabel} {yearLabel} - {majorLabel} - {universityLabel}";
+
     var legacyTemplates = await _context.PlanTemplates
         .Where(t => t.CreatedById == demoUser.Id
                     && (t.Name.Contains("HK8") || t.Name.Contains("Community")))
@@ -55,7 +77,7 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
 
     var universityTemplate = new PlanTemplate
     {
-        Name = "Đại học - Kỳ học ổn định",
+        Name = academicTemplateName,
         Description = "Template đại học tập trung 2 môn cốt lõi, nhịp học đều và có buổi ôn cuối tuần.",
         IsPublic = true,
         Type = StudyPlanType.Academic,
@@ -71,6 +93,12 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                     Name = "Cấu trúc dữ liệu và giải thuật",
                     Goal = "Nắm chắc nền tảng giải thuật, đạt từ 8.0 trở lên",
                     TargetScore = 8.0,
+                    Subject = new TemplateSubject
+                    {
+                        Name = "Cấu trúc dữ liệu và giải thuật",
+                        Code = "CT188",
+                        Credits = 3,
+                    },
                     Routines = new List<TemplateRoutine>
                     {
                         new TemplateRoutine
@@ -109,9 +137,15 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 },
                 new TemplateCourse
                 {
-                    Name = "Cơ sở dữ liệu nâng cao",
+                    Name = "Cơ sở dữ liệu",
                     Goal = "Làm chủ thiết kế schema và tối ưu truy vấn",
                     TargetScore = 8.5,
+                    Subject = new TemplateSubject
+                    {
+                        Name = "Cơ sở dữ liệu",
+                        Code = "CT214",
+                        Credits = 3,
+                    },
                     Routines = new List<TemplateRoutine>
                     {
                         new TemplateRoutine
@@ -298,13 +332,19 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
 
     public async Task SeedAsync()
     {
-        // Idempotent — chạy nhiều lần không duplicate
-        if (await _userManager.FindByNameAsync(DemoUserName) != null) return;
-
         var seedData = await LoadSeedDataAsync();
         if (seedData is null) throw new FileNotFoundException($"Không tìm thấy {SeedDataPath}");
 
-        var user = await CreateDemoUserAsync();
+        var user = await _userManager.FindByNameAsync(DemoUserName);
+        if (user is null)
+        {
+            user = await CreateDemoUserAsync();
+        }
+        else
+        {
+            await ClearUserDomainDataAsync(user.Id);
+        }
+
         var plan = await CreateStudyPlanAsync(user.Id, seedData.StudyPlan);
 
         foreach (var courseData in seedData.Courses)
@@ -347,6 +387,8 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
         {
             await CreateCourseWithDataAsync(user, plan, courseData);
         }
+
+        await SeedPlanTemplatesAsync(user);
 
         return new IsolatedSeedResult(user.Id, user.UserName ?? sandboxUserName, sandboxEmail, normalizedTag, true, "Seed sandbox thành công và không ảnh hưởng dữ liệu user khác.");
     }
@@ -404,13 +446,18 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
             .Select(x => x.Id)
             .ToListAsync();
 
+        var phaseIds = await _context.Phases
+            .Where(x => courseIds.Contains(x.CourseId))
+            .Select(x => x.Id)
+            .ToListAsync();
+
         var taskIds = await _context.Tasks
-            .Where(x => x.UserId == userId || (x.CourseId.HasValue && courseIds.Contains(x.CourseId.Value)))
+            .Where(x => x.UserId == userId || (x.PhaseId.HasValue && phaseIds.Contains(x.PhaseId.Value)))
             .Select(x => x.Id)
             .ToListAsync();
 
         var routineIds = await _context.Routines
-            .Where(x => x.UserId == userId || (x.CourseId.HasValue && courseIds.Contains(x.CourseId.Value)))
+            .Where(x => x.UserId == userId || (x.PhaseId.HasValue && phaseIds.Contains(x.PhaseId.Value)))
             .Select(x => x.Id)
             .ToListAsync();
 
@@ -421,6 +468,8 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
         await _context.Phases.Where(x => courseIds.Contains(x.CourseId)).ExecuteDeleteAsync();
         await _context.Courses.Where(x => courseIds.Contains(x.Id)).ExecuteDeleteAsync();
         await _context.StudyPlans.Where(x => planIds.Contains(x.Id)).ExecuteDeleteAsync();
+        await _context.Subjects.Where(x => x.UserId == userId).ExecuteDeleteAsync();
+        await _context.PlanTemplates.Where(x => x.CreatedById == userId).ExecuteDeleteAsync();
     }
 
     private static string NormalizeRunTag(string runTag)
@@ -448,9 +497,10 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
             UserId = userId,
             Order = 1,
             Status = StudyPlanStatus.Active,
-            StartDate = DateTime.Parse(dto.StartDate).ToUniversalTime(),
-            EndDate = DateTime.Parse(dto.EndDate).ToUniversalTime(),
-            
+            StartDate = ParseDateAsUtc(dto.StartDate),
+            EndDate = ParseDateAsUtc(dto.EndDate),
+            TermId = dto.AcademicTermId,
+            YearId = dto.AcademicYearId,
         };
 
         await _context.StudyPlans.AddAsync(plan);
@@ -458,88 +508,123 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
         return plan;
     }
 
-    // ── COURSE + ROUTINES + TASKS + LOGS ──────────────────────────
+    // ── COURSE + PHASES + ROUTINES + TASKS + LOGS ─────────────────
     private async Task CreateCourseWithDataAsync(User user, StudyPlan plan, CourseDto courseDto)
     {
-        // 1. Course
+        var subjectId = await EnsureSubjectAsync(user, courseDto);
+
         var course = new Course
         {
             Name = courseDto.Name,
             Goal = courseDto.Goal,
             Color = courseDto.Color,
             TargetScore = courseDto.TargetScore,
-            Status = Enum.Parse<CourseStatus>(courseDto.Status),
+            Status = ParseEnumOrDefault(courseDto.Status, CourseStatus.Enrolled),
             StudyPlanId = plan.Id,
+            SubjectId = subjectId,
         };
 
         await _context.Courses.AddAsync(course);
         await _context.SaveChangesAsync();
 
-        // 2. Routines + Schedules
-        var routineMap = new Dictionary<string, Routine>(); // referenceId → Routine
-
-        foreach (var routineDto in courseDto.Routines)
+        foreach (var phaseDto in courseDto.Phases)
         {
-            var routine = new Routine
+            var phase = new Phase
             {
-                Name = routineDto.Name,
-                Type = Enum.Parse<TaskType>(routineDto.Type),
-                Instructor = routineDto.Instructor,
-                UserId = user.Id,
-                User = user,
-                StudyPlanId = plan.Id,
                 CourseId = course.Id,
-                StartDate = plan.StartDate,
-                EndDate = plan.EndDate,
+                Title = phaseDto.Title,
+                Type = ParseEnumOrDefault(phaseDto.Type, PhaseType.General),
+                Priority = ParseEnumOrDefault(phaseDto.Priority, PriorityLevel.Medium),
+                Status = EventStatus.Pending,
+                StartDateTime = Utc(plan.StartDate.Date.AddDays(phaseDto.StartDayOffset)),
+                EndDateTime = Utc(plan.StartDate.Date.AddDays(phaseDto.EndDayOffset)),
+                Location = phaseDto.Location,
+                Notes = phaseDto.Notes,
             };
 
-            if (routineDto.Schedule is not null)
-            {
-                routine.Schedules.Add(new Schedule
-                {
-                    DayOfWeek = Enum.Parse<DayOfWeek>(routineDto.Schedule.DayOfWeek),
-                    StartTime = TimeOnly.Parse(routineDto.Schedule.StartTime),
-                    Duration = routineDto.Schedule.Duration,
-                    Location = routineDto.Schedule.Location,
-                });
-            }
-
-            await _context.Routines.AddAsync(routine);
+            await _context.Phases.AddAsync(phase);
             await _context.SaveChangesAsync();
 
-            routineMap[routineDto.ReferenceId] = routine;
-        }
+            var routineMap = new Dictionary<string, Routine>(StringComparer.OrdinalIgnoreCase);
 
-        // 3. Tasks + Logs từ weeks data
-        var today = DateTime.UtcNow.AddHours(7).Date;
-
-        foreach (var week in courseDto.Weeks)
-        {
-            foreach (var taskDto in week.Tasks)
+            foreach (var routineDto in phaseDto.Routines)
             {
-                var taskDate = DateOnly.FromDateTime(today.AddDays(taskDto.DayOffset));
+                var routineStartOffset = routineDto.StartDayOffset ?? phaseDto.StartDayOffset;
+                var routineEndOffset = routineDto.EndDayOffset ?? phaseDto.EndDayOffset;
+
+                var routine = new Routine
+                {
+                    Name = routineDto.Name,
+                    Type = ParseEnumOrDefault(routineDto.Type, TaskType.SelfStudy),
+                    Instructor = routineDto.Instructor,
+                    UserId = user.Id,
+                    User = user,
+                    StudyPlanId = plan.Id,
+                    PhaseId = phase.Id,
+                    StartDate = Utc(plan.StartDate.Date.AddDays(routineStartOffset)),
+                    EndDate = Utc(plan.StartDate.Date.AddDays(routineEndOffset)),
+                };
+
+                if (routineDto.Schedule is not null)
+                {
+                    routine.Schedules.Add(new Schedule
+                    {
+                        DayOfWeek = ParseEnumOrDefault(routineDto.Schedule.DayOfWeek, DayOfWeek.Monday),
+                        StartTime = TimeOnly.Parse(routineDto.Schedule.StartTime),
+                        Duration = routineDto.Schedule.Duration,
+                        Location = routineDto.Schedule.Location,
+                    });
+                }
+
+                if (routineDto.Schedules is not null)
+                {
+                    foreach (var scheduleDto in routineDto.Schedules)
+                    {
+                        routine.Schedules.Add(new Schedule
+                        {
+                            DayOfWeek = ParseEnumOrDefault(scheduleDto.DayOfWeek, DayOfWeek.Monday),
+                            StartTime = TimeOnly.Parse(scheduleDto.StartTime),
+                            Duration = scheduleDto.Duration,
+                            Location = scheduleDto.Location,
+                        });
+                    }
+                }
+
+                await _context.Routines.AddAsync(routine);
+                await _context.SaveChangesAsync();
+
+                routineMap[routineDto.ReferenceId] = routine;
+            }
+
+            foreach (var taskDto in phaseDto.Tasks)
+            {
+                var taskDate = plan.StartDate.Date.AddDays(taskDto.DayOffset);
                 var startTime = TimeOnly.Parse(taskDto.StartTime);
-                var startDateTime = taskDate.ToDateTime(startTime);
+                var startDateTime = Utc(taskDate.Add(startTime.ToTimeSpan()));
                 var endDateTime = startDateTime.AddMinutes(taskDto.PlannedDuration);
 
-
-                // Tìm routine + schedule nếu có
-                Routine? routine = taskDto.RoutineRef is not null
+                var routine = taskDto.RoutineRef is not null
                     ? routineMap.GetValueOrDefault(taskDto.RoutineRef)
                     : null;
 
-                Schedule? schedule = routine?.Schedules.FirstOrDefault();
+                var schedule = routine?.Schedules
+                    .FirstOrDefault(s => s.DayOfWeek == startDateTime.DayOfWeek)
+                    ?? routine?.Schedules.FirstOrDefault();
+
+                var status = ParseEnumOrDefault(taskDto.Status, TaskStatus.Pending);
 
                 var task = new TaskItem
                 {
                     Name = taskDto.Name,
-                    Type = Enum.Parse<TaskType>(taskDto.Type),
+                    Description = taskDto.Description,
+                    Location = taskDto.Location,
+                    Type = ParseEnumOrDefault(taskDto.Type, TaskType.SelfStudy),
                     StartDateTime = startDateTime,
                     EndDateTime = endDateTime,
-                    Status = Enum.Parse<TaskStatus>(taskDto.Status),
+                    Status = status,
                     UserId = user.Id,
                     StudyPlanId = plan.Id,
-                    CourseId = course.Id,
+                    PhaseId = phase.Id,
                     RoutineId = routine?.Id,
                     ScheduleId = schedule?.Id,
                 };
@@ -547,20 +632,17 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 await _context.Tasks.AddAsync(task);
                 await _context.SaveChangesAsync();
 
-                // 4. Log nếu có
-                if (taskDto.Log is not null && taskDto.Status == "Completed")
+                if (taskDto.Log is not null && status == TaskStatus.Completed)
                 {
-                    var completedAt = startDateTime
-                        .AddMinutes(taskDto.Log.ActualDuration)
-                        .ToUniversalTime();
+                    var completedAt = startDateTime.AddMinutes(taskDto.Log.ActualDuration);
 
                     var log = new LogItem
                     {
                         TaskId = task.Id,
                         Task = task,
                         ActualDuration = taskDto.Log.ActualDuration,
-                        ComprehensionLevel = Enum.Parse<ComprehensionLevel>(taskDto.Log.ComprehensionLevel),
-                        DifficultyLevel = Enum.Parse<DifficultyLevel>(taskDto.Log.DifficultyLevel),
+                        ComprehensionLevel = ParseEnumOrDefault(taskDto.Log.ComprehensionLevel, ComprehensionLevel.Intermediate),
+                        DifficultyLevel = ParseEnumOrDefault(taskDto.Log.DifficultyLevel, DifficultyLevel.Medium),
                         Note = taskDto.Log.Note,
                         CompletedAt = completedAt,
                     };
@@ -570,6 +652,106 @@ private async Task SeedPlanTemplatesAsync(User demoUser)
                 }
             }
         }
+    }
+
+    private async Task<int?> EnsureSubjectAsync(User user, CourseDto courseDto)
+    {
+        if (string.IsNullOrWhiteSpace(courseDto.SubjectCode) && string.IsNullOrWhiteSpace(courseDto.SubjectName))
+        {
+            return null;
+        }
+
+        var normalizedCode = string.IsNullOrWhiteSpace(courseDto.SubjectCode)
+            ? null
+            : courseDto.SubjectCode.Trim().ToUpperInvariant();
+        var subjectName = string.IsNullOrWhiteSpace(courseDto.SubjectName)
+            ? courseDto.Name
+            : courseDto.SubjectName.Trim();
+
+        Subject? subject = null;
+
+        if (!string.IsNullOrWhiteSpace(normalizedCode))
+        {
+            subject = await _context.Subjects.FirstOrDefaultAsync(x =>
+                x.UserId == user.Id
+                && x.Type == StudyPlanType.Academic
+                && x.Code != null
+                && x.Code.ToUpper() == normalizedCode);
+        }
+
+        subject ??= await _context.Subjects.FirstOrDefaultAsync(x =>
+            x.UserId == user.Id
+            && x.Type == StudyPlanType.Academic
+            && x.Name == subjectName);
+
+        if (subject is null)
+        {
+            subject = new Subject
+            {
+                Code = normalizedCode,
+                Name = subjectName,
+                Credits = courseDto.SubjectCredits,
+                Type = StudyPlanType.Academic,
+                UserId = user.Id,
+                User = user,
+            };
+
+            await _context.Subjects.AddAsync(subject);
+            await _context.SaveChangesAsync();
+            return subject.Id;
+        }
+
+        var isChanged = false;
+        if (!string.IsNullOrWhiteSpace(normalizedCode) && !string.Equals(subject.Code, normalizedCode, StringComparison.OrdinalIgnoreCase))
+        {
+            subject.Code = normalizedCode;
+            isChanged = true;
+        }
+
+        if (!string.Equals(subject.Name, subjectName, StringComparison.Ordinal))
+        {
+            subject.Name = subjectName;
+            isChanged = true;
+        }
+
+        if (courseDto.SubjectCredits.HasValue && subject.Credits != courseDto.SubjectCredits)
+        {
+            subject.Credits = courseDto.SubjectCredits;
+            isChanged = true;
+        }
+
+        if (subject.Type != StudyPlanType.Academic)
+        {
+            subject.Type = StudyPlanType.Academic;
+            isChanged = true;
+        }
+
+        if (isChanged)
+        {
+            await _context.SaveChangesAsync();
+        }
+
+        return subject.Id;
+    }
+
+    private static DateTime ParseDateAsUtc(string value)
+    {
+        return Utc(DateTime.Parse(value));
+    }
+
+    private static TEnum ParseEnumOrDefault<TEnum>(string? value, TEnum fallback)
+        where TEnum : struct, Enum
+    {
+        return Enum.TryParse<TEnum>(value, true, out var parsed)
+            ? parsed
+            : fallback;
+    }
+
+    private static DateTime Utc(DateTime value)
+    {
+        return value.Kind == DateTimeKind.Utc
+            ? value
+            : DateTime.SpecifyKind(value, DateTimeKind.Utc);
     }
 }
 
@@ -582,18 +764,35 @@ internal record SeedDataDto(
 internal record StudyPlanDto(
     string Name,
     string StartDate,
-    string EndDate
+    string EndDate,
+    int? AcademicTermId,
+    int? AcademicYearId
 );
 
 internal record CourseDto(
     string Name,
+    string? SubjectCode,
+    string? SubjectName,
+    int? SubjectCredits,
     string Goal,
     string Status,
     string? Color,
     double? TargetScore,
     string? Comment,
+    List<PhaseDto> Phases
+);
+
+internal record PhaseDto(
+    string ReferenceId,
+    string Title,
+    string Type,
+    string Priority,
+    int StartDayOffset,
+    int EndDayOffset,
+    string? Location,
+    string? Notes,
     List<RoutineDto> Routines,
-    List<WeekDto> Weeks
+    List<TaskDto> Tasks
 );
 
 internal record RoutineDto(
@@ -601,7 +800,10 @@ internal record RoutineDto(
     string Name,
     string Type,
     string? Instructor,
-    SeedScheduleDto? Schedule
+    int? StartDayOffset,
+    int? EndDayOffset,
+    SeedScheduleDto? Schedule,
+    List<SeedScheduleDto>? Schedules
 );
 
 internal record SeedScheduleDto(
@@ -609,11 +811,6 @@ internal record SeedScheduleDto(
     string StartTime,
     int Duration,
     string? Location
-);
-
-internal record WeekDto(
-    string WeekName,
-    List<TaskDto> Tasks
 );
 
 internal record TaskDto(
@@ -624,6 +821,8 @@ internal record TaskDto(
     string StartTime,
     int PlannedDuration,
     string Status,
+    string? Description,
+    string? Location,
     SeedLogDto? Log
 );
 

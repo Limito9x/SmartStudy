@@ -205,11 +205,11 @@ export const useImportSelectedCourses = () => {
     ...importSelectedCoursesMutation(),
     onSuccess: () => {
       invalidateTemplateQueries();
-      toast.success("Import môn học thành công");
+      toast.success("Áp dụng template thành công");
     },
     onError: (error) => {
       const errorMessage =
-        getApiErrorMessage(error) || "Không thể import môn học";
+        getApiErrorMessage(error) || "Không thể áp dụng template";
       toast.error(errorMessage);
     },
   });

@@ -13,6 +13,8 @@ async def _vector_search(query: str, asset_ids: list[str]) -> str:
     Tìm kiếm thông tin trong tài liệu học tập bằng semantic search.
     Dùng cho lý thuyết tĩnh (PDF/document), không dùng cho dữ liệu task động.
     """
+    asset_ids = [str(asset_id) for asset_id in asset_ids if asset_id is not None]
+    logger.debug("Vector search query=%s asset_ids=%s", query, asset_ids)
     vector_store = await get_vector_store()
     retriever = vector_store.as_retriever(
         search_kwargs={
@@ -80,6 +82,76 @@ async def _get_course_progress_from_internal_api(user_id: int, course_id: int, i
             return None
     except Exception as exc:
         logger.error("Failed to call internal progress API: %s", exc)
+        return None
+
+
+async def _get_calendar_context_from_internal_api(
+    user_id: int,
+    course_id: int | None,
+    horizon_days: int = 14,
+) -> dict | None:
+    params: dict[str, str | int] = {
+        "userId": user_id,
+        "horizonDays": horizon_days,
+    }
+    if course_id is not None:
+        params["courseId"] = course_id
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{DOTNET_INTERNAL_API_BASE_URL}/api/internal/calendar/context",
+                params=params,
+                headers={"X-Internal-Service-Key": INTERNAL_SERVICE_KEY},
+                timeout=8.0,
+            )
+
+            if response.status_code == 200:
+                return response.json()
+
+            if response.status_code == 404:
+                return None
+
+            logger.warning("Internal calendar context API returned non-success status: %s", response.status_code)
+            return None
+    except Exception as exc:
+        logger.error("Failed to call internal calendar context API: %s", exc)
+        return None
+
+
+async def _get_phase_preview_from_internal_api(
+    user_id: int,
+    course_id: int,
+    horizon_days: int = 14,
+    learning_goal: str | None = None,
+) -> dict | None:
+    payload: dict[str, int | str] = {
+        "userId": user_id,
+        "courseId": course_id,
+        "horizonDays": horizon_days,
+    }
+    if learning_goal and learning_goal.strip():
+        payload["learningGoal"] = learning_goal.strip()
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{DOTNET_INTERNAL_API_BASE_URL}/api/internal/phase/preview",
+                json=payload,
+                headers={"X-Internal-Service-Key": INTERNAL_SERVICE_KEY},
+                timeout=10.0,
+            )
+
+            if response.status_code == 200:
+                return response.json()
+
+            if response.status_code == 404:
+                return None
+
+            logger.warning("Internal phase preview API returned non-success status: %s", response.status_code)
+            return None
+    except Exception as exc:
+        logger.error("Failed to call internal phase preview API: %s", exc)
         return None
 
 
@@ -266,6 +338,164 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         return _format_tool_json("analyze_study_behavior", summary, [record])
 
     @tool
+    async def get_calendar_context(
+        user_id: int = user_id,
+        course_id: int | None = course_id,
+        horizon_days: int = 14,
+    ) -> str:
+        """
+        Lấy ngữ cảnh lịch học sắp tới theo dữ liệu calendar thực tế.
+        Dùng để AI biết khung giờ đã bận/rảnh trước khi gợi ý cải thiện.
+        """
+        context = await _get_calendar_context_from_internal_api(user_id, course_id, horizon_days)
+        if not context:
+            return _format_tool_json(
+                "get_calendar_context",
+                "Không lấy được calendar context từ internal API.",
+                [],
+            )
+
+        events = context.get("events") or []
+        summary = (
+            f"Tìm thấy {len(events)} sự kiện trong {context.get('horizonDays', horizon_days)} ngày tới."
+        )
+        return _format_tool_json("get_calendar_context", summary, [context])
+
+    @tool
+    async def get_graph_insights(user_id: int = user_id, course_id: int | None = course_id) -> str:
+        """
+        Trích xuất insight học tập từ GraphDB: phase nghẽn, milestone gần hạn và task hiểu chưa tốt.
+        Dùng làm tín hiệu bổ sung để AI khuyến nghị hành động cải thiện.
+        """
+        params = {
+            "user_pg_id": str(user_id),
+            "course_pg_id": str(course_id) if course_id is not None else None,
+        }
+
+        bottleneck_query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan {status: 'Active'})-[:HAS_COURSE]->(c:Course {status: 'Enrolled'})-[:HAS_PHASE]->(p:Phase)-[:CONTAINS]->(t:Task)
+        WHERE ($course_pg_id IS NULL OR c.pg_id = $course_pg_id)
+          AND coalesce(t.status, '') <> 'Completed'
+        RETURN c.pg_id AS course_id,
+               c.name AS course_name,
+               p.pg_id AS phase_id,
+               p.title AS phase_title,
+               count(t) AS pending_tasks
+        ORDER BY pending_tasks DESC
+        LIMIT 5
+        """
+
+        milestone_query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan {status: 'Active'})-[:HAS_COURSE]->(c:Course {status: 'Enrolled'})-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)
+        WHERE ($course_pg_id IS NULL OR c.pg_id = $course_pg_id)
+          AND t.type = 'Milestone'
+          AND coalesce(t.status, '') <> 'Completed'
+          AND t.end_datetime IS NOT NULL
+        RETURN t.pg_id AS task_id,
+               t.name AS task_name,
+               t.end_datetime AS end_datetime,
+               c.pg_id AS course_id,
+               c.name AS course_name
+        ORDER BY t.end_datetime ASC
+        LIMIT 5
+        """
+
+        comprehension_query = """
+        MATCH (u:User {pg_id: $user_pg_id})-[:OWNS_PLAN]->(sp:StudyPlan {status: 'Active'})-[:HAS_COURSE]->(c:Course {status: 'Enrolled'})-[:HAS_PHASE]->(:Phase)-[:CONTAINS]->(t:Task)-[:HAS_LOG]->(l:Log)
+        WHERE ($course_pg_id IS NULL OR c.pg_id = $course_pg_id)
+        WITH t,
+             count(l) AS log_count,
+             avg(CASE
+                 WHEN l.comprehension_level = 'Advanced' THEN 1.0
+                 WHEN l.comprehension_level = 'Intermediate' THEN 0.75
+                 WHEN l.comprehension_level = 'Basic' THEN 0.4
+                 ELSE 0.2
+             END) AS comprehension_score
+        WHERE log_count >= 2 AND comprehension_score < 0.6
+        RETURN t.pg_id AS task_id,
+               t.name AS task_name,
+               round(comprehension_score, 2) AS comprehension_score,
+               log_count
+        ORDER BY comprehension_score ASC
+        LIMIT 5
+        """
+
+        bottlenecks = []
+        milestones = []
+        low_comprehension_tasks = []
+
+        try:
+            bottlenecks = run_cypher(bottleneck_query, params)
+        except Exception as exc:
+            logger.warning("get_graph_insights bottleneck query failed: %s", exc)
+
+        try:
+            milestones = run_cypher(milestone_query, params)
+        except Exception as exc:
+            logger.warning("get_graph_insights milestone query failed: %s", exc)
+
+        try:
+            low_comprehension_tasks = run_cypher(comprehension_query, params)
+        except Exception as exc:
+            logger.warning("get_graph_insights comprehension query failed: %s", exc)
+
+        record = {
+            "bottleneck_phases": bottlenecks,
+            "upcoming_milestones": milestones,
+            "low_comprehension_tasks": low_comprehension_tasks,
+        }
+
+        summary = (
+            f"Graph insights: {len(bottlenecks)} phase nghẽn, "
+            f"{len(milestones)} milestone gần hạn, "
+            f"{len(low_comprehension_tasks)} task cần củng cố hiểu bài."
+        )
+
+        return _format_tool_json("get_graph_insights", summary, [record])
+
+    @tool
+    async def suggest_phase_preview(
+        user_id: int = user_id,
+        course_id: int | None = course_id,
+        horizon_days: int = 14,
+        learning_goal: str | None = None,
+    ) -> str:
+        """
+        Tạo preview phase gợi ý từ lịch, tiến độ và graph insights.
+        Chỉ preview để người dùng xem, chưa ghi dữ liệu vào DB.
+        """
+        if course_id is None:
+            return _format_tool_json(
+                "suggest_phase_preview",
+                "Thiếu course_id để đề xuất phase preview.",
+                [],
+            )
+
+        preview = await _get_phase_preview_from_internal_api(
+            user_id=user_id,
+            course_id=course_id,
+            horizon_days=horizon_days,
+            learning_goal=learning_goal,
+        )
+
+        if not preview:
+            return _format_tool_json(
+                "suggest_phase_preview",
+                "Không tạo được phase preview từ internal API.",
+                [],
+            )
+
+        phase = preview.get("phase") or {}
+        tasks = preview.get("suggestedTasks") or []
+        windows = preview.get("suggestedStudyWindows") or []
+        summary = (
+            f"Da tao preview phase '{phase.get('title', '')}' voi "
+            f"{len(tasks)} task goi y va {len(windows)} khung gio trong."
+        )
+
+        return _format_tool_json("suggest_phase_preview", summary, [preview])
+
+    @tool
     async def search_document(query: str) -> str:
         """
         Tìm kiếm lý thuyết, khái niệm, định nghĩa trong giáo trình PDF đã ingest.
@@ -273,7 +503,14 @@ def build_tools(asset_ids: list[str] | None, user_id: int, course_id: int | None
         """
         return await _vector_search(query, asset_ids)
 
-    tools = [get_upcoming_tasks, get_learning_progress, analyze_study_behavior]
+    tools = [
+        get_upcoming_tasks,
+        get_learning_progress,
+        analyze_study_behavior,
+        get_calendar_context,
+        get_graph_insights,
+        suggest_phase_preview,
+    ]
     if asset_ids:
         tools.append(search_document)
     return tools

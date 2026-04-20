@@ -8,6 +8,7 @@ import type { StudyPlanFormValues } from "@/components/forms/study-plan/schema";
 import type { StudyPlanType, UpdatePlanTemplateDto } from "@/services/api";
 import type { TimelineEventFormValues } from "@/components/forms/timeline-event/schema";
 import type { SubjectFormValues } from "@/components/forms/subject/schema";
+import type { PhaseType, TaskType } from "@/services/api";
 
 export interface DialogDataMap {
   EVENT_FORM: {
@@ -19,6 +20,38 @@ export interface DialogDataMap {
     courseId: number;
     phaseId?: number;
     defaultValues?: TimelineEventFormValues;
+  };
+  PHASE_PREVIEW_FORM: {
+    courseId: number;
+    phaseDefaultValues?: {
+      title?: string;
+      type?: PhaseType;
+      priority?: number;
+      startDateTime?: string;
+      endDateTime?: string;
+      notes?: string | null;
+    };
+    suggestedTasks?: Array<{
+      name: string;
+      type: TaskType;
+      startDateTime?: string | null;
+      endDateTime?: string | null;
+      description?: string | null;
+    }>;
+    suggestedRoutines?: Array<{
+      name: string;
+      type: TaskType;
+      instructor?: string | null;
+      description?: string | null;
+      startDate?: string | null;
+      endDate?: string | null;
+      schedules?: Array<{
+        dayOfWeek: number;
+        startTime: string;
+        duration: number;
+        location?: string | null;
+      }>;
+    }>;
   };
   STUDY_PLAN_FORM: {
     studyPlanId?: number;

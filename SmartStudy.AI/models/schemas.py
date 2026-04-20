@@ -17,3 +17,4 @@ class ChatRequest(BaseModel):
     user_id: int
     system_prompt: str
     course_id: Optional[int]=None
+    selected_asset_ids: Optional[List[int]] = None

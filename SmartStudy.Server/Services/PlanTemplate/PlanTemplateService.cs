@@ -485,41 +485,19 @@ public class PlanTemplateService: IPlanTemplateService
     var startDate = DateTime.SpecifyKind(dto.StartDate, DateTimeKind.Utc);
     var endDate = startDate.AddDays(payload.DurationDays);
     
-    var templateSubjects = payload.Courses
-        .Where(c => c.Subject != null)
-        .Select(c => c.Subject!)
-        .GroupBy(s => s.Name)
-        .Select(g => g.First())
-        .ToList();
-    
-    var subjectNames = templateSubjects.Select(s => s.Name).ToList();
-    
-    var subjectDictionary = await _context.Subjects
-        .Where(s=>s.UserId==userId && subjectNames.Contains(s.Name))
-        .ToDictionaryAsync(s => s.Name, s => s);
+    var subjectPool = await _context.Subjects
+        .Where(s => s.UserId == userId && s.Type == template.Type)
+        .ToListAsync();
 
-    var subjectsToCreate = templateSubjects
-        .Where(ts => !subjectDictionary.ContainsKey(ts.Name))
-        .Select(ts => new Subject()
-        {
-            Name = ts.Name,
-            Code = ts.Code,
-            Credits = ts.Credits,
-            UserId = userId,
-            Type = template.Type
-        })
-        .ToList();
-    
-    if (subjectsToCreate.Any())
+    var resolvedSubjectIds = new List<int?>(payload.Courses.Count);
+    foreach (var templateCourse in payload.Courses)
     {
-        _context.Subjects.AddRange(subjectsToCreate);
-        await _context.SaveChangesAsync(); // Kịch! Tụi nó đã có ID mới.
-
-        // Bổ sung mấy cái mới này vào Dictionary luôn
-        foreach (var newSub in subjectsToCreate)
-        {
-            subjectDictionary[newSub.Name] = newSub;
-        }
+        var resolvedSubject = await ResolveSubjectAsync(
+            templateCourse.Subject,
+            template.Type,
+            userId,
+            subjectPool);
+        resolvedSubjectIds.Add(resolvedSubject?.Id);
     }
     
     // Bước 1 — Tạo plan + courses trước, chưa có routines
@@ -533,11 +511,9 @@ public class PlanTemplateService: IPlanTemplateService
         EndDate = endDate,
         Order = await _context.StudyPlans
             .CountAsync(p => p.UserId == userId) + 1,
-        Courses = payload.Courses.Select(c => new Course
+        Courses = payload.Courses.Select((c, index) => new Course
         {
-            SubjectId = c.Subject != null && subjectDictionary.ContainsKey(c.Subject.Name)
-                ? subjectDictionary[c.Subject.Name].Id
-                : null,
+            SubjectId = resolvedSubjectIds[index],
             Name = c.Name,
             Goal = c.Goal,
             TargetScore = c.TargetScore,
@@ -675,7 +651,42 @@ public async Task<ImportSelectedCoursesResultDto> ImportSelectedCoursesAsync(Imp
         throw new UnauthorizedAccessException("Không có quyền truy cập template này");
     }
 
+    var payload = EnsurePayloadCompatibility(template.Payload)
+        ?? throw new AppException("Template không có dữ liệu");
+
     var targetPlanId = dto.TargetPlanId;
+    if (targetPlanId <= 0 && dto.CreateNewPlan)
+    {
+        if (template.Type != StudyPlanType.Personal)
+        {
+            throw new AppException("Chỉ template cá nhân mới hỗ trợ tạo KHHT mới khi áp dụng.");
+        }
+
+        if (!dto.NewPlanStartDate.HasValue)
+        {
+            throw new AppException("Vui lòng chọn ngày bắt đầu cho KHHT mới.");
+        }
+
+        var newPlanStartDate = DateTime.SpecifyKind(dto.NewPlanStartDate.Value, DateTimeKind.Utc);
+        var createdPlan = new StudyPlan
+        {
+            Type = template.Type,
+            Name = string.IsNullOrWhiteSpace(dto.NewPlanName)
+                ? template.Name
+                : dto.NewPlanName.Trim(),
+            UserId = userId,
+            TemplateId = template.Id,
+            StartDate = newPlanStartDate,
+            EndDate = newPlanStartDate.AddDays(payload.DurationDays),
+            Status = StudyPlanStatus.Active,
+            Order = await _context.StudyPlans.CountAsync(p => p.UserId == userId) + 1,
+        };
+
+        _context.StudyPlans.Add(createdPlan);
+        await _context.SaveChangesAsync();
+        targetPlanId = createdPlan.Id;
+    }
+
     if (targetPlanId <= 0)
     {
         var candidatePlanIds = await _context.StudyPlans
@@ -688,7 +699,12 @@ public async Task<ImportSelectedCoursesResultDto> ImportSelectedCoursesAsync(Imp
 
         if (candidatePlanIds.Count == 0)
         {
-            throw new AppException("Không tìm thấy kế hoạch đang hoạt động phù hợp để import.");
+            if (template.Type == StudyPlanType.Academic)
+            {
+                throw new AppException("Không có KHHT đại học đang hoạt động. Vui lòng tạo KHHT trước khi áp dụng template.");
+            }
+
+            throw new AppException("Không tìm thấy kế hoạch đang hoạt động phù hợp để áp dụng template.");
         }
 
         if (candidatePlanIds.Count > 1)
@@ -721,8 +737,6 @@ public async Task<ImportSelectedCoursesResultDto> ImportSelectedCoursesAsync(Imp
         throw new AppException("Loại kế hoạch đích không tương thích với template.");
     }
 
-    var payload = EnsurePayloadCompatibility(template.Payload)
-        ?? throw new AppException("Template không có dữ liệu");
     var selectedRefSet = dto.CourseRefs
         .Where(r => !string.IsNullOrWhiteSpace(r))
         .Select(r => r.Trim())
@@ -768,7 +782,7 @@ public async Task<ImportSelectedCoursesResultDto> ImportSelectedCoursesAsync(Imp
     {
         foreach (var templateCourse in selectedCourses)
         {
-            var subject = await ResolveSubjectForImportAsync(
+            var subject = await ResolveSubjectAsync(
                 templateCourse.Subject,
                 template.Type,
                 userId,
@@ -972,7 +986,7 @@ public async Task<ImportSelectedCoursesResultDto> ImportSelectedCoursesAsync(Imp
     return result;
 }
 
-private async Task<Subject?> ResolveSubjectForImportAsync(
+private async Task<Subject?> ResolveSubjectAsync(
     TemplateSubject? templateSubject,
     StudyPlanType planType,
     int userId,
@@ -983,30 +997,74 @@ private async Task<Subject?> ResolveSubjectForImportAsync(
         return null;
     }
 
+    var normalizedCode = string.IsNullOrWhiteSpace(templateSubject.Code)
+        ? null
+        : templateSubject.Code.Trim();
+    var normalizedName = string.IsNullOrWhiteSpace(templateSubject.Name)
+        ? null
+        : templateSubject.Name.Trim();
+
     Subject? resolved = null;
-    if (!string.IsNullOrWhiteSpace(templateSubject.Code))
+    if (!string.IsNullOrWhiteSpace(normalizedCode))
     {
         resolved = subjectPool.FirstOrDefault(s =>
             s.Type == planType
-            && string.Equals(s.Code, templateSubject.Code, StringComparison.OrdinalIgnoreCase));
+            && !string.IsNullOrWhiteSpace(s.Code)
+            && string.Equals(s.Code!.Trim(), normalizedCode, StringComparison.OrdinalIgnoreCase));
     }
 
-    if (resolved == null)
+    if (resolved == null && !string.IsNullOrWhiteSpace(normalizedName))
     {
         resolved = subjectPool.FirstOrDefault(s =>
             s.Type == planType
-            && string.Equals(s.Name, templateSubject.Name, StringComparison.OrdinalIgnoreCase));
+            && string.Equals(s.Name.Trim(), normalizedName, StringComparison.OrdinalIgnoreCase));
     }
 
     if (resolved != null)
     {
+        var updated = false;
+
+        if (string.IsNullOrWhiteSpace(resolved.Code) && !string.IsNullOrWhiteSpace(normalizedCode))
+        {
+            resolved.Code = normalizedCode;
+            updated = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(resolved.Name) && !string.IsNullOrWhiteSpace(normalizedName))
+        {
+            resolved.Name = normalizedName;
+            updated = true;
+        }
+
+        if (planType == StudyPlanType.Academic
+            && templateSubject.Credits.HasValue
+            && !resolved.Credits.HasValue)
+        {
+            resolved.Credits = templateSubject.Credits;
+            updated = true;
+        }
+
+        if (updated)
+        {
+            await _context.SaveChangesAsync();
+        }
+
         return resolved;
+    }
+
+    var subjectName = string.IsNullOrWhiteSpace(normalizedName)
+        ? normalizedCode
+        : normalizedName;
+
+    if (string.IsNullOrWhiteSpace(subjectName))
+    {
+        return null;
     }
 
     var created = new Subject
     {
-        Name = templateSubject.Name,
-        Code = templateSubject.Code,
+        Name = subjectName,
+        Code = normalizedCode,
         Credits = templateSubject.Credits,
         Type = planType,
         UserId = userId,
@@ -1308,6 +1366,7 @@ private static List<PlanTemplateDetailCourseDto> BuildDetailCourses(TemplatePayl
             Ref = course.Ref,
             Name = course.Name,
             SubjectCode = course.Subject?.Code,
+            SubjectCredits = course.Subject?.Credits,
             Description = string.IsNullOrWhiteSpace(course.Goal)
                 ? $"Lộ trình học tập môn {course.Name} được tối ưu hóa theo giai đoạn."
                 : course.Goal,

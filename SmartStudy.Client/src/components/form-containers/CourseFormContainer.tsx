@@ -41,6 +41,7 @@ export default function CourseFormContainer() {
           targetScore: defaultValues?.targetScore,
           finalScore: defaultValues?.finalScore,
           goal: defaultValues?.goal || "",
+          subjectId: defaultValues?.subjectId ?? null,
         };
 
   const handleSubmit = (values: CourseFormValues) => {

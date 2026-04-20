@@ -29,7 +29,7 @@ INTERNAL_SERVICE_KEY = os.getenv("INTERNAL_SERVICE_KEY", "SmartStudy_Secret_123"
 
 primary_llm = ChatOpenAI(
     api_key=OPEN_ROUTER_API_KEY,
-    model="z-ai/glm-4.5-air:free",
+    model="openai/gpt-oss-120b:free",
     openai_api_base="https://openrouter.ai/api/v1",
     temperature=0.1,
     streaming=True

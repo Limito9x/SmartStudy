@@ -185,8 +185,8 @@ export default function TaskForm({
               <FormCombobox<TaskFormValues, ResponsePhaseDto>
                 name="eventId"
                 control={control}
-                label="Thuộc sự kiện"
-                placeholder="Chọn sự kiện (nếu có)"
+                label="Thuộc giai đoạn"
+                placeholder="Chọn giai đoạn"
                 options={events || []}
                 getOptionLabel={(option) => `${option.title}`}
                 getOptionValue={(option) => option.id!.toString()}

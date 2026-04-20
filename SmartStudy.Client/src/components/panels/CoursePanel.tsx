@@ -72,6 +72,7 @@ function PanelBody({
 }) {
   const title = type === "CHAT" ? "AI chat" : "Chi tiết công việc";
   const taskId = (data as PanelDataMap["TASK_DETAIL"] | null)?.taskId;
+  const chatData = data as PanelDataMap["CHAT"] | null;
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -91,11 +92,9 @@ function PanelBody({
       <div className="min-h-0 flex-1 overflow-hidden">
         {type === "CHAT" ? (
           <ChatContainer
-            courseId={
-              (data as PanelDataMap["CHAT"] | null)?.courseId ??
-              fallbackCourseId ??
-              null
-            }
+            courseId={chatData?.courseId ?? fallbackCourseId ?? null}
+            selectedAssetIds={chatData?.selectedAssetIds ?? []}
+            selectedAssetNames={chatData?.selectedAssetNames ?? []}
           />
         ) : taskId ? (
           <TaskDetail taskId={taskId} />

@@ -11,6 +11,7 @@ public class ChatRequestDto
     public int UserId { get; set; }
     public string SystemPrompt { get; set; } = null!;
     public int? CourseId { get; set; }
+    public List<int>? SelectedAssetIds { get; set; }
 }
 
 public interface IAiApiClient

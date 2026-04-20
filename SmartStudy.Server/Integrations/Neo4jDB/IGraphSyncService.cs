@@ -5,6 +5,7 @@ namespace SmartStudy.Server.Integrations.Neo4j
         Task SyncUserAsync(int userId);
         Task SyncStudyPlanAsync(int studyPlanId);
         Task SyncCourseAsync(int courseId);
+        Task SyncSubjectAsync(int subjectId);
         Task SyncPhaseAsync(int phaseId);
         Task SyncRoutineAsync(int routineId);
         Task SyncTaskAsync(int taskId);
@@ -16,6 +17,7 @@ namespace SmartStudy.Server.Integrations.Neo4j
         Task DeleteUserAsync(int userId);
         Task DeleteStudyPlanAsync(int studyPlanId);
         Task DeleteCourseAsync(int courseId);
+        Task DeleteSubjectAsync(int subjectId);
         Task DeletePhaseAsync(int phaseId);
         Task DeleteRoutineAsync(int routineId);
         Task DeleteTaskAsync(int taskId);

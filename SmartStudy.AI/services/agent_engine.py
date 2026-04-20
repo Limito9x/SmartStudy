@@ -12,6 +12,31 @@ from services.tools import build_tools
 async def stream_chat_generator(request: ChatRequest) -> AsyncGenerator[str, None]:
     try:
         asset_ids = await get_allowed_asset_ids(request.user_id, request.course_id)
+        asset_ids = [str(asset_id) for asset_id in (asset_ids or []) if asset_id is not None]
+
+        logger.info(
+            "Selected asset ids from request: %s | Allowed asset ids: %s",
+            request.selected_asset_ids,
+            asset_ids,
+        )
+
+        if request.selected_asset_ids:
+            selected_ids = {
+                str(asset_id)
+                for asset_id in request.selected_asset_ids
+                if isinstance(asset_id, int) and asset_id > 0
+            }
+            asset_ids = [
+                asset_id
+                for asset_id in asset_ids
+                if asset_id in selected_ids
+            ]
+
+            if not asset_ids:
+                logger.warning(
+                    "SelectedAssetIds were provided but no allowed asset ids remained after filtering: %s",
+                    request.selected_asset_ids,
+                )
 
         tools = build_tools(asset_ids, request.user_id, request.course_id)
 
@@ -32,8 +57,24 @@ async def stream_chat_generator(request: ChatRequest) -> AsyncGenerator[str, Non
             version="v2"
         ):
             kind = event["event"]
+            logger.debug(f"Event received: {kind} {event.get('name', '')}")
 
-            if kind == "on_chat_model_stream":
+            if kind == "on_tool_start" and event["name"] == "trigger_phase_preview":
+                try:
+                    tool_input = event["data"].get("input", {})
+                    
+                    ui_payload = {
+                        "type": "GEN_UI_PHASE_PREVIEW",
+                        "data": tool_input
+                    }
+                    yield json.dumps({
+                        "Type": "UI",
+                        "Data": json.dumps(ui_payload)
+                    }) + "\n"
+                except Exception as ex:
+                    logger.error(f"Error intercepting trigger_phase_preview: {ex}")
+
+            elif kind == "on_chat_model_stream":
                 chunk = event["data"]["chunk"]
                 if chunk.content and isinstance(chunk.content, str):
                     yield json.dumps({

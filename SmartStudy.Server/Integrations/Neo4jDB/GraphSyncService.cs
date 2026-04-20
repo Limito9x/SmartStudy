@@ -118,6 +118,7 @@ MERGE (u)-[:OWNS_PLAN]->(sp)
                 {
                     c.Id,
                     c.StudyPlanId,
+                    c.SubjectId,
                     c.Name,
                     Status = c.Status.ToString(),
                     c.Goal,
@@ -134,6 +135,11 @@ MERGE (u)-[:OWNS_PLAN]->(sp)
                 return;
             }
 
+            if (course.SubjectId.HasValue)
+            {
+                await SyncSubjectAsync(course.SubjectId.Value);
+            }
+
             var query = @"
 MERGE (sp:StudyPlan {pg_id: $study_plan_pg_id})
 MERGE (c:Course {pg_id: $pg_id})
@@ -148,12 +154,22 @@ WITH sp, c
 OPTIONAL MATCH (:StudyPlan)-[old:HAS_COURSE]->(c)
 DELETE old
 MERGE (sp)-[:HAS_COURSE]->(c)
+WITH c
+OPTIONAL MATCH (c)-[oldSubject:BELONGS_TO_SUBJECT]->(:Subject)
+DELETE oldSubject
+WITH c
+OPTIONAL MATCH (s:Subject)
+WHERE $subject_pg_id IS NOT NULL AND toString(s.pg_id) = $subject_pg_id
+FOREACH (_ IN CASE WHEN s IS NULL THEN [] ELSE [1] END |
+    MERGE (c)-[:BELONGS_TO_SUBJECT]->(s)
+)
 ";
 
             await ExecuteAsync(query, new Dictionary<string, object?>
             {
                 ["pg_id"] = course.Id.ToString(),
                 ["study_plan_pg_id"] = course.StudyPlanId.ToString(),
+                ["subject_pg_id"] = course.SubjectId?.ToString(),
                 ["name"] = course.Name,
                 ["status"] = course.Status,
                 ["goal"] = course.Goal,
@@ -161,6 +177,59 @@ MERGE (sp)-[:HAS_COURSE]->(c)
                 ["final_score"] = course.FinalScore,
                 ["created_at"] = ToIso(course.CreatedAt),
                 ["updated_at"] = ToIsoNullable(course.UpdatedAt)
+            });
+        }
+
+        public async Task SyncSubjectAsync(int subjectId)
+        {
+            var subject = await _dbContext.Subjects
+                .AsNoTracking()
+                .Where(s => s.Id == subjectId)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.UserId,
+                    s.Code,
+                    s.Name,
+                    Type = s.Type.ToString(),
+                    s.Credits,
+                    s.CreatedAt,
+                    s.UpdatedAt
+                })
+                .FirstOrDefaultAsync();
+
+            if (subject == null)
+            {
+                await DeleteSubjectAsync(subjectId);
+                return;
+            }
+
+            var query = @"
+MERGE (u:User {pg_id: $user_pg_id})
+SET u.updated_at = datetime()
+MERGE (s:Subject {pg_id: $pg_id})
+SET s.code = $code,
+    s.name = $name,
+    s.type = $type,
+    s.credits = $credits,
+    s.created_at = CASE WHEN s.created_at IS NULL THEN datetime($created_at) ELSE s.created_at END,
+    s.updated_at = CASE WHEN $updated_at IS NULL THEN datetime() ELSE datetime($updated_at) END
+WITH u, s
+OPTIONAL MATCH (:User)-[old:OWNS_SUBJECT]->(s)
+DELETE old
+MERGE (u)-[:OWNS_SUBJECT]->(s)
+";
+
+            await ExecuteAsync(query, new Dictionary<string, object?>
+            {
+                ["pg_id"] = subject.Id.ToString(),
+                ["user_pg_id"] = subject.UserId.ToString(),
+                ["code"] = subject.Code,
+                ["name"] = subject.Name,
+                ["type"] = subject.Type,
+                ["credits"] = subject.Credits,
+                ["created_at"] = ToIso(subject.CreatedAt),
+                ["updated_at"] = ToIsoNullable(subject.UpdatedAt)
             });
         }
 
@@ -588,6 +657,11 @@ SET rel.asset_link_pg_id = $asset_link_pg_id,
         public Task DeleteCourseAsync(int courseId)
         {
             return DeleteNodeAsync("Course", courseId);
+        }
+
+        public Task DeleteSubjectAsync(int subjectId)
+        {
+            return DeleteNodeAsync("Subject", subjectId);
         }
 
         public Task DeletePhaseAsync(int phaseId)

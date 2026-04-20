@@ -46,7 +46,10 @@ namespace SmartStudy.Server.Controllers
 
             try
             {
-                await foreach (var chunk in _chatService.StreamChatAsync(sessionId, chatDto.prompt))
+                await foreach (var chunk in _chatService.StreamChatAsync(
+                                   sessionId,
+                                   chatDto.prompt,
+                                   chatDto.selectedAssetIds))
                 {
                     // Serialize chunk thành JSON
                     var json = JsonSerializer.Serialize(chunk, new JsonSerializerOptions 

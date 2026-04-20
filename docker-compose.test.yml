@@ -8,7 +8,7 @@ services:
       - /app/node_modules
     build:
       context: ./SmartStudy.Client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.Frontend
     container_name: smartstudy_frontend
     ports:
       - "5173:5173"
@@ -18,7 +18,7 @@ services:
   backend:
     build:
       context: ./SmartStudy.Server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.Backend
     container_name: smartstudy_backend
     env_file:
       - .env.backend

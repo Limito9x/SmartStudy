@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, PanelRightClose, PanelRightOpen } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -14,6 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { usePanelStore } from "@/stores/usePanelStore";
 import { useCourseContextStore } from "@/stores/useCourseContextStore";
+import { useChatStore } from "@/stores/useChatStore";
 
 export default function CoursePage() {
   const { courseId, studyPlanId } = useParams<{
@@ -26,13 +27,39 @@ export default function CoursePage() {
   const isMobile = useIsMobile();
   const { isOpen, type, openPanel, closePanel } = usePanelStore();
   const { setActiveCourseId } = useCourseContextStore();
+  const { setActiveSession } = useChatStore();
+  const hasInitializedCourseRef = useRef(false);
 
   const isChatOpen = isOpen && type === "CHAT";
   const isDesktopPanelOpen = !isMobile && isOpen;
 
   useEffect(() => {
+    const normalizedCourseId =
+      Number.isFinite(courseIdNum) && courseIdNum > 0 ? courseIdNum : null;
+
+    if (!hasInitializedCourseRef.current) {
+      hasInitializedCourseRef.current = true;
+      return;
+    }
+
+    const { isOpen: panelIsOpen, type: panelType } = usePanelStore.getState();
+
+    if (!panelIsOpen) {
+      return;
+    }
+
+    if (panelType === "CHAT") {
+      setActiveSession(null);
+      openPanel("CHAT", {
+        courseId: normalizedCourseId,
+        selectedAssetIds: [],
+        selectedAssetNames: [],
+      });
+      return;
+    }
+
     closePanel();
-  }, [courseIdNum, closePanel]);
+  }, [courseIdNum, openPanel, closePanel, setActiveSession]);
 
   useEffect(() => {
     const normalizedCourseId =
@@ -53,6 +80,8 @@ export default function CoursePage() {
 
     openPanel("CHAT", {
       courseId: Number.isFinite(courseIdNum) ? courseIdNum : null,
+      selectedAssetIds: [],
+      selectedAssetNames: [],
     });
   };
 

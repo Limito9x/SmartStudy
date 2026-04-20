@@ -14,7 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   useGetPlanTemplateById,
   useGetPlanTemplatePreviewBySourcePlan,
-  usePlanTemplate,
 } from "@/hooks/entities/usePlanTemplate.ts";
 import CloneTemplateDialog from "@/components/features/plan/CloneTemplateDialog";
 import AssetItem from "@/components/files/AssetItem";
@@ -44,6 +43,7 @@ type DetailCourse = {
   ref?: string | null;
   name?: string | null;
   subjectCode?: string | null;
+  subjectCredits?: number | string | null;
   description?: string | null;
   goal?: string | null;
   targetScore?: number | string | null;
@@ -126,15 +126,43 @@ const extractStudyPlanId = (data: unknown): number | null => {
 
   const maybeData = data as Record<string, unknown>;
   const idCandidate =
-    maybeData.studyPlanId ?? maybeData.id ?? maybeData.createdStudyPlanId;
+    maybeData.targetPlanId ??
+    maybeData.studyPlanId ??
+    maybeData.id ??
+    maybeData.createdStudyPlanId;
 
-  if (typeof idCandidate === "number") {
-    return idCandidate;
+  const parseNumericId = (value: unknown): number | null => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : null;
+    }
+
+    if (typeof value === "string" && value.trim() !== "") {
+      const parsed = Number(value);
+      return Number.isNaN(parsed) ? null : parsed;
+    }
+
+    return null;
+  };
+
+  const parsedDirectId = parseNumericId(idCandidate);
+  if (parsedDirectId) {
+    return parsedDirectId;
   }
 
-  if (typeof idCandidate === "string" && idCandidate.trim() !== "") {
-    const parsed = Number(idCandidate);
-    return Number.isNaN(parsed) ? null : parsed;
+  const newPlanIdValue = maybeData.newPlanId;
+  const parsedNewPlanId = parseNumericId(newPlanIdValue);
+  if (parsedNewPlanId) {
+    return parsedNewPlanId;
+  }
+
+  if (newPlanIdValue && typeof newPlanIdValue === "object") {
+    const nestedData = newPlanIdValue as Record<string, unknown>;
+    const parsedNestedId = parseNumericId(
+      nestedData.studyPlanId ?? nestedData.id ?? nestedData.createdStudyPlanId,
+    );
+    if (parsedNestedId) {
+      return parsedNestedId;
+    }
   }
 
   return null;
@@ -144,12 +172,10 @@ export default function TemplateDetailPage() {
   const navigate = useNavigate();
   const { templateId, sourcePlanId } = useParams();
   const [searchParams] = useSearchParams();
-  const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
+  const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
   const [selectedCourseRefs, setSelectedCourseRefs] = useState<string[]>([]);
   const { user } = useAuthStore();
   const isAdmin = user?.role === "admin";
-  const { importSelectedCourses, importSelectedCoursesMutation } =
-    usePlanTemplate();
 
   const parsedTemplateId = Number(templateId);
   const parsedSourcePlanId = Number(sourcePlanId);
@@ -177,12 +203,11 @@ export default function TemplateDetailPage() {
     [detailData],
   );
 
-  const canImport =
+  const canApply =
     !isAdmin &&
     !isPreviewMode &&
     !isRoutePreview &&
-    selectedCourseRefs.length > 0 &&
-    !importSelectedCoursesMutation.isPending;
+    selectedCourseRefs.length > 0;
 
   const toggleCourseRef = (courseRef: string) => {
     setSelectedCourseRefs((prev) =>
@@ -190,24 +215,6 @@ export default function TemplateDetailPage() {
         ? prev.filter((item) => item !== courseRef)
         : [...prev, courseRef],
     );
-  };
-
-  const handleImportSelectedCourses = async () => {
-    if (isRoutePreview) {
-      return;
-    }
-
-    if (selectedCourseRefs.length === 0) {
-      return;
-    }
-
-    await importSelectedCourses({
-      templateId: parsedTemplateId,
-      targetPlanId: 0,
-      courseRefs: selectedCourseRefs,
-    });
-
-    setSelectedCourseRefs([]);
   };
 
   if (isLoading) {
@@ -286,9 +293,19 @@ export default function TemplateDetailPage() {
                         {course.name || `Môn ${courseIndex + 1}`}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {course.subjectCode
-                          ? `Mã môn: ${course.subjectCode}`
-                          : "Chưa có mã môn"}
+                        {[
+                          course.subjectCode
+                            ? `Mã môn: ${course.subjectCode}`
+                            : "Chưa có mã môn",
+                          detailData.type === "Academic" &&
+                          course.subjectCredits !== null &&
+                          course.subjectCredits !== undefined &&
+                          course.subjectCredits !== ""
+                            ? `${course.subjectCredits} tín chỉ`
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" • ")}
                       </p>
                     </div>
                   </AccordionTrigger>
@@ -489,9 +506,9 @@ export default function TemplateDetailPage() {
         {!isAdmin && !isPreviewMode ? (
           <div className="h-fit space-y-4 rounded-xl border bg-white p-4">
             <div>
-              <h2 className="text-base font-semibold">Import môn học</h2>
+              <h2 className="text-base font-semibold">Áp dụng vào KHHT</h2>
               <p className="text-sm text-muted-foreground">
-                Chọn môn để import vào kế hoạch đang hoạt động cùng loại.
+                Chọn môn học rồi áp dụng template vào KHHT phù hợp.
               </p>
             </div>
 
@@ -520,20 +537,10 @@ export default function TemplateDetailPage() {
 
             <Button
               className="w-full"
-              onClick={handleImportSelectedCourses}
-              disabled={!canImport}
+              onClick={() => setIsApplyDialogOpen(true)}
+              disabled={!canApply}
             >
-              {importSelectedCoursesMutation.isPending
-                ? "Đang import..."
-                : "Import"}
-            </Button>
-
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setIsCloneDialogOpen(true)}
-            >
-              Dùng toàn bộ template
+              Áp dụng
             </Button>
           </div>
         ) : null}
@@ -541,11 +548,16 @@ export default function TemplateDetailPage() {
 
       {!isAdmin ? (
         <CloneTemplateDialog
-          open={isCloneDialogOpen}
-          onOpenChange={setIsCloneDialogOpen}
+          open={isApplyDialogOpen}
+          onOpenChange={setIsApplyDialogOpen}
           templateId={parsedTemplateId}
-          defaultName={detailData.name || undefined}
-          onCloneSuccess={(response) => {
+          templateType={
+            detailData.type === "Personal" ? "Personal" : "Academic"
+          }
+          selectedCourseRefs={selectedCourseRefs}
+          defaultPlanName={detailData.name || undefined}
+          onApplySuccess={(response) => {
+            setSelectedCourseRefs([]);
             const createdStudyPlanId = extractStudyPlanId(response);
             if (createdStudyPlanId) {
               navigate(`/app/study-plans/${createdStudyPlanId}`);

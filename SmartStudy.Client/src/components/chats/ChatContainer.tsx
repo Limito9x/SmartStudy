@@ -5,22 +5,36 @@ import { Composer, Thread } from "@/components/thread";
 import { useChatRuntime } from "@/hooks/useChatRuntime";
 import { useChatSession } from "@/hooks/entities/useChatSession";
 import { useChatStore } from "@/stores/useChatStore";
+import { useEffect, useRef } from "react";
 
 interface ChatContainerProps {
   courseId?: number | null;
+  selectedAssetIds?: number[];
+  selectedAssetNames?: string[];
 }
 
-export function ChatContainer({ courseId }: ChatContainerProps) {
-  const {
-    view,
-    activeSessionId,
-    setActiveSession,
-  } = useChatStore();
+export function ChatContainer({
+  courseId,
+  selectedAssetIds = [],
+  selectedAssetNames = [],
+}: ChatContainerProps) {
+  const { view, activeSessionId, setActiveSession } = useChatStore();
   const effectiveCourseId = courseId ?? null;
+  const prevCourseIdRef = useRef<number | null>(effectiveCourseId);
+
+  useEffect(() => {
+    if (prevCourseIdRef.current === effectiveCourseId) {
+      return;
+    }
+
+    prevCourseIdRef.current = effectiveCourseId;
+    setActiveSession(null);
+  }, [effectiveCourseId, setActiveSession]);
 
   const runtime = useChatRuntime({
     sessionId: activeSessionId || undefined,
     courseId: effectiveCourseId || undefined,
+    selectedAssetIds,
     onSessionCreated: (sessionId) => setActiveSession(sessionId),
   });
 
@@ -35,9 +49,15 @@ export function ChatContainer({ courseId }: ChatContainerProps) {
           }}
         >
           {view === "list" ? (
-            <ListMode courseId={effectiveCourseId} />
+            <ListMode
+              courseId={effectiveCourseId}
+              selectedAssetNames={selectedAssetNames}
+            />
           ) : (
-            <ThreadMode onBack={() => setActiveSession(null)} />
+            <ThreadMode
+              onBack={() => setActiveSession(null)}
+              selectedAssetNames={selectedAssetNames}
+            />
           )}
         </div>
       </div>
@@ -45,9 +65,16 @@ export function ChatContainer({ courseId }: ChatContainerProps) {
   );
 }
 
-function ListMode({ courseId }: { courseId: number | null }) {
+function ListMode({
+  courseId,
+  selectedAssetNames,
+}: {
+  courseId: number | null;
+  selectedAssetNames: string[];
+}) {
   return (
     <div className="flex h-full flex-col">
+      <SelectedAssetsBanner selectedAssetNames={selectedAssetNames} />
       <SessionList courseId={courseId} />
       <div className="border-t bg-slate-50 px-3 pb-3 pt-2 **:data-[slot=composer-shell]:shadow-sm">
         <Composer />
@@ -56,7 +83,13 @@ function ListMode({ courseId }: { courseId: number | null }) {
   );
 }
 
-function ThreadMode({ onBack }: { onBack: () => void }) {
+function ThreadMode({
+  onBack,
+  selectedAssetNames,
+}: {
+  onBack: () => void;
+  selectedAssetNames: string[];
+}) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 border-b px-3 py-2">
@@ -66,8 +99,39 @@ function ThreadMode({ onBack }: { onBack: () => void }) {
         <span className="text-sm font-semibold">Cuộc trò chuyện</span>
       </div>
 
+      <SelectedAssetsBanner selectedAssetNames={selectedAssetNames} />
+
       <div className="min-h-0 flex-1 overflow-hidden">
         <Thread />
+      </div>
+    </div>
+  );
+}
+
+function SelectedAssetsBanner({
+  selectedAssetNames,
+}: {
+  selectedAssetNames: string[];
+}) {
+  if (selectedAssetNames.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="border-b bg-emerald-50 px-3 py-2">
+      <p className="text-xs font-medium text-emerald-900">
+        Đang hỏi AI với {selectedAssetNames.length} tài liệu đã chọn:
+      </p>
+      <div className="mt-1 flex flex-wrap gap-1">
+        {selectedAssetNames.map((assetName, index) => (
+          <span
+            key={`${assetName}-${index}`}
+            className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] text-emerald-900"
+            title={assetName}
+          >
+            {assetName}
+          </span>
+        ))}
       </div>
     </div>
   );

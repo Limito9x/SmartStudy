@@ -18,6 +18,7 @@ namespace SmartStudy.Server.Services
     {
         public Task<List<ChatHistoryDto>> GetMessagesBySessionId(int sessionId);
         public IAsyncEnumerable<AiResponseChunk> StreamChatAsync(int sessionId, string message,
+        List<int>? selectedAssetIds = null,
         CancellationToken cancellationToken = default);
         public Task<int> CreateSession(SessionDto sessionDto);
         public Task<List<SessionResponseDto>> GetSessions(int? courseId);
@@ -134,6 +135,7 @@ namespace SmartStudy.Server.Services
         }
 
         public async IAsyncEnumerable<AiResponseChunk> StreamChatAsync(int sessionId, string message,
+        List<int>? selectedAssetIds = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var userId = _currentUserService.UserId;
@@ -144,6 +146,11 @@ namespace SmartStudy.Server.Services
                 ?? throw new Exception("Chat session not found or access denied.");
 
             var courseId = session.CourseId;
+            var scopedSelectedAssetIds = await ResolveScopedSelectedAssetIdsAsync(
+                userId,
+                courseId,
+                selectedAssetIds,
+                cancellationToken);
             
             // 1. Load chat history từ database
             var messages = await _context.ChatMessages
@@ -158,9 +165,12 @@ namespace SmartStudy.Server.Services
                 await InitializeChat(message, sessionId);
             }
 
+            var course = _context.Courses.Find(courseId);
+
             // 2. Thêm system message TRƯỚC lịch sử
             var systemMsg = courseId.HasValue
-                    ? AiPersonaConfig.GetCourseTutorPrompt(session.Course?.Name ?? "khóa học", courseId.Value)
+                    ? AiPersonaConfig.GetCourseTutorPrompt(session.Course?.Name ?? "khóa học",
+                    course != null ? course.Goal : "giúp đỡ người học tiến bộ mỗi ngày", course != null ? course.TargetScore : 0)
                     : AiPersonaConfig.GetGlobalButlerPrompt();
 
             var info = await _context.StudentInfos
@@ -172,10 +182,21 @@ namespace SmartStudy.Server.Services
                 Trường: {info.University},
                 Ngành: {info.Major},
                 Khóa {info.Cohort}.
-                Năm nhập học: {info.AdmissionYear}."
+                Năm nhập học: {info.AdmissionYear}.
+                Đây là những phần thông tin quan trọng của sinh viên để trợ lý AI có thể cá nhân hóa câu trả lời, nhưng chỉ sử dụng khi thực sự cần thiết để tránh lạc đề. Nếu không có thông tin này, hãy trả lời như bình thường."
                 : "Không có thông tin sinh viên.";
 
             systemMsg += "\n\n" + studentInfoStr;
+
+            if (scopedSelectedAssetIds.Count > 0)
+            {
+                var assets = await _context.Assets
+                    .Where(a => scopedSelectedAssetIds.Contains(a.Id))
+                    .Select(a => a.FileName)
+                    .ToListAsync();
+                systemMsg += $"\n\nPhạm vi tài liệu RAG cho truy vấn này đã được giới hạn vào {scopedSelectedAssetIds.Count} tài liệu do người dùng chọn.";
+                systemMsg += "\nDanh sách tài liệu (chỉ tên file):\n" + string.Join("\n", assets);
+            }
 
             // 3. Gói dữ liệu sang Python
             var requestBody = new ChatRequestDto
@@ -185,6 +206,7 @@ namespace SmartStudy.Server.Services
                 Query = message,
                 CourseId = courseId,
                 UserId = userId,
+                SelectedAssetIds = scopedSelectedAssetIds.Count > 0 ? scopedSelectedAssetIds : null,
             };
 
             // Lưu user message trước khi gọi AI để tránh mất dữ liệu nếu stream lỗi giữa chừng.
@@ -255,6 +277,63 @@ namespace SmartStudy.Server.Services
                     );
                 }
             }
+        }
+
+        private async Task<List<int>> ResolveScopedSelectedAssetIdsAsync(
+            int userId,
+            int? courseId,
+            List<int>? selectedAssetIds,
+            CancellationToken cancellationToken)
+        {
+            if (selectedAssetIds == null || selectedAssetIds.Count == 0)
+            {
+                return [];
+            }
+
+            var normalizedSelectedIds = selectedAssetIds
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (normalizedSelectedIds.Count == 0)
+            {
+                return [];
+            }
+
+            var query = _context.Assets
+                .AsNoTracking()
+                .Where(a => normalizedSelectedIds.Contains(a.Id)
+                            && a.UserId == userId
+                            && a.Status == AssetStatus.Analyzed
+                            && a.AssetLinks.Any());
+
+            if (courseId.HasValue)
+            {
+                var targetCourseId = courseId.Value;
+                query = query.Where(a => a.AssetLinks.Any(al =>
+                    (al.LinkedType == AssetLinkType.Course && al.LinkedId == targetCourseId) ||
+                    (al.LinkedType == AssetLinkType.Task && _context.Tasks.Any(t =>
+                        t.Id == al.LinkedId &&
+                        t.UserId == userId &&
+                        t.Phase != null &&
+                        t.Phase.CourseId == targetCourseId)) ||
+                    (al.LinkedType == AssetLinkType.Log && _context.Logs.Any(l =>
+                        l.Id == al.LinkedId &&
+                        l.Task.UserId == userId &&
+                        l.Task.Phase != null &&
+                        l.Task.Phase.CourseId == targetCourseId))));
+            }
+            else
+            {
+                query = query.Where(a => a.AssetLinks.Any(al => al.UserId == userId));
+            }
+
+            var scopedIds = await query
+                .Select(a => a.Id)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            return scopedIds;
         }
 
         private async Task SaveUserMessageAsync(int sessionId, string userMsg, CancellationToken cancellationToken)

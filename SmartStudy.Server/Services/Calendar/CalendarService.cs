@@ -11,6 +11,7 @@ namespace SmartStudy.Server.Services;
 public interface ICalendarService
 {
     Task<List<CalendarEventDto>> GetCalendarAsync(DateOnly fromDate, DateOnly toDate);
+    Task<List<CalendarEventDto>> GetCalendarAsync(int userId, DateOnly fromDate, DateOnly toDate);
     Task<InboxResponseDto> GetInboxItemsAsync();
     Task RescheduleTaskAsync(RescheduleTaskDto dto);
 }
@@ -29,10 +30,16 @@ public class CalendarService: ICalendarService
     public async Task<List<CalendarEventDto>> GetCalendarAsync(
     DateOnly fromDate, DateOnly toDate)
 {
+    var userId = _currentUserService.UserId;
+    return await GetCalendarAsync(userId, fromDate, toDate);
+}
+
+public async Task<List<CalendarEventDto>> GetCalendarAsync(
+    int userId, DateOnly fromDate, DateOnly toDate)
+{
     if (fromDate > toDate)
         throw new AppException("fromDate không được lớn hơn toDate.");
 
-    var userId = _currentUserService.UserId;
     var fromDateTime = fromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
     var toDateTime = toDate.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
     var result = new List<CalendarEventDto>();
@@ -144,6 +151,9 @@ public async Task<InboxResponseDto> GetInboxItemsAsync()
         .Where(t => t.UserId == userId
                     && t.RoutineId == null
                     && !t.StartDateTime.HasValue
+                    && (t.Phase == null
+                        || t.Phase.Course == null
+                        || t.Phase.Course.Status == CourseStatus.Enrolled)
                     && t.Status != TaskStatus.Cancelled
                     && t.Status != TaskStatus.Archived)
         .ToListAsync();
@@ -152,7 +162,10 @@ public async Task<InboxResponseDto> GetInboxItemsAsync()
         .Include(r => r.Phase)
         .ThenInclude(p => p!.Course)
         .AsNoTracking()
-        .Where(r => r.UserId == userId)
+        .Where(r => r.UserId == userId
+                    && (r.Phase == null
+                        || r.Phase.Course == null
+                        || r.Phase.Course.Status == CourseStatus.Enrolled))
         .ToListAsync();
 
     var floatingItems = floatingTasks.Select(t => new UnscheduledItemDto

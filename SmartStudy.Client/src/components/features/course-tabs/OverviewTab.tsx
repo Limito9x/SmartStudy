@@ -96,7 +96,23 @@ export default function OverviewTab({
   const upcomingMilestones = useMemo(() => {
     const mapped = (workloadPhases ?? []).flatMap((phase) =>
       (phase.tasks ?? [])
-        .filter((task) => task.type === "Milestone")
+        .filter((task) => {
+          if (task.type !== "Milestone") {
+            return false;
+          }
+
+          if (
+            task.status === "Completed" ||
+            task.status === "Cancelled" ||
+            task.status === "Archived"
+          ) {
+            return false;
+          }
+
+          const dueDate = task.endDateTime ?? task.startDateTime;
+          const daysLeft = getDaysLeft(dueDate);
+          return daysLeft === null || daysLeft >= 0;
+        })
         .map((task) => ({
           task,
           phaseTitle: phase.title,

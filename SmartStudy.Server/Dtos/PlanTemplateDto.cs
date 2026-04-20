@@ -33,7 +33,10 @@ public record CloneTemplateDto(
 public record ImportSelectedCoursesDto(
     int TemplateId,
     int TargetPlanId,
-    List<string> CourseRefs
+    List<string> CourseRefs,
+    bool CreateNewPlan = false,
+    string? NewPlanName = null,
+    DateTime? NewPlanStartDate = null
 );
 
 public class ImportSelectedCoursesResultDto
@@ -105,6 +108,7 @@ public class PlanTemplateDetailCourseDto
     public string Ref { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? SubjectCode { get; set; }
+    public int? SubjectCredits { get; set; }
     public string? Description { get; set; }
     public string? Goal { get; set; }
     public double? TargetScore { get; set; }

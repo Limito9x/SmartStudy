@@ -7,11 +7,15 @@ import { type DialogDataMap } from "@/stores/useDialogStore";
 import type { LogFormValues } from "@/components/forms/log/schema";
 import { logApiMapper } from "@/utils/mapper/apiMapper";
 import { logFormMapper } from "@/utils/mapper/formMapper";
-import { useMutation } from "@tanstack/react-query";
-import { uploadAssetsMutation } from "@/services/api/@tanstack/react-query.gen";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getTaskDetailByIdQueryKey,
+  uploadAssetsMutation,
+} from "@/services/api/@tanstack/react-query.gen";
 import { formDataBodySerializer } from "@/services/api/client";
 import { useLoadingStore } from "@/stores/useLoadingStore";
 import { toast } from "sonner";
+import { invalidateAssetContext } from "@/utils/query-invalidate";
 
 interface LogFormContainerProps {
   taskId?: number;
@@ -28,6 +32,7 @@ export default function LogFormContainer({
 }: LogFormContainerProps = {}) {
   const { data, closeDialog } = useDialogStore();
   const { showLoading, hideLoading } = useLoadingStore();
+  const queryClient = useQueryClient();
   const dialogData = data as DialogDataMap["LOG_WORK_FORM"] | null;
 
   const taskId = externalTaskId ?? dialogData?.taskId;
@@ -79,6 +84,16 @@ export default function LogFormContainer({
 
   const task = getTaskById(taskId).data; // Dùng để lấy thông tin task, nếu cần thiết cho form
 
+  const invalidateTaskDetail = () => {
+    queryClient.invalidateQueries({
+      queryKey: getTaskDetailByIdQueryKey({
+        path: {
+          taskId,
+        },
+      }),
+    });
+  };
+
   // Chập data mồi (Create) hoặc data fetch được (Edit) vào form
   const finalDefaultValues =
     isEditMode && logData
@@ -115,6 +130,8 @@ export default function LogFormContainer({
           {
             onSuccess: (data) => {
               const totalUpload = data?.length ?? 0;
+              invalidateTaskDetail();
+              invalidateAssetContext(queryClient, "Log", logId);
               toast.success(`Tải lên ${totalUpload} tệp thành công`);
               handleSuccess();
             },
@@ -124,6 +141,7 @@ export default function LogFormContainer({
           },
         );
       } else {
+        invalidateTaskDetail();
         toast.success(
           isEditMode ? "Cập nhật log thành công" : "Tạo log thành công",
         );
@@ -138,6 +156,8 @@ export default function LogFormContainer({
         },
         body: logApiMapper.toLogWorkDto(values),
       });
+
+      invalidateTaskDetail();
 
       handleUploadFiles(logId);
     } else {

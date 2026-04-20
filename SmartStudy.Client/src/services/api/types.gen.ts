@@ -69,6 +69,7 @@ export type CalendarEventDto = {
 
 export type ChatDto = {
     prompt: string;
+    selectedAssetIds?: null | Array<number | string>;
 };
 
 export type ChatHistoryDto = {
@@ -179,6 +180,9 @@ export type ImportSelectedCoursesDto = {
     templateId: number | string;
     targetPlanId: number | string;
     courseRefs: Array<string>;
+    createNewPlan?: boolean;
+    newPlanName?: null | string;
+    newPlanStartDate?: null | string;
 };
 
 export type ImportSelectedCoursesResultDto = {
@@ -283,7 +287,10 @@ export type PlanTemplateDetailCourseDto = {
     ref?: string;
     name?: string;
     subjectCode?: null | string;
+    subjectCredits?: null | number | string;
     description?: null | string;
+    goal?: null | string;
+    targetScore?: null | number | string;
     assets?: Array<PlanTemplateDetailCourseAssetDto>;
     phases?: Array<PlanTemplateDetailPhaseDto>;
 };
@@ -1515,6 +1522,24 @@ export type GetMyPlanTemplatesResponses = {
 };
 
 export type GetMyPlanTemplatesResponse = GetMyPlanTemplatesResponses[keyof GetMyPlanTemplatesResponses];
+
+export type PreviewTemplateBySourcePlanData = {
+    body?: never;
+    path?: never;
+    query?: {
+        sourcePlanId?: number | string;
+    };
+    url: '/api/templates/preview';
+};
+
+export type PreviewTemplateBySourcePlanResponses = {
+    /**
+     * OK
+     */
+    200: PlanTemplateDetailDto;
+};
+
+export type PreviewTemplateBySourcePlanResponse = PreviewTemplateBySourcePlanResponses[keyof PreviewTemplateBySourcePlanResponses];
 
 export type ClonePlanTemplateData = {
     body: CloneTemplateDto;

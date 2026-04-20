@@ -247,9 +247,6 @@ if (app.Environment.IsDevelopment())
         // Scalar sẽ tự động đọc từ /openapi/v1.json
     });
     
-    using var scope = app.Services.CreateScope();
-    var seeder = scope.ServiceProvider.GetRequiredService<IDatabaseSeeder>();
-    await seeder.SeedAsync();
 }
 
 app.UseHttpsRedirection();

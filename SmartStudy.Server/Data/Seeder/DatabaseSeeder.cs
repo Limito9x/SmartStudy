@@ -16,6 +16,17 @@ public class DatabaseSeeder : IDatabaseSeeder
     private const int TargetUserCount = 20;
     private const int TargetTaskCount = 150;
     private const string DefaultPassword = "Demo@1234";
+    private static readonly List<SubjectCatalogEntry> CtuSubjectCatalog =
+    [
+        new("CT188", "Cấu trúc dữ liệu và giải thuật", 3, "Củng cố nền tảng giải thuật và tư duy tối ưu."),
+        new("CT214", "Cơ sở dữ liệu", 3, "Thiết kế schema chuẩn, viết truy vấn hiệu quả."),
+        new("CT239", "Công nghệ phần mềm", 3, "Thực hành quy trình phát triển phần mềm theo nhóm."),
+        new("CT176", "Lập trình hướng đối tượng", 3, "Nâng cao tư duy thiết kế lớp, kế thừa và đa hình."),
+        new("CT179", "Nguyên lý hệ điều hành", 3, "Hiểu tiến trình, đồng bộ và quản lý tài nguyên."),
+        new("CT271", "Mạng máy tính", 3, "Nắm mô hình mạng, giao thức và xử lý sự cố cơ bản."),
+        new("CT313", "Trí tuệ nhân tạo", 3, "Áp dụng phương pháp AI vào bài toán học tập thực tế."),
+        new("CT332", "Kiểm thử phần mềm", 2, "Thiết kế test case và tự động hóa kiểm thử."),
+    ];
 
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
@@ -28,18 +39,65 @@ public class DatabaseSeeder : IDatabaseSeeder
 
     public async Task SeedAsync()
     {
-        if (await _context.StudyPlans.AnyAsync())
-        {
-            return;
-        }
 
         var users = await SeedUsersAsync(TargetUserCount);
         var plans = await SeedStudyPlansAsync(users);
-        var courses = await SeedCoursesAsync(plans);
+        var subjectsByUser = await SeedSubjectsAsync(users);
+        var courses = await SeedCoursesAsync(plans, subjectsByUser);
         var courseGeneralPhases = await SeedGeneralPhasesAsync(courses);
         await SeedRoutinesAsync(users, plans, courses, courseGeneralPhases);
         await SeedTasksAndLogsAsync(plans, courses, courseGeneralPhases, TargetTaskCount);
         await SeedPhasesAsync(courses);
+    }
+
+    private async Task<Dictionary<int, List<Subject>>> SeedSubjectsAsync(List<User> users)
+    {
+        var subjectsByUser = new Dictionary<int, List<Subject>>();
+
+        foreach (var user in users)
+        {
+            var existingSubjects = await _context.Subjects
+                .Where(s => s.UserId == user.Id && s.Type == StudyPlanType.Academic)
+                .ToListAsync();
+
+            var subjectByCode = existingSubjects
+                .Where(s => !string.IsNullOrWhiteSpace(s.Code))
+                .GroupBy(s => s.Code!, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
+            var userSubjects = new List<Subject>();
+
+            foreach (var catalogEntry in CtuSubjectCatalog)
+            {
+                if (!subjectByCode.TryGetValue(catalogEntry.Code, out var subject))
+                {
+                    subject = new Subject
+                    {
+                        Code = catalogEntry.Code,
+                        Name = catalogEntry.Name,
+                        Credits = catalogEntry.Credits,
+                        Type = StudyPlanType.Academic,
+                        UserId = user.Id,
+                        User = user,
+                    };
+
+                    await _context.Subjects.AddAsync(subject);
+                }
+                else
+                {
+                    subject.Name = catalogEntry.Name;
+                    subject.Credits = catalogEntry.Credits;
+                    subject.Type = StudyPlanType.Academic;
+                }
+
+                userSubjects.Add(subject);
+            }
+
+            subjectsByUser[user.Id] = userSubjects;
+        }
+
+        await _context.SaveChangesAsync();
+        return subjectsByUser;
     }
 
     private async Task<List<User>> SeedUsersAsync(int targetCount)
@@ -169,10 +227,9 @@ public class DatabaseSeeder : IDatabaseSeeder
         return plans;
     }
 
-    private async Task<List<Course>> SeedCoursesAsync(List<StudyPlan> plans)
+    private async Task<List<Course>> SeedCoursesAsync(List<StudyPlan> plans, Dictionary<int, List<Subject>> subjectsByUser)
     {
         var faker = new Faker<Course>("vi")
-            .RuleFor(c => c.Name, f => $"{f.Commerce.ProductAdjective()} {f.Commerce.ProductMaterial()} {f.Hacker.Noun()}")
             .RuleFor(c => c.Color, f => $"#{f.Random.Int(0, 0xFFFFFF):X6}")
             .RuleFor(c => c.TargetScore, f => Math.Round(f.Random.Double(6.0, 9.5), 1))
             .RuleFor(c => c.Goal, f => f.Lorem.Sentence(12));
@@ -182,21 +239,38 @@ public class DatabaseSeeder : IDatabaseSeeder
 
         foreach (var plan in plans)
         {
-            var courseCount = Random.Shared.Next(2, 5);
+            var userSubjects = subjectsByUser.GetValueOrDefault(plan.UserId) ?? [];
+            var shuffledSubjects = userSubjects
+                .OrderBy(_ => Random.Shared.Next())
+                .ToList();
+
+            if (shuffledSubjects.Count == 0)
+            {
+                continue;
+            }
+
+            var courseCount = Math.Min(shuffledSubjects.Count, Random.Shared.Next(2, 5));
+
             for (var i = 0; i < courseCount; i++)
             {
                 var course = faker.Generate();
+                var subject = shuffledSubjects[i];
                 var planEnd = plan.EndDate ?? now;
                 var fromDate = plan.StartDate < planEnd ? plan.StartDate : planEnd;
                 var toDate = planEnd < now ? planEnd : now;
 
+                course.Name = subject.Name;
                 course.StudyPlanId = plan.Id;
+                course.SubjectId = subject.Id;
                 course.Status = plan.Status == StudyPlanStatus.Active
                     ? CourseStatus.Enrolled
                     : CourseStatus.Completed;
                 course.FinalScore = course.Status == CourseStatus.Completed
                     ? Math.Round(new Faker().Random.Double(6.0, 9.5), 1)
                     : null;
+                course.Goal = CtuSubjectCatalog
+                    .FirstOrDefault(x => x.Code.Equals(subject.Code, StringComparison.OrdinalIgnoreCase))
+                    ?.SuggestedGoal ?? course.Goal;
                 course.CreatedAt = Utc(new Faker().Date.Between(fromDate, toDate));
 
                 courses.Add(course);
@@ -416,4 +490,6 @@ public class DatabaseSeeder : IDatabaseSeeder
             ? value
             : DateTime.SpecifyKind(value, DateTimeKind.Utc);
     }
+
+    private sealed record SubjectCatalogEntry(string Code, string Name, int Credits, string SuggestedGoal);
 }

@@ -15,7 +15,14 @@ export const courseSchema = z.object({
     .nullish(),
   goal: z.string().nullable(),
   color: z.string().nullable(),
-  subjectId: z.coerce.number().nullable(),
+  subjectId: z.preprocess((value) => {
+    if (value === undefined || value === null || value === "") {
+      return null;
+    }
+
+    const numericValue = typeof value === "number" ? value : Number(value);
+    return Number.isFinite(numericValue) ? numericValue : value;
+  }, z.number().int().positive().nullable()),
 }) satisfies z.ZodType<Partial<RequestCourseDto>, any, any>;
 
 export type CourseFormValues = z.infer<typeof courseSchema>;
