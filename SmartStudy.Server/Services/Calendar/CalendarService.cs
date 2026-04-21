@@ -47,7 +47,7 @@ public async Task<List<CalendarEventDto>> GetCalendarAsync(
     // 1. Tasks thật có TaskDate trong khoảng
     var tasks = await _context.Tasks
         .Include(t => t.Phase)
-        .ThenInclude(p => p!.Course)
+        .ThenInclude(p => p.Course)
         .Include(t => t.Routine)
         .Where(t => t.UserId == userId
                  && t.StartDateTime.HasValue

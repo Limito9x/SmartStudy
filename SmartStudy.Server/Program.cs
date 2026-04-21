@@ -31,7 +31,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins("http://localhost")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -232,9 +232,7 @@ app.MapStaticAssets();
 app.UseCors("AllowReactApp");
 app.MapHub<NotificationHub>("/notificationHub");
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+
     // Map OpenAPI JSON endpoint - Tạo file JSON specification tại /openapi/v1.json
     var openApiEndpoint = app.MapOpenApi();
     openApiEndpoint.AllowAnonymous(); // Cho phép truy cập mà không cần authentication
@@ -246,8 +244,7 @@ if (app.Environment.IsDevelopment())
         options.Theme = ScalarTheme.Mars;
         // Scalar sẽ tự động đọc từ /openapi/v1.json
     });
-    
-}
+
 
 app.UseHttpsRedirection();
 
