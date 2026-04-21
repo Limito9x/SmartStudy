@@ -12,11 +12,11 @@
       "subjectCode": "CT188",
       "subjectName": "Cấu trúc dữ liệu và giải thuật",
       "subjectCredits": 3,
-      "goal": "Nắm chắc nền tảng giải thuật, đạt tối thiểu 8.0",
+      "goal": "Nắm chắc nền tảng giải thuật, duy trì hiệu suất học tập cao và đạt từ 9.0 trở lên",
       "status": "Enrolled",
       "color": "#1D4ED8",
-      "targetScore": 8.0,
-      "comment": "Môn cốt lõi của KTPM, ưu tiên luyện bài đều hàng tuần.",
+      "targetScore": 9.0,
+      "comment": "Demo 1 nhánh học tập duy nhất, tiến độ ổn định và chất lượng hoàn thành cao.",
       "phases": [
         {
           "referenceId": "DSA-P1",
@@ -26,7 +26,7 @@
           "startDayOffset": 0,
           "endDayOffset": 35,
           "location": "Khu II - Nhà học C1",
-          "notes": "Tập trung mảng, danh sách liên kết, stack/queue.",
+          "notes": "Tập trung mảng, linked list, stack và queue.",
           "routines": [
             {
               "referenceId": "DSA-R1",
@@ -70,30 +70,30 @@
               "startTime": "07:00",
               "plannedDuration": 100,
               "status": "Completed",
-              "description": "Tổng hợp kiến thức tuần 1 và làm bài mini quiz.",
+              "description": "Tổng hợp kiến thức tuần 1 và làm mini quiz.",
               "location": "C1-201",
               "log": {
-                "actualDuration": 95,
-                "comprehensionLevel": "Intermediate",
+                "actualDuration": 98,
+                "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Medium",
-                "note": "Nắm tốt mảng 1 chiều, còn chậm ở con trỏ kép."
+                "note": "Hoàn thành toàn bộ mục tiêu buổi học, trả lời đúng hầu hết câu hỏi ôn tập."
               }
             },
             {
-              "name": "Giải 8 bài stack/queue trên OJ",
+              "name": "Giải 10 bài stack/queue trên OJ",
               "type": "AssignmentWork",
-              "routineRef": "DSA-R3",
+              "routineRef": "DSA-R2",
               "dayOffset": 14,
               "startTime": "19:00",
               "plannedDuration": 120,
               "status": "Completed",
-              "description": "Luyện bài mức easy-medium trong 2 giờ.",
+              "description": "Luyện bài easy-medium trong phiên tập trung.",
               "location": "Thư viện Trung tâm học liệu",
               "log": {
-                "actualDuration": 130,
-                "comprehensionLevel": "Intermediate",
+                "actualDuration": 118,
+                "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Hard",
-                "note": "Hoàn thành 6/8 bài, cần luyện thêm deque."
+                "note": "Hoàn thành 10/10 bài, tối ưu tốt thao tác deque và xử lý biên."
               }
             },
             {
@@ -107,10 +107,10 @@
               "description": "Kiểm tra tổng hợp cuối phase 1.",
               "location": "KTX B - phòng tự học",
               "log": {
-                "actualDuration": 65,
+                "actualDuration": 60,
                 "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Medium",
-                "note": "Điểm checkpoint đạt 8.2/10."
+                "note": "Đạt 9.1/10, nắm chắc nền tảng trước khi sang đồ thị."
               }
             }
           ]
@@ -123,7 +123,7 @@
           "startDayOffset": 36,
           "endDayOffset": 85,
           "location": "Khu II - Nhà học C1",
-          "notes": "Có bài tập nhóm mô phỏng tối ưu đường đi.",
+          "notes": "Tập trung giải bài đồ thị có trọng số và bài toán DP kinh điển.",
           "routines": [
             {
               "referenceId": "DSA-R3",
@@ -144,20 +144,20 @@
           ],
           "tasks": [
             {
-              "name": "Code BFS/DFS trên dữ liệu lớn",
+              "name": "Code BFS/DFS và Dijkstra trên dữ liệu lớn",
               "type": "SelfStudy",
-              "routineRef": "DSA-R2",
+              "routineRef": "DSA-R3",
               "dayOffset": 45,
-              "startTime": "19:30",
+              "startTime": "14:00",
               "plannedDuration": 120,
               "status": "Completed",
-              "description": "Viết bản iterative và recursive, benchmark thời gian.",
+              "description": "Viết bản iterative và benchmark thời gian chạy.",
               "location": "Nhà học C2 - phòng máy",
               "log": {
-                "actualDuration": 115,
+                "actualDuration": 116,
                 "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Hard",
-                "note": "Đã tối ưu bộ nhớ visited, cải thiện ~18%."
+                "note": "Tối ưu visited và priority queue, tốc độ cải thiện rõ rệt trên test lớn."
               }
             },
             {
@@ -168,13 +168,13 @@
               "startTime": "14:00",
               "plannedDuration": 120,
               "status": "Completed",
-              "description": "Chốt backlog và phân công thành viên.",
+              "description": "Chốt backlog và phân công theo mảng bài toán.",
               "location": "Learning Hub - Khu II",
               "log": {
-                "actualDuration": 110,
-                "comprehensionLevel": "Intermediate",
+                "actualDuration": 112,
+                "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Medium",
-                "note": "Kế hoạch rõ hơn, cần đẩy nhanh phần test case."
+                "note": "Team bám đúng kế hoạch, phân chia task rõ và không bị nghẽn."
               }
             },
             {
@@ -191,7 +191,7 @@
                 "actualDuration": 55,
                 "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Easy",
-                "note": "Nộp đúng hạn, được góp ý cải thiện biểu đồ."
+                "note": "Nộp sớm và được nhận xét tích cực về phần phân tích thuật toán."
               }
             }
           ]
@@ -204,7 +204,7 @@
           "startDayOffset": 86,
           "endDayOffset": 140,
           "location": "KTX B - phòng tự học",
-          "notes": "Ôn đề tổng hợp và sửa lỗi hay gặp.",
+          "notes": "Luyện đề tổng hợp và chốt các lỗi thường gặp trước kỳ thi.",
           "routines": [
             {
               "referenceId": "DSA-R4",
@@ -235,10 +235,10 @@
               "description": "Đề luyện theo cấu trúc thi năm trước.",
               "location": "KTX B - phòng tự học",
               "log": {
-                "actualDuration": 125,
+                "actualDuration": 118,
                 "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Hard",
-                "note": "Sai 1 câu về shortest path, đã ghi chú lại."
+                "note": "Điểm mô phỏng đạt 9.0, xử lý tốt câu đồ thị khó."
               }
             },
             {
@@ -248,10 +248,15 @@
               "dayOffset": 112,
               "startTime": "20:00",
               "plannedDuration": 120,
-              "status": "Pending",
-              "description": "Mục tiêu làm trong thời gian 90 phút.",
+              "status": "Completed",
+              "description": "Đề tổng hợp mục tiêu hoàn thành trong thời gian chuẩn.",
               "location": "KTX B - phòng tự học",
-              "log": null
+              "log": {
+                "actualDuration": 116,
+                "comprehensionLevel": "Advanced",
+                "difficultyLevel": "Medium",
+                "note": "Hoàn thành sớm hơn kế hoạch, mức chính xác cao và ổn định."
+              }
             },
             {
               "name": "Thi cuối kỳ DSA",
@@ -260,524 +265,15 @@
               "dayOffset": 133,
               "startTime": "07:30",
               "plannedDuration": 90,
-              "status": "Pending",
+              "status": "Completed",
               "description": "Milestone thi chính thức.",
               "location": "Nhà học C1",
-              "log": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Cơ sở dữ liệu",
-      "subjectCode": "CT214",
-      "subjectName": "Cơ sở dữ liệu",
-      "subjectCredits": 3,
-      "goal": "Thiết kế schema chuẩn và tối ưu truy vấn thực tế",
-      "status": "Enrolled",
-      "color": "#0F766E",
-      "targetScore": 8.5,
-      "comment": "Bám sát case học vụ tại CTU, có phần mini project.",
-      "phases": [
-        {
-          "referenceId": "DB-P1",
-          "title": "Thiết kế dữ liệu và chuẩn hóa",
-          "type": "General",
-          "priority": "High",
-          "startDayOffset": 0,
-          "endDayOffset": 40,
-          "location": "Nhà học B1",
-          "notes": "Chuẩn hóa 1NF-3NF và xây ERD.",
-          "routines": [
-            {
-              "referenceId": "DB-R1",
-              "name": "Thực hành SQL trên lớp",
-              "type": "ClassSession",
-              "instructor": "ThS. Nguyễn Trọng An",
-              "startDayOffset": 0,
-              "endDayOffset": 120,
-              "schedules": [
-                {
-                  "dayOfWeek": "Tuesday",
-                  "startTime": "13:30",
-                  "duration": 90,
-                  "location": "B1-302"
-                }
-              ]
-            },
-            {
-              "referenceId": "DB-R2",
-              "name": "Tự học truy vấn SQL",
-              "type": "SelfStudy",
-              "instructor": null,
-              "startDayOffset": 0,
-              "endDayOffset": 120,
-              "schedules": [
-                {
-                  "dayOfWeek": "Friday",
-                  "startTime": "19:30",
-                  "duration": 100,
-                  "location": "Nhà học C2 - phòng máy"
-                }
-              ]
-            }
-          ],
-          "tasks": [
-            {
-              "name": "Xây ERD hệ thống đăng ký tín chỉ",
-              "type": "AssignmentWork",
-              "routineRef": "DB-R3",
-              "dayOffset": 12,
-              "startTime": "19:30",
-              "plannedDuration": 100,
-              "status": "Completed",
-              "description": "Mô hình hóa dữ liệu theo ngữ cảnh CTU.",
-              "location": "Nhà học C2 - phòng máy",
               "log": {
-                "actualDuration": 110,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Hard",
-                "note": "Đã chỉnh lại cardinality theo góp ý giảng viên."
-              }
-            },
-            {
-              "name": "Ôn subquery và CTE",
-              "type": "ClassSession",
-              "routineRef": "DB-R1",
-              "dayOffset": 26,
-              "startTime": "13:30",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "description": "Bài thực hành truy vấn nâng cao.",
-              "location": "B1-302",
-              "log": {
-                "actualDuration": 95,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Đã làm được CTE lồng nhau ở mức cơ bản."
-              }
-            },
-            {
-              "name": "Milestone kiểm tra giữa kỳ CSDL",
-              "type": "Milestone",
-              "routineRef": null,
-              "dayOffset": 38,
-              "startTime": "15:00",
-              "plannedDuration": 60,
-              "status": "Completed",
-              "description": "Mốc kiểm tra giữa kỳ.",
-              "location": "Nhà học B1",
-              "log": {
-                "actualDuration": 60,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Medium",
-                "note": "Đạt 8.4/10, cần tối ưu phần index."
-              }
-            }
-          ]
-        },
-        {
-          "referenceId": "DB-P2",
-          "title": "Mini project cơ sở dữ liệu",
-          "type": "Project",
-          "priority": "Medium",
-          "startDayOffset": 41,
-          "endDayOffset": 95,
-          "location": "Phòng Lab CNPM",
-          "notes": "Xây API + DB cho hệ thống quản lý học tập.",
-          "routines": [
-            {
-              "referenceId": "DB-R3",
-              "name": "Họp nhóm project CSDL",
-              "type": "Meeting",
-              "instructor": null,
-              "startDayOffset": 41,
-              "endDayOffset": 95,
-              "schedules": [
-                {
-                  "dayOfWeek": "Sunday",
-                  "startTime": "09:00",
-                  "duration": 120,
-                  "location": "Learning Hub - Khu II"
-                }
-              ]
-            }
-          ],
-          "tasks": [
-            {
-              "name": "Thiết kế chỉ mục cho bảng log học tập",
-              "type": "AssignmentWork",
-              "routineRef": "DB-R3",
-              "dayOffset": 59,
-              "startTime": "09:00",
-              "plannedDuration": 120,
-              "status": "Completed",
-              "description": "Tối ưu truy vấn dashboard tuần.",
-              "location": "Phòng Lab CNPM",
-              "log": {
-                "actualDuration": 125,
+                "actualDuration": 90,
                 "comprehensionLevel": "Advanced",
                 "difficultyLevel": "Hard",
-                "note": "Index composite giúp giảm thời gian truy vấn rõ rệt."
+                "note": "Kết quả cuối kỳ vượt mục tiêu đề ra, duy trì phong độ đến cuối học kỳ."
               }
-            },
-            {
-              "name": "Review transaction và deadlock",
-              "type": "SelfStudy",
-              "routineRef": "DB-R2",
-              "dayOffset": 71,
-              "startTime": "19:30",
-              "plannedDuration": 100,
-              "status": "Completed",
-              "description": "Thực nghiệm isolation level trong PostgreSQL.",
-              "location": "Nhà học C2 - phòng máy",
-              "log": {
-                "actualDuration": 105,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Hard",
-                "note": "Hiểu rõ hơn về repeatable read và phantom read."
-              }
-            },
-            {
-              "name": "Nộp báo cáo mini project CSDL",
-              "type": "Milestone",
-              "routineRef": null,
-              "dayOffset": 92,
-              "startTime": "10:00",
-              "plannedDuration": 60,
-              "status": "Completed",
-              "description": "Mốc nộp báo cáo và demo nhóm.",
-              "location": "Văn phòng bộ môn HTTT",
-              "log": {
-                "actualDuration": 45,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Easy",
-                "note": "Nộp đúng hạn, được đề xuất cải thiện phần backup."
-              }
-            }
-          ]
-        },
-        {
-          "referenceId": "DB-P3",
-          "title": "Ôn thi cuối kỳ CSDL",
-          "type": "ExamPrep",
-          "priority": "High",
-          "startDayOffset": 96,
-          "endDayOffset": 140,
-          "location": "KTX A - phòng tự học",
-          "notes": "Luyện đề tập trung SQL tuning và transaction.",
-          "routines": [
-            {
-              "referenceId": "DB-R4",
-              "name": "Luyện đề CSDL cuối kỳ",
-              "type": "SelfStudy",
-              "instructor": null,
-              "startDayOffset": 96,
-              "endDayOffset": 140,
-              "schedules": [
-                {
-                  "dayOfWeek": "Thursday",
-                  "startTime": "20:00",
-                  "duration": 120,
-                  "location": "KTX A - phòng tự học"
-                }
-              ]
-            }
-          ],
-          "tasks": [
-            {
-              "name": "Làm đề SQL tuning số 1",
-              "type": "SelfStudy",
-              "routineRef": "DB-R4",
-              "dayOffset": 104,
-              "startTime": "20:00",
-              "plannedDuration": 120,
-              "status": "Completed",
-              "description": "Mô phỏng đề thi 90 phút.",
-              "location": "KTX A - phòng tự học",
-              "log": {
-                "actualDuration": 115,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Medium",
-                "note": "Đạt 84%, còn thiếu phần explain analyze sâu."
-              }
-            },
-            {
-              "name": "Làm đề SQL tuning số 2",
-              "type": "SelfStudy",
-              "routineRef": "DB-R4",
-              "dayOffset": 121,
-              "startTime": "20:00",
-              "plannedDuration": 120,
-              "status": "Pending",
-              "description": "Đề tổng hợp transaction + index.",
-              "location": "KTX A - phòng tự học",
-              "log": null
-            },
-            {
-              "name": "Thi cuối kỳ CSDL",
-              "type": "Milestone",
-              "routineRef": null,
-              "dayOffset": 136,
-              "startTime": "13:00",
-              "plannedDuration": 90,
-              "status": "Pending",
-              "description": "Milestone thi chính thức môn CSDL.",
-              "location": "Nhà học B1",
-              "log": null
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Công nghệ phần mềm",
-      "subjectCode": "CT239",
-      "subjectName": "Công nghệ phần mềm",
-      "subjectCredits": 3,
-      "goal": "Thành thạo quy trình phát triển phần mềm theo nhóm",
-      "status": "Enrolled",
-      "color": "#B45309",
-      "targetScore": 8.3,
-      "comment": "Môn luận văn demo: có backlog, sprint, review rõ ràng.",
-      "phases": [
-        {
-          "referenceId": "SE-P1",
-          "title": "Khởi động dự án học kỳ",
-          "type": "General",
-          "priority": "High",
-          "startDayOffset": 0,
-          "endDayOffset": 30,
-          "location": "Nhà học B3",
-          "notes": "Chốt đề tài, phân tích yêu cầu, lập backlog.",
-          "routines": [
-            {
-              "referenceId": "SE-R1",
-              "name": "Workshop yêu cầu và user story",
-              "type": "ClassSession",
-              "instructor": "ThS. Võ Minh Tâm",
-              "startDayOffset": 0,
-              "endDayOffset": 120,
-              "schedules": [
-                {
-                  "dayOfWeek": "Wednesday",
-                  "startTime": "09:30",
-                  "duration": 90,
-                  "location": "B3-101"
-                }
-              ]
-            },
-            {
-              "referenceId": "SE-R2",
-              "name": "Họp sprint planning",
-              "type": "Meeting",
-              "instructor": null,
-              "startDayOffset": 0,
-              "endDayOffset": 120,
-              "schedules": [
-                {
-                  "dayOfWeek": "Saturday",
-                  "startTime": "16:00",
-                  "duration": 90,
-                  "location": "Learning Hub - Khu II"
-                }
-              ]
-            }
-          ],
-          "tasks": [
-            {
-              "name": "Hoàn thiện backlog phiên bản 1",
-              "type": "AssignmentWork",
-              "routineRef": "SE-R2",
-              "dayOffset": 9,
-              "startTime": "16:00",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "description": "Xây user story và ưu tiên MoSCoW.",
-              "location": "Learning Hub - Khu II",
-              "log": {
-                "actualDuration": 100,
-                "comprehensionLevel": "Intermediate",
-                "difficultyLevel": "Medium",
-                "note": "Backlog đã rõ, cần thêm acceptance criteria chi tiết."
-              }
-            },
-            {
-              "name": "Review wireframe với giảng viên",
-              "type": "Meeting",
-              "routineRef": "SE-R1",
-              "dayOffset": 18,
-              "startTime": "09:30",
-              "plannedDuration": 90,
-              "status": "Completed",
-              "description": "Rà soát luồng chính màn hình dashboard.",
-              "location": "B3-101",
-              "log": {
-                "actualDuration": 85,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Medium",
-                "note": "Được duyệt hướng triển khai, bổ sung flow lỗi."
-              }
-            },
-            {
-              "name": "Milestone chốt phạm vi sprint 1",
-              "type": "Milestone",
-              "routineRef": null,
-              "dayOffset": 28,
-              "startTime": "20:30",
-              "plannedDuration": 45,
-              "status": "Completed",
-              "description": "Khóa phạm vi phát triển sprint đầu.",
-              "location": "KTX B - phòng tự học",
-              "log": {
-                "actualDuration": 50,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Easy",
-                "note": "Scope ổn định, risk chính là tiến độ test."
-              }
-            }
-          ]
-        },
-        {
-          "referenceId": "SE-P2",
-          "title": "Phát triển và kiểm thử",
-          "type": "Project",
-          "priority": "High",
-          "startDayOffset": 31,
-          "endDayOffset": 100,
-          "location": "Phòng Lab CNPM",
-          "notes": "Triển khai backend + frontend + test tích hợp.",
-          "routines": [
-            {
-              "referenceId": "SE-R3",
-              "name": "Pair programming",
-              "type": "Meeting",
-              "instructor": null,
-              "startDayOffset": 31,
-              "endDayOffset": 100,
-              "schedules": [
-                {
-                  "dayOfWeek": "Tuesday",
-                  "startTime": "18:30",
-                  "duration": 120,
-                  "location": "Phòng Lab CNPM"
-                }
-              ]
-            }
-          ],
-          "tasks": [
-            {
-              "name": "Tích hợp authentication JWT",
-              "type": "AssignmentWork",
-              "routineRef": "SE-R3",
-              "dayOffset": 47,
-              "startTime": "18:30",
-              "plannedDuration": 120,
-              "status": "Completed",
-              "description": "Hoàn tất login, refresh token và middleware.",
-              "location": "Phòng Lab CNPM",
-              "log": {
-                "actualDuration": 130,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Hard",
-                "note": "Đã fix race condition nhỏ ở refresh token."
-              }
-            },
-            {
-              "name": "Viết test tích hợp module lịch học",
-              "type": "AssignmentWork",
-              "routineRef": "SE-R3",
-              "dayOffset": 74,
-              "startTime": "18:30",
-              "plannedDuration": 120,
-              "status": "InProgress",
-              "description": "Bao phủ case tạo routine, tạo task tự động.",
-              "location": "Phòng Lab CNPM",
-              "log": null
-            },
-            {
-              "name": "Milestone demo giữa kỳ CNPM",
-              "type": "Milestone",
-              "routineRef": null,
-              "dayOffset": 97,
-              "startTime": "09:00",
-              "plannedDuration": 60,
-              "status": "Completed",
-              "description": "Demo chức năng chính cho hội đồng môn học.",
-              "location": "B3-101",
-              "log": {
-                "actualDuration": 70,
-                "comprehensionLevel": "Advanced",
-                "difficultyLevel": "Medium",
-                "note": "Demo tốt, cần cải thiện phần báo cáo thống kê."
-              }
-            }
-          ]
-        },
-        {
-          "referenceId": "SE-P3",
-          "title": "Hoàn thiện báo cáo và bảo vệ",
-          "type": "Assignment",
-          "priority": "High",
-          "startDayOffset": 101,
-          "endDayOffset": 140,
-          "location": "Khoa CNTT&TT - CTU",
-          "notes": "Chuẩn bị slide, rehearsal, hoàn thiện luận văn.",
-          "routines": [
-            {
-              "referenceId": "SE-R4",
-              "name": "Rehearsal thuyết trình",
-              "type": "Meeting",
-              "instructor": null,
-              "startDayOffset": 101,
-              "endDayOffset": 140,
-              "schedules": [
-                {
-                  "dayOfWeek": "Friday",
-                  "startTime": "20:00",
-                  "duration": 90,
-                  "location": "KTX B - phòng tự học"
-                }
-              ]
-            }
-          ],
-          "tasks": [
-            {
-              "name": "Hoàn thiện chương đánh giá hệ thống",
-              "type": "AssignmentWork",
-              "routineRef": "SE-R4",
-              "dayOffset": 108,
-              "startTime": "20:00",
-              "plannedDuration": 90,
-              "status": "InProgress",
-              "description": "Bổ sung biểu đồ kết quả và phân tích hiệu năng.",
-              "location": "KTX B - phòng tự học",
-              "log": null
-            },
-            {
-              "name": "Tổng duyệt slide bảo vệ",
-              "type": "Meeting",
-              "routineRef": "SE-R4",
-              "dayOffset": 123,
-              "startTime": "20:00",
-              "plannedDuration": 90,
-              "status": "Pending",
-              "description": "Chạy thử full flow thuyết trình 20 phút.",
-              "location": "KTX B - phòng tự học",
-              "log": null
-            },
-            {
-              "name": "Milestone bảo vệ luận văn",
-              "type": "Milestone",
-              "routineRef": null,
-              "dayOffset": 138,
-              "startTime": "08:00",
-              "plannedDuration": 120,
-              "status": "Pending",
-              "description": "Bảo vệ đề tài trước hội đồng.",
-              "location": "Hội trường Khoa CNTT&TT",
-              "log": null
             }
           ]
         }
